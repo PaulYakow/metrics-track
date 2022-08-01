@@ -165,7 +165,7 @@ func sendReport(agent *http.Client, m map[name]*metric) {
 		urlElems := []string{
 			endpoint,
 			fmt.Sprintf("%v", mtr.tMetric),
-			fmt.Sprintf("%s", mtrName),
+			string(mtrName),
 			fmt.Sprintf("%v", mtr.value),
 		}
 		url := strings.Join(urlElems, "/")
