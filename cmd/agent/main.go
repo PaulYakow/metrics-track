@@ -86,8 +86,6 @@ func (rm *rtMetrics) update() {
 	//Заполняем дополнительные метрики
 	rm.PollCount++
 	rm.RandomValue = gauge(rand.Float64())
-
-	time.Sleep(pollInterval)
 }
 
 func (rm *rtMetrics) post(agent *http.Client) {
@@ -106,12 +104,15 @@ func (rm *rtMetrics) post(agent *http.Client) {
 	if err != nil {
 		fmt.Println("response read all| ", err)
 	}
-
-	time.Sleep(reportInterval)
 }
 
 func main() {
 	var metrics rtMetrics
+
+	pollTicker := time.NewTicker(pollInterval)
+	reportTicker := time.NewTicker(reportInterval)
+	defer pollTicker.Stop()
+	defer reportTicker.Stop()
 
 	transport := &http.Transport{}
 	transport.MaxIdleConns = 10
@@ -122,7 +123,11 @@ func main() {
 	}
 
 	for {
-		metrics.update()
-		metrics.post(agent)
+		select {
+		case <-pollTicker.C:
+			metrics.update()
+		case <-reportTicker.C:
+			metrics.post(agent)
+		}
 	}
 }
