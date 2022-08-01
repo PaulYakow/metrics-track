@@ -6,108 +6,189 @@ import (
 	"math/rand"
 	"net/http"
 	"runtime"
+	"strings"
 	"time"
 )
 
 type gauge float64
 type counter int64
+type name string
 
 var ms runtime.MemStats
 
 var pollInterval = 2 * time.Second
 var reportInterval = 10 * time.Second
-var endpoint = "http://127.0.0.1:8080/update/"
+var endpoint = "http://127.0.0.1:8080/update"
 
-type rtMetrics struct {
-	Alloc         gauge
-	BuckHashSys   gauge
-	Frees         gauge
-	GCCPUFraction gauge
-	GCSys         gauge
-	HeapAlloc     gauge
-	HeapIdle      gauge
-	HeapInuse     gauge
-	HeapObjects   gauge
-	HeapReleased  gauge
-	HeapSys       gauge
-	LastGC        gauge
-	Lookups       gauge
-	MCacheInuse   gauge
-	MCacheSys     gauge
-	MSpanInuse    gauge
-	MSpanSys      gauge
-	Mallocs       gauge
-	NextGC        gauge
-	NumForcedGC   gauge
-	NumGC         gauge
-	OtherSys      gauge
-	PauseTotalNs  gauge
-	StackInuse    gauge
-	StackSys      gauge
-	Sys           gauge
-	TotalAlloc    gauge
-	PollCount     counter
-	RandomValue   gauge
+type metric struct {
+	tMetric string
+	value   any
 }
 
-func (rm *rtMetrics) update() {
+func createMetricBatch() map[name]*metric {
+	metrics := make(map[name]*metric)
+
+	metrics["Alloc"] = &metric{
+		tMetric: "gauge",
+	}
+	metrics["BuckHashSys"] = &metric{
+		tMetric: "gauge",
+	}
+	metrics["Frees"] = &metric{
+		tMetric: "gauge",
+	}
+	metrics["GCCPUFraction"] = &metric{
+		tMetric: "gauge",
+	}
+	metrics["GCSys"] = &metric{
+		tMetric: "gauge",
+	}
+	metrics["HeapAlloc"] = &metric{
+		tMetric: "gauge",
+	}
+	metrics["HeapIdle"] = &metric{
+		tMetric: "gauge",
+	}
+	metrics["HeapInuse"] = &metric{
+		tMetric: "gauge",
+	}
+	metrics["HeapObjects"] = &metric{
+		tMetric: "gauge",
+	}
+	metrics["HeapReleased"] = &metric{
+		tMetric: "gauge",
+	}
+	metrics["HeapSys"] = &metric{
+		tMetric: "gauge",
+	}
+	metrics["LastGC"] = &metric{
+		tMetric: "gauge",
+	}
+	metrics["Lookups"] = &metric{
+		tMetric: "gauge",
+	}
+	metrics["MCacheInuse"] = &metric{
+		tMetric: "gauge",
+	}
+	metrics["MCacheSys"] = &metric{
+		tMetric: "gauge",
+	}
+	metrics["MSpanInuse"] = &metric{
+		tMetric: "gauge",
+	}
+	metrics["MSpanSys"] = &metric{
+		tMetric: "gauge",
+	}
+	metrics["Mallocs"] = &metric{
+		tMetric: "gauge",
+	}
+	metrics["NextGC"] = &metric{
+		tMetric: "gauge",
+	}
+	metrics["NumForcedGC"] = &metric{
+		tMetric: "gauge",
+	}
+	metrics["NumGC"] = &metric{
+		tMetric: "gauge",
+	}
+	metrics["OtherSys"] = &metric{
+		tMetric: "gauge",
+	}
+	metrics["PauseTotalNs"] = &metric{
+		tMetric: "gauge",
+	}
+	metrics["StackSys"] = &metric{
+		tMetric: "gauge",
+	}
+	metrics["StackInuse"] = &metric{
+		tMetric: "gauge",
+	}
+	metrics["Sys"] = &metric{
+		tMetric: "gauge",
+	}
+	metrics["TotalAlloc"] = &metric{
+		tMetric: "gauge",
+	}
+	metrics["PollCount"] = &metric{
+		tMetric: "counter",
+		value:   counter(-1),
+	}
+	metrics["RandomValue"] = &metric{
+		tMetric: "gauge",
+	}
+
+	return metrics
+}
+
+func updateMetrics(m map[name]*metric) {
 	//Заполняем переменную ms данными статистики
 	runtime.ReadMemStats(&ms)
 
 	//Заполняем поля структуры данными статистики
-	rm.Alloc = gauge(ms.Alloc)
-	rm.BuckHashSys = gauge(ms.BuckHashSys)
-	rm.Frees = gauge(ms.Frees)
-	rm.GCCPUFraction = gauge(ms.GCCPUFraction)
-	rm.GCSys = gauge(ms.GCSys)
-	rm.HeapAlloc = gauge(ms.HeapAlloc)
-	rm.HeapIdle = gauge(ms.HeapIdle)
-	rm.HeapInuse = gauge(ms.HeapInuse)
-	rm.HeapObjects = gauge(ms.HeapObjects)
-	rm.HeapReleased = gauge(ms.HeapReleased)
-	rm.HeapSys = gauge(ms.HeapSys)
-	rm.LastGC = gauge(ms.LastGC)
-	rm.Lookups = gauge(ms.Lookups)
-	rm.MCacheInuse = gauge(ms.MCacheInuse)
-	rm.MCacheSys = gauge(ms.MCacheSys)
-	rm.MSpanInuse = gauge(ms.MSpanInuse)
-	rm.MSpanSys = gauge(ms.MSpanSys)
-	rm.Mallocs = gauge(ms.Mallocs)
-	rm.NextGC = gauge(ms.NextGC)
-	rm.NumForcedGC = gauge(ms.NumForcedGC)
-	rm.NumGC = gauge(ms.NumGC)
-	rm.OtherSys = gauge(ms.OtherSys)
-	rm.PauseTotalNs = gauge(ms.PauseTotalNs)
-	rm.StackInuse = gauge(ms.StackInuse)
-	rm.StackSys = gauge(ms.StackSys)
-	rm.Sys = gauge(ms.Sys)
-	rm.TotalAlloc = gauge(ms.TotalAlloc)
+	m["Alloc"].value = gauge(ms.Alloc)
+	m["BuckHashSys"].value = gauge(ms.BuckHashSys)
+	m["Frees"].value = gauge(ms.Frees)
+	m["GCCPUFraction"].value = gauge(ms.GCCPUFraction)
+	m["GCSys"].value = gauge(ms.GCSys)
+	m["HeapAlloc"].value = gauge(ms.HeapAlloc)
+	m["HeapIdle"].value = gauge(ms.HeapIdle)
+	m["HeapInuse"].value = gauge(ms.HeapInuse)
+	m["HeapObjects"].value = gauge(ms.HeapObjects)
+	m["HeapReleased"].value = gauge(ms.HeapReleased)
+	m["HeapSys"].value = gauge(ms.HeapSys)
+	m["LastGC"].value = gauge(ms.LastGC)
+	m["Lookups"].value = gauge(ms.Lookups)
+	m["MCacheInuse"].value = gauge(ms.MCacheInuse)
+	m["MCacheSys"].value = gauge(ms.MCacheSys)
+	m["MSpanInuse"].value = gauge(ms.MSpanInuse)
+	m["MSpanSys"].value = gauge(ms.MSpanSys)
+	m["Mallocs"].value = gauge(ms.Mallocs)
+	m["NextGC"].value = gauge(ms.NextGC)
+	m["NumForcedGC"].value = gauge(ms.NumForcedGC)
+	m["NumGC"].value = gauge(ms.NumGC)
+	m["OtherSys"].value = gauge(ms.OtherSys)
+	m["PauseTotalNs"].value = gauge(ms.PauseTotalNs)
+	m["StackInuse"].value = gauge(ms.StackInuse)
+	m["StackSys"].value = gauge(ms.StackSys)
+	m["Sys"].value = gauge(ms.Sys)
+	m["TotalAlloc"].value = gauge(ms.TotalAlloc)
 
-	//Заполняем дополнительные метрики
-	rm.PollCount++
-	rm.RandomValue = gauge(rand.Float64())
+	//	//Заполняем дополнительные метрики
+	count := m["PollCount"].value.(counter)
+	count++
+	m["PollCount"].value = count
+	m["RandomValue"].value = gauge(rand.Float64())
 }
 
-func (rm *rtMetrics) post(agent *http.Client) {
-	request, err := http.NewRequest(http.MethodPost, endpoint+"gauge/Alloc/"+fmt.Sprintf("%v", rm.Alloc), nil)
-	if err != nil {
-		fmt.Println("request| ", err)
-	}
-	request.Header.Add("Content-Type", "text/plain")
+func sendReport(agent *http.Client, m map[name]*metric) {
+	for mtrName, mtr := range m {
+		urlElems := []string{
+			endpoint,
+			fmt.Sprintf("%v", mtr.tMetric),
+			fmt.Sprintf("%s", mtrName),
+			fmt.Sprintf("%v", mtr.value),
+		}
+		url := strings.Join(urlElems, "/")
+		request, err := http.NewRequest(http.MethodPost, url, nil)
+		if err != nil {
+			fmt.Println("request| ", err)
+		}
+		request.Header.Add("Content-Type", "text/plain")
 
-	response, err := agent.Do(request)
-	if err != nil {
-		fmt.Println("response| ", err)
-	}
-	defer response.Body.Close()
-	_, err = io.ReadAll(response.Body)
-	if err != nil {
-		fmt.Println("response read all| ", err)
+		response, err := agent.Do(request)
+		if err != nil {
+			fmt.Println("response| ", err)
+		}
+		defer response.Body.Close()
+		_, err = io.ReadAll(response.Body)
+		if err != nil {
+			fmt.Println("response read all| ", err)
+		}
 	}
 }
 
 func main() {
-	var metrics rtMetrics
+	metrics := createMetricBatch()
 
 	pollTicker := time.NewTicker(pollInterval)
 	reportTicker := time.NewTicker(reportInterval)
@@ -125,9 +206,10 @@ func main() {
 	for {
 		select {
 		case <-pollTicker.C:
-			metrics.update()
+			updateMetrics(metrics)
 		case <-reportTicker.C:
-			metrics.post(agent)
+			sendReport(agent, metrics)
 		}
 	}
+
 }
