@@ -93,18 +93,18 @@ func (rm *rtMetrics) update() {
 func (rm *rtMetrics) post(agent *http.Client) {
 	request, err := http.NewRequest(http.MethodPost, endpoint+"gauge/Alloc/"+fmt.Sprintf("%v", rm.Alloc), nil)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("request| ", err)
 	}
 	request.Header.Add("Content-Type", "text/plain")
 
 	response, err := agent.Do(request)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("response| ", err)
 	}
 	defer response.Body.Close()
 	_, err = io.ReadAll(response.Body)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("response read all| ", err)
 	}
 
 	time.Sleep(reportInterval)
@@ -122,7 +122,7 @@ func main() {
 	}
 
 	for {
-		go metrics.update()
-		go metrics.post(agent)
+		metrics.update()
+		metrics.post(agent)
 	}
 }
