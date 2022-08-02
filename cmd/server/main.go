@@ -18,7 +18,7 @@ type metric struct {
 var metrics = make(map[string]metric)
 
 func gaugeHandler(w http.ResponseWriter, r *http.Request) {
-	metricFromPath := strings.Split(strings.TrimLeft(r.URL.Path, "/"), "/")
+	metricFromPath := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
 	switch {
 	case len(metricFromPath) == 1:
 		w.WriteHeader(http.StatusBadRequest)
@@ -46,7 +46,7 @@ func gaugeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func counterHandler(w http.ResponseWriter, r *http.Request) {
-	metricFromPath := strings.Split(strings.TrimLeft(r.URL.Path, "/"), "/")
+	metricFromPath := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
 	switch {
 	case len(metricFromPath) == 1:
 		w.WriteHeader(http.StatusBadRequest)
