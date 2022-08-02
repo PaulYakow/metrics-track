@@ -18,14 +18,29 @@ type metric struct {
 var metrics = make(map[string]metric)
 
 func gaugeHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodPost:
-		metricFromPath := strings.Split(strings.TrimLeft(r.URL.Path, "/"), "/")
-
-		value, _ := strconv.ParseFloat(metricFromPath[3], 64)
-		metrics[metricFromPath[2]] = metric{
-			tMetric: "gauge",
-			value:   gauge(value),
+	metricFromPath := strings.Split(strings.TrimLeft(r.URL.Path, "/"), "/")
+	switch {
+	case len(metricFromPath) == 1:
+		w.WriteHeader(http.StatusBadRequest)
+	case len(metricFromPath) == 2:
+		w.WriteHeader(http.StatusNotFound)
+	case len(metricFromPath) == 3:
+		w.WriteHeader(http.StatusBadRequest)
+	case len(metricFromPath) == 4:
+		switch r.Method {
+		case http.MethodPost:
+			value, err := strconv.ParseFloat(metricFromPath[3], 64)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+			metrics[metricFromPath[2]] = metric{
+				tMetric: "gauge",
+				value:   gauge(value),
+			}
+			w.WriteHeader(http.StatusOK)
+		default:
+			w.WriteHeader(http.StatusBadRequest)
 		}
 	}
 }
