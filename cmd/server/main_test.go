@@ -45,6 +45,7 @@ func Test_gaugeHandler(t *testing.T) {
 			w := httptest.NewRecorder()
 			gaugeHandler(w, request)
 			result := w.Result()
+			defer result.Body.Close()
 
 			assert.Equal(t, tt.want, result.StatusCode)
 		})
@@ -90,6 +91,7 @@ func Test_counterHandler(t *testing.T) {
 			w := httptest.NewRecorder()
 			counterHandler(w, request)
 			result := w.Result()
+			defer result.Body.Close()
 
 			assert.Equal(t, tt.want, result.StatusCode)
 		})
@@ -115,6 +117,7 @@ func Test_defaultHandler(t *testing.T) {
 			w := httptest.NewRecorder()
 			defaultHandler(w, request)
 			result := w.Result()
+			defer result.Body.Close()
 
 			assert.Equal(t, tt.want, result.StatusCode)
 		})
