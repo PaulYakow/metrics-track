@@ -21,7 +21,7 @@ func gaugeHandler(w http.ResponseWriter, r *http.Request) {
 	metricFromPath := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
 	switch {
 	case len(metricFromPath) == 1:
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotFound)
 	case len(metricFromPath) == 2:
 		w.WriteHeader(http.StatusNotFound)
 	case len(metricFromPath) == 3:
@@ -49,7 +49,7 @@ func counterHandler(w http.ResponseWriter, r *http.Request) {
 	metricFromPath := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
 	switch {
 	case len(metricFromPath) == 1:
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotFound)
 	case len(metricFromPath) == 2:
 		w.WriteHeader(http.StatusNotFound)
 	case len(metricFromPath) == 3:
