@@ -20,10 +20,10 @@ var metrics = make(map[string]metric)
 func gaugeHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
-		metricFromPath := strings.Split(strings.TrimLeft(r.URL.Path, "/updategauge"), "/")
+		metricFromPath := strings.Split(strings.TrimLeft(r.URL.Path, "/"), "/")
 
-		value, _ := strconv.ParseFloat(metricFromPath[1], 64)
-		metrics[metricFromPath[0]] = metric{
+		value, _ := strconv.ParseFloat(metricFromPath[3], 64)
+		metrics[metricFromPath[2]] = metric{
 			tMetric: "gauge",
 			value:   gauge(value),
 		}
@@ -31,21 +31,41 @@ func gaugeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func counterHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodPost:
-		metricFromPath := strings.Split(strings.TrimLeft(r.URL.Path, "/updatecounter"), "/")
-
-		value, _ := strconv.Atoi(metricFromPath[1])
-		metrics[metricFromPath[0]] = metric{
-			tMetric: "gauge",
-			value:   counter(value),
+	metricFromPath := strings.Split(strings.TrimLeft(r.URL.Path, "/"), "/")
+	switch {
+	case len(metricFromPath) == 1:
+		w.WriteHeader(http.StatusBadRequest)
+	case len(metricFromPath) == 2:
+		w.WriteHeader(http.StatusNotFound)
+	case len(metricFromPath) == 3:
+		w.WriteHeader(http.StatusBadRequest)
+	case len(metricFromPath) == 4:
+		switch r.Method {
+		case http.MethodPost:
+			value, err := strconv.Atoi(metricFromPath[3])
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+			metrics[metricFromPath[2]] = metric{
+				tMetric: "gauge",
+				value:   counter(value),
+			}
+			w.WriteHeader(http.StatusOK)
+		default:
+			w.WriteHeader(http.StatusBadRequest)
 		}
 	}
+}
+
+func defaultHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
 }
 
 func main() {
 	http.HandleFunc("/update/gauge/", gaugeHandler)
 	http.HandleFunc("/update/counter/", counterHandler)
+	http.HandleFunc("/update/", defaultHandler)
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

@@ -153,7 +153,7 @@ func updateMetrics(m map[name]*metric) {
 	m["Sys"].value = gauge(ms.Sys)
 	m["TotalAlloc"].value = gauge(ms.TotalAlloc)
 
-	//	//Заполняем дополнительные метрики
+	//Заполняем дополнительные метрики
 	count := m["PollCount"].value.(counter)
 	count++
 	m["PollCount"].value = count
