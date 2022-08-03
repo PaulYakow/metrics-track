@@ -92,18 +92,28 @@ func newRouter() chi.Router {
 
 		r.Route("/update", func(r chi.Router) {
 
-			r.Route("/gauge/{name}", func(r chi.Router) {
+			r.Route("/gauge", func(r chi.Router) {
 				r.Post("/", func(rw http.ResponseWriter, r *http.Request) {
-					rw.WriteHeader(http.StatusBadRequest)
+					rw.WriteHeader(http.StatusNotFound)
 				})
-				r.Post("/{value}", gaugeHandler)
+				r.Route("/{name}", func(r chi.Router) {
+					r.Post("/", func(rw http.ResponseWriter, r *http.Request) {
+						rw.WriteHeader(http.StatusBadRequest)
+					})
+					r.Post("/{value}", gaugeHandler)
+				})
 			})
 
-			r.Route("/counter/{name}", func(r chi.Router) {
+			r.Route("/counter", func(r chi.Router) {
 				r.Post("/", func(rw http.ResponseWriter, r *http.Request) {
-					rw.WriteHeader(http.StatusBadRequest)
+					rw.WriteHeader(http.StatusNotFound)
 				})
-				r.Post("/{value}", counterHandler)
+				r.Route("/{name}", func(r chi.Router) {
+					r.Post("/", func(rw http.ResponseWriter, r *http.Request) {
+						rw.WriteHeader(http.StatusBadRequest)
+					})
+					r.Post("/{value}", counterHandler)
+				})
 			})
 
 			r.Route("/", func(r chi.Router) {

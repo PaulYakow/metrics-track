@@ -53,7 +53,7 @@ func TestRouter(t *testing.T) {
 			name:   "no_metric_name",
 			method: "POST",
 			path:   "/update/gauge/",
-			want:   501,
+			want:   404,
 		},
 		{
 			name:   "only_update",
@@ -76,6 +76,8 @@ func TestRouter(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			resp, _ := testRequest(t, ts, tt.method, tt.path)
+			defer resp.Body.Close()
+
 			assert.Equal(t, tt.want, resp.StatusCode)
 		})
 	}
