@@ -29,7 +29,6 @@ func gaugeHandler(rw http.ResponseWriter, r *http.Request) {
 	gaugeMetrics[name] = gauge(value)
 
 	rw.WriteHeader(http.StatusOK)
-	rw.Write([]byte(name + "=" + rawValue))
 }
 
 func counterHandler(rw http.ResponseWriter, r *http.Request) {
@@ -45,7 +44,6 @@ func counterHandler(rw http.ResponseWriter, r *http.Request) {
 	counterMetrics[name] += counter(value)
 
 	rw.WriteHeader(http.StatusOK)
-	rw.Write([]byte(name + "=" + rawValue))
 }
 
 func defaultHandler(w http.ResponseWriter, r *http.Request) {
@@ -106,6 +104,10 @@ func newRouter() chi.Router {
 					rw.WriteHeader(http.StatusBadRequest)
 				})
 				r.Post("/{value}", counterHandler)
+			})
+
+			r.Route("/", func(r chi.Router) {
+				r.Post("/*", defaultHandler)
 			})
 		})
 	})

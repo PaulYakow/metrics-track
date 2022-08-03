@@ -2,124 +2,82 @@ package main
 
 import (
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
-func Test_gaugeHandler(t *testing.T) {
-	tests := []struct {
-		name    string
-		request string
-		want    int
-	}{
-		{
-			name:    "valid_update",
-			request: "/update/gauge/testGauge/0",
-			want:    200,
-		},
-		{
-			name:    "invalid_value",
-			request: "/update/gauge/testGauge/null",
-			want:    400,
-		},
-		{
-			name:    "no_metric_value",
-			request: "/update/gauge/testGauge/",
-			want:    400,
-		},
-		{
-			name:    "no_metric_name",
-			request: "/update/gauge/",
-			want:    404,
-		},
-		{
-			name:    "only_update",
-			request: "/update/",
-			want:    404,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			request := httptest.NewRequest(http.MethodPost, tt.request, nil)
-			w := httptest.NewRecorder()
-			gaugeHandler(w, request)
-			result := w.Result()
-			defer result.Body.Close()
+func testRequest(t *testing.T, ts *httptest.Server, method, path string) (*http.Response, string) {
+	req, err := http.NewRequest(method, ts.URL+path, nil)
+	require.NoError(t, err)
 
-			assert.Equal(t, tt.want, result.StatusCode)
-		})
-	}
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+
+	respBody, err := ioutil.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	defer resp.Body.Close()
+
+	return resp, string(respBody)
 }
 
-func Test_counterHandler(t *testing.T) {
+func TestRouter(t *testing.T) {
 	tests := []struct {
-		name    string
-		request string
-		want    int
+		name   string
+		method string
+		path   string
+		want   int
 	}{
 		{
-			name:    "valid_update",
-			request: "/update/counter/testCounter/0",
-			want:    200,
+			name:   "valid_update",
+			method: "POST",
+			path:   "/update/gauge/testGauge/0",
+			want:   200,
 		},
 		{
-			name:    "invalid_value",
-			request: "/update/counter/testCounter/null",
-			want:    400,
+			name:   "invalid_value",
+			method: "POST",
+			path:   "/update/gauge/testGauge/null",
+			want:   400,
 		},
 		{
-			name:    "no_metric_value",
-			request: "/update/counter/testCounter/",
-			want:    400,
+			name:   "no_metric_value",
+			method: "POST",
+			path:   "/update/gauge/testGauge/",
+			want:   400,
 		},
 		{
-			name:    "no_metric_name",
-			request: "/update/counter/",
-			want:    404,
+			name:   "no_metric_name",
+			method: "POST",
+			path:   "/update/gauge/",
+			want:   501,
 		},
 		{
-			name:    "only_update",
-			request: "/update/",
-			want:    404,
+			name:   "only_update",
+			method: "POST",
+			path:   "/update/",
+			want:   501,
+		},
+		{
+			name:   "unknown_type",
+			method: "POST",
+			path:   "/update/unknown/testCounter/0",
+			want:   501,
 		},
 	}
+
+	r := newRouter()
+	ts := httptest.NewServer(r)
+	defer ts.Close()
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			request := httptest.NewRequest(http.MethodPost, tt.request, nil)
-			w := httptest.NewRecorder()
-			counterHandler(w, request)
-			result := w.Result()
-			defer result.Body.Close()
-
-			assert.Equal(t, tt.want, result.StatusCode)
+			resp, _ := testRequest(t, ts, tt.method, tt.path)
+			assert.Equal(t, tt.want, resp.StatusCode)
 		})
 	}
-}
 
-func Test_defaultHandler(t *testing.T) {
-	tests := []struct {
-		name    string
-		request string
-		want    int
-	}{
-		{
-			name:    "unknown_type",
-			request: "/update/unknown/testCounter/0",
-			want:    501,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			request := httptest.NewRequest(http.MethodPost, tt.request, nil)
-			w := httptest.NewRecorder()
-			defaultHandler(w, request)
-			result := w.Result()
-			defer result.Body.Close()
-
-			assert.Equal(t, tt.want, result.StatusCode)
-		})
-	}
 }
