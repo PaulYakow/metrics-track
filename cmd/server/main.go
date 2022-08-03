@@ -1,86 +1,120 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
 )
 
 type gauge float64
 type counter int64
 
-type metric struct {
-	tMetric string
-	value   any
+var gaugeMetrics = make(map[string]gauge)
+var counterMetrics = make(map[string]counter)
+
+func gaugeHandler(rw http.ResponseWriter, r *http.Request) {
+	name := chi.URLParam(r, "name")
+	rawValue := chi.URLParam(r, "value")
+
+	value, err := strconv.ParseFloat(rawValue, 64)
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	gaugeMetrics[name] = gauge(value)
+
+	rw.WriteHeader(http.StatusOK)
+	rw.Write([]byte(name + "=" + rawValue))
 }
 
-var metrics = make(map[string]metric)
+func counterHandler(rw http.ResponseWriter, r *http.Request) {
+	name := chi.URLParam(r, "name")
+	rawValue := chi.URLParam(r, "value")
 
-func gaugeHandler(w http.ResponseWriter, r *http.Request) {
-	metricFromPath := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
-	switch {
-	case len(metricFromPath) == 1:
-		w.WriteHeader(http.StatusNotFound)
-	case len(metricFromPath) == 2:
-		w.WriteHeader(http.StatusNotFound)
-	case len(metricFromPath) == 3:
-		w.WriteHeader(http.StatusBadRequest)
-	case len(metricFromPath) == 4:
-		switch r.Method {
-		case http.MethodPost:
-			value, err := strconv.ParseFloat(metricFromPath[3], 64)
-			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				return
-			}
-			metrics[metricFromPath[2]] = metric{
-				tMetric: "gauge",
-				value:   gauge(value),
-			}
-			w.WriteHeader(http.StatusOK)
-		default:
-			w.WriteHeader(http.StatusBadRequest)
-		}
+	value, err := strconv.Atoi(rawValue)
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		return
 	}
-}
 
-func counterHandler(w http.ResponseWriter, r *http.Request) {
-	metricFromPath := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
-	switch {
-	case len(metricFromPath) == 1:
-		w.WriteHeader(http.StatusNotFound)
-	case len(metricFromPath) == 2:
-		w.WriteHeader(http.StatusNotFound)
-	case len(metricFromPath) == 3:
-		w.WriteHeader(http.StatusBadRequest)
-	case len(metricFromPath) == 4:
-		switch r.Method {
-		case http.MethodPost:
-			value, err := strconv.Atoi(metricFromPath[3])
-			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				return
-			}
-			metrics[metricFromPath[2]] = metric{
-				tMetric: "gauge",
-				value:   counter(value),
-			}
-			w.WriteHeader(http.StatusOK)
-		default:
-			w.WriteHeader(http.StatusBadRequest)
-		}
-	}
+	counterMetrics[name] += counter(value)
+
+	rw.WriteHeader(http.StatusOK)
+	rw.Write([]byte(name + "=" + rawValue))
 }
 
 func defaultHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-func main() {
-	http.HandleFunc("/update/gauge/", gaugeHandler)
-	http.HandleFunc("/update/counter/", counterHandler)
-	http.HandleFunc("/update/", defaultHandler)
+func getListOfMetrics(rw http.ResponseWriter, r *http.Request) {
+	gauges, _ := json.Marshal(gaugeMetrics)
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	rw.Write(gauges)
+}
+
+func getMetricValue(rw http.ResponseWriter, r *http.Request) {
+	metricType := chi.URLParam(r, "type")
+	name := chi.URLParam(r, "name")
+
+	switch metricType {
+	case "gauge":
+		if value, ok := gaugeMetrics[name]; ok {
+			rw.Write([]byte(fmt.Sprintf("%v", value)))
+			return
+		}
+		rw.WriteHeader(http.StatusNotFound)
+	case "counter":
+		if value, ok := counterMetrics[name]; ok {
+			rw.Write([]byte(fmt.Sprintf("%v", value)))
+			return
+		}
+		rw.WriteHeader(http.StatusNotFound)
+	default:
+		rw.WriteHeader(http.StatusNotFound)
+	}
+}
+
+func newRouter() chi.Router {
+	r := chi.NewRouter()
+	r.Use(middleware.Recoverer)
+
+	r.Route("/", func(r chi.Router) {
+		//Обработка GET-запроса к хосту
+		r.Get("/", getListOfMetrics)
+
+		r.Route("/value", func(r chi.Router) {
+			r.Get("/{type}/{name}", getMetricValue)
+		})
+
+		r.Route("/update", func(r chi.Router) {
+
+			r.Route("/gauge/{name}", func(r chi.Router) {
+				r.Post("/", func(rw http.ResponseWriter, r *http.Request) {
+					rw.WriteHeader(http.StatusBadRequest)
+				})
+				r.Post("/{value}", gaugeHandler)
+			})
+
+			r.Route("/counter/{name}", func(r chi.Router) {
+				r.Post("/", func(rw http.ResponseWriter, r *http.Request) {
+					rw.WriteHeader(http.StatusBadRequest)
+				})
+				r.Post("/{value}", counterHandler)
+			})
+		})
+	})
+
+	return r
+}
+
+func main() {
+	router := newRouter()
+
+	log.Fatal(http.ListenAndServe(":8080", router))
 }
