@@ -22,6 +22,8 @@ func (g *Gauge) SetValue(v any) {
 		g.value = i
 	case uint64:
 		g.value = float64(i)
+	case int:
+		g.value = float64(i)
 	default:
 		g.value = math.NaN()
 	}
@@ -45,6 +47,8 @@ func (c *Counter) SetValue(v any) {
 		c.value = int64(i)
 	case int64:
 		c.value = i
+	case int:
+		c.value = int64(i)
 	default:
 		c.value = 0
 	}

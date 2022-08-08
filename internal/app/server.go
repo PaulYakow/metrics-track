@@ -58,8 +58,8 @@ func (s *Server) postCounterHandler(rw http.ResponseWriter, r *http.Request) {
 		s.metrics[name] = &model.Counter{}
 	}
 
-	oldValue := s.metrics["PollCount"].GetValue().(int)
-	s.metrics[name].SetValue(oldValue + value)
+	oldValue := s.metrics[name].GetValue().(int64)
+	s.metrics[name].SetValue(oldValue + int64(value))
 
 	rw.WriteHeader(http.StatusOK)
 }

@@ -40,7 +40,7 @@ func TestRouter(t *testing.T) {
 		{
 			name:   "valid_update_counter",
 			method: "POST",
-			path:   "/update/gauge/testCounter/10",
+			path:   "/update/counter/testCounter/10",
 			want:   200,
 		},
 		{
