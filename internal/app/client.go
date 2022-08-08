@@ -23,7 +23,7 @@ type Client struct {
 	metrics      map[string]model.Metric
 }
 
-func New() *Client {
+func NewClient() *Client {
 	m := make(map[string]model.Metric)
 	m["Alloc"] = &model.Gauge{}
 	m["BuckHashSys"] = &model.Gauge{}

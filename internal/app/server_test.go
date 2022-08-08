@@ -1,4 +1,4 @@
-package main
+package app
 
 import (
 	"github.com/stretchr/testify/assert"
@@ -32,9 +32,15 @@ func TestRouter(t *testing.T) {
 		want   int
 	}{
 		{
-			name:   "valid_update",
+			name:   "valid_update_gauge",
 			method: "POST",
 			path:   "/update/gauge/testGauge/0",
+			want:   200,
+		},
+		{
+			name:   "valid_update_counter",
+			method: "POST",
+			path:   "/update/gauge/testCounter/10",
 			want:   200,
 		},
 		{
@@ -69,7 +75,7 @@ func TestRouter(t *testing.T) {
 		},
 	}
 
-	r := newRouter()
+	r := NewServer().newRouter()
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 
