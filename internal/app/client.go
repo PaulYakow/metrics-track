@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"github.com/PaulYakow/metrics-track/internal/model"
 	"io"
@@ -12,10 +13,13 @@ import (
 	"time"
 )
 
+const (
+	pollInterval   = 2 * time.Second
+	reportInterval = 10 * time.Second
+	endpoint       = "http://127.0.0.1:8080/update"
+)
+
 var rtMemStats runtime.MemStats
-var pollInterval = 2 * time.Second
-var reportInterval = 10 * time.Second
-var endpoint = "http://127.0.0.1:8080/update"
 
 type Client struct {
 	pollTicker   *time.Ticker
@@ -131,10 +135,7 @@ func (c *Client) sendMetrics(agent *http.Client) {
 	}
 }
 
-func (c *Client) Run() {
-	defer c.pollTicker.Stop()
-	defer c.reportTicker.Stop()
-
+func (c *Client) Run(ctx context.Context) {
 	transport := &http.Transport{}
 	transport.MaxIdleConns = 10
 
@@ -149,6 +150,9 @@ func (c *Client) Run() {
 			c.updateMetrics()
 		case <-c.reportTicker.C:
 			c.sendMetrics(agent)
+		case <-ctx.Done():
+			c.pollTicker.Stop()
+			c.reportTicker.Stop()
 		}
 	}
 }

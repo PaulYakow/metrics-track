@@ -9,9 +9,11 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 type Server struct {
+	sync.Mutex
 	metrics map[string]model.Metric
 }
 
@@ -35,6 +37,8 @@ func (s *Server) postGaugeHandler(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	s.Lock()
+	defer s.Unlock()
 	if _, ok := s.metrics[name]; !ok {
 		s.metrics[name] = &model.Gauge{}
 	}
@@ -54,6 +58,8 @@ func (s *Server) postCounterHandler(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	s.Lock()
+	defer s.Unlock()
 	if _, ok := s.metrics[name]; !ok {
 		s.metrics[name] = &model.Counter{}
 	}
@@ -70,6 +76,9 @@ func postDefaultHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) getListOfMetrics(rw http.ResponseWriter, r *http.Request) {
 	listOfMetrics := make([]string, 0)
+
+	s.Lock()
+	defer s.Unlock()
 	for name, metric := range s.metrics {
 		listOfMetrics = append(listOfMetrics,
 			fmt.Sprintf("%s = %v (type: %v)", name, metric.GetValue(), metric.GetType()))
@@ -81,6 +90,8 @@ func (s *Server) getListOfMetrics(rw http.ResponseWriter, r *http.Request) {
 func (s *Server) getMetricValue(rw http.ResponseWriter, r *http.Request) {
 	name := chi.URLParam(r, "name")
 
+	s.Lock()
+	defer s.Unlock()
 	if metric, ok := s.metrics[name]; ok {
 		rw.Write([]byte(fmt.Sprintf("%v", metric.GetValue())))
 		return
