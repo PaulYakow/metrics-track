@@ -60,6 +60,13 @@ func (m *Counter) Increment() {
 	m.value++
 }
 
-func (m *Counter) IncrementDelta(delta int64) {
-	m.value += delta
+func (m *Counter) IncrementDelta(delta any) {
+	switch d := delta.(type) {
+	case int:
+		m.value += int64(d)
+	case int32:
+		m.value += int64(d)
+	default:
+		m.value = 0
+	}
 }

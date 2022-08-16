@@ -12,14 +12,12 @@ import (
 )
 
 func Run(ctx context.Context) {
-	metricsRep := repo.New()
+	agentRepo := repo.NewClientRepo()
 
-	metricsUseCase := usecase.New(metricsRep)
-
-	agent := httpclient.New(metricsUseCase)
+	agentUseCase := usecase.NewClientUC(agentRepo)
 
 	client := req.C().
 		SetTimeout(time.Second)
 
-	agent.Run(ctx, client)
+	httpclient.NewRouter(ctx, client, agentUseCase)
 }

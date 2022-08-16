@@ -1,6 +1,8 @@
-package app
+package httpserver
 
 import (
+	"github.com/PaulYakow/metrics-track/internal/usecase"
+	"github.com/PaulYakow/metrics-track/internal/usecase/repo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io/ioutil"
@@ -75,7 +77,7 @@ func TestRouter(t *testing.T) {
 		},
 	}
 
-	r := NewServer().newRouter()
+	r := NewRouter(usecase.NewServerUC(repo.NewServerRepo()))
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 
