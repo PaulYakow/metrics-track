@@ -26,12 +26,12 @@ func NewRouter(uc usecase.IServer) chi.Router {
 		r.Get("/", s.getListOfMetrics)
 
 		r.Route("/value", func(r chi.Router) {
-			r.Post("/", s.postValueByJson)
+			r.Post("/", s.postValueByJSON)
 			r.Get("/{type}/{name}", s.getMetricValue)
 		})
 
 		r.Route("/update", func(r chi.Router) {
-			r.Post("/", s.postUpdateByJson)
+			r.Post("/", s.postUpdateByJSON)
 
 			r.Route("/gauge", func(r chi.Router) {
 				r.Post("/", func(rw http.ResponseWriter, r *http.Request) {
@@ -114,7 +114,7 @@ func (s *serverRoutes) getMetricValue(rw http.ResponseWriter, r *http.Request) {
 	rw.Write([]byte(value))
 }
 
-func (s *serverRoutes) postValueByJson(rw http.ResponseWriter, r *http.Request) {
+func (s *serverRoutes) postValueByJSON(rw http.ResponseWriter, r *http.Request) {
 	// 1. В теле запроса JSON с ID и MType
 	// 2. Заполнить значение метрики
 	// 3. Отправить ответный JSON
@@ -128,7 +128,7 @@ func (s *serverRoutes) postValueByJson(rw http.ResponseWriter, r *http.Request) 
 		log.Fatal(err)
 	}
 
-	resp, err := s.uc.GetValueByJson(body)
+	resp, err := s.uc.GetValueByJSON(body)
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		return
@@ -138,7 +138,7 @@ func (s *serverRoutes) postValueByJson(rw http.ResponseWriter, r *http.Request) 
 	rw.Write(resp)
 }
 
-func (s *serverRoutes) postUpdateByJson(rw http.ResponseWriter, r *http.Request) {
+func (s *serverRoutes) postUpdateByJSON(rw http.ResponseWriter, r *http.Request) {
 	// Обработать JSON из тела запроса - сохранить в соответствующую метрику переданное значение
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -150,7 +150,7 @@ func (s *serverRoutes) postUpdateByJson(rw http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	err = s.uc.SaveValueByJson(body)
+	err = s.uc.SaveValueByJSON(body)
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		return

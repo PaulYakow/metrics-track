@@ -9,17 +9,17 @@ import (
 type IServer interface {
 	SaveGauge(name string, value float64)
 	SaveCounter(name string, value int)
-	SaveValueByJson(data []byte) error
+	SaveValueByJSON(data []byte) error
 	GetValueByType(mType string, name string) (string, error)
-	GetValueByJson(data []byte) ([]byte, error)
+	GetValueByJSON(data []byte) ([]byte, error)
 	GetAllMetrics() []string
 }
 
 type IServerRepo interface {
 	Store(mType string, name string, value any) error
-	StoreByJson(data []byte) error
+	StoreByJSON(data []byte) error
 	ReadValueByType(mType string, name string) (any, error)
-	ReadValueByJson(data []byte) ([]byte, error)
+	ReadValueByJSON(data []byte) ([]byte, error)
 	ReadAll() []string // Прочитать все известные на данный момент значения - "Имя = Значение [Тип]"
 }
 
@@ -41,8 +41,8 @@ func (s *Server) SaveCounter(name string, value int) {
 	s.repo.Store("counter", name, value)
 }
 
-func (s *Server) SaveValueByJson(data []byte) error {
-	return s.repo.StoreByJson(data)
+func (s *Server) SaveValueByJSON(data []byte) error {
+	return s.repo.StoreByJSON(data)
 }
 
 func (s *Server) GetValueByType(mType string, name string) (string, error) {
@@ -57,6 +57,6 @@ func (s *Server) GetAllMetrics() []string {
 	return s.repo.ReadAll()
 }
 
-func (s *Server) GetValueByJson(data []byte) ([]byte, error) {
-	return s.repo.ReadValueByJson(data)
+func (s *Server) GetValueByJSON(data []byte) ([]byte, error) {
+	return s.repo.ReadValueByJSON(data)
 }

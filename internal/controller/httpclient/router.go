@@ -32,8 +32,8 @@ func NewRouter(ctx context.Context, client *req.Client, uc usecase.IClient) {
 		case <-r.pollTicker.C:
 			r.uc.Poll()
 		case <-r.reportTicker.C:
-			//r.sendMetricsByUrl(client, r.uc.UpdateRoutes())
-			r.sendMetricsByJson(client, r.uc.UpdateValues())
+			//r.sendMetricsByURL(client, r.uc.UpdateRoutes())
+			r.sendMetricsByJSON(client, r.uc.UpdateValues())
 		case <-ctx.Done():
 			r.pollTicker.Stop()
 			r.reportTicker.Stop()
@@ -41,7 +41,7 @@ func NewRouter(ctx context.Context, client *req.Client, uc usecase.IClient) {
 	}
 }
 
-func (r *clientRoutes) sendMetricsByUrl(client *req.Client, routes []string) {
+func (r *clientRoutes) sendMetricsByURL(client *req.Client, routes []string) {
 	for _, route := range routes {
 		resp, err := client.R().
 			SetHeader("Content-Type", "plain/text").
@@ -54,7 +54,7 @@ func (r *clientRoutes) sendMetricsByUrl(client *req.Client, routes []string) {
 	}
 }
 
-func (r *clientRoutes) sendMetricsByJson(client *req.Client, data [][]byte) {
+func (r *clientRoutes) sendMetricsByJSON(client *req.Client, data [][]byte) {
 	for _, rawMetric := range data {
 		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").

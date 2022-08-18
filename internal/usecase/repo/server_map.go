@@ -49,7 +49,7 @@ func (r *ServerRepo) Store(mType string, name string, value any) error {
 	}
 }
 
-func (r *ServerRepo) StoreByJson(data []byte) error {
+func (r *ServerRepo) StoreByJSON(data []byte) error {
 	metric := entity.Metrics{}
 	if err := json.Unmarshal(data, &metric); err != nil {
 		log.Fatal(err)
@@ -88,7 +88,7 @@ func (r *ServerRepo) ReadValueByType(typeName string, name string) (any, error) 
 	}
 }
 
-func (r *ServerRepo) ReadValueByJson(data []byte) ([]byte, error) {
+func (r *ServerRepo) ReadValueByJSON(data []byte) ([]byte, error) {
 	metric := entity.Metrics{}
 	if err := json.Unmarshal(data, &metric); err != nil {
 		log.Fatal(err)
