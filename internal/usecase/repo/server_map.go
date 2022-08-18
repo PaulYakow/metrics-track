@@ -55,6 +55,9 @@ func (r *ServerRepo) StoreByJSON(data []byte) error {
 		log.Fatal(err)
 	}
 
+	r.Lock()
+	defer r.Unlock()
+
 	switch metric.MType {
 	case "gauge":
 		if _, ok := r.gauges[metric.ID]; !ok {
@@ -74,11 +77,8 @@ func (r *ServerRepo) StoreByJSON(data []byte) error {
 	}
 }
 
-func (r *ServerRepo) ReadValueByType(typeName string, name string) (any, error) {
-	r.Lock()
-	defer r.Unlock()
-
-	switch typeName {
+func (r *ServerRepo) ReadValueByType(mType string, name string) (any, error) {
+	switch mType {
 	case "counter":
 		return r.readCounter(name)
 	case "gauge":
