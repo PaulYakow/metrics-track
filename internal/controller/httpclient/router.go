@@ -15,12 +15,12 @@ const (
 )
 
 type clientRoutes struct {
-	uc           usecase.ClientMetric
+	uc           usecase.IClient
 	pollTicker   *time.Ticker
 	reportTicker *time.Ticker
 }
 
-func NewRouter(ctx context.Context, client *req.Client, uc usecase.ClientMetric) {
+func NewRouter(ctx context.Context, client *req.Client, uc usecase.IClient) {
 	r := &clientRoutes{
 		uc:           uc,
 		pollTicker:   time.NewTicker(pollTime),
@@ -32,7 +32,8 @@ func NewRouter(ctx context.Context, client *req.Client, uc usecase.ClientMetric)
 		case <-r.pollTicker.C:
 			r.uc.Poll()
 		case <-r.reportTicker.C:
-			r.sendMetrics(client, r.uc.Report())
+			//r.sendMetricsByUrl(client, r.uc.UpdateRoutes())
+			r.sendMetricsByJson(client, r.uc.UpdateValues())
 		case <-ctx.Done():
 			r.pollTicker.Stop()
 			r.reportTicker.Stop()
@@ -40,11 +41,25 @@ func NewRouter(ctx context.Context, client *req.Client, uc usecase.ClientMetric)
 	}
 }
 
-func (r *clientRoutes) sendMetrics(client *req.Client, routes []string) {
+func (r *clientRoutes) sendMetricsByUrl(client *req.Client, routes []string) {
 	for _, route := range routes {
 		resp, err := client.R().
 			SetHeader("Content-Type", "plain/text").
 			Post(endpoint + route)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+		resp.Close = true
+	}
+}
+
+func (r *clientRoutes) sendMetricsByJson(client *req.Client, data [][]byte) {
+	for _, rawMetric := range data {
+		resp, err := client.R().
+			SetHeader("Content-Type", "application/json").
+			SetBody(rawMetric).
+			Post(endpoint + "/")
 
 		if err != nil {
 			log.Fatal(err)

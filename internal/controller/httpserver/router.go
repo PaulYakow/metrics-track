@@ -4,16 +4,18 @@ import (
 	"github.com/PaulYakow/metrics-track/internal/usecase"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"io"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
 )
 
 type serverRoutes struct {
-	uc usecase.ServerMetric
+	uc usecase.IServer
 }
 
-func NewRouter(uc usecase.ServerMetric) chi.Router {
+func NewRouter(uc usecase.IServer) chi.Router {
 	s := &serverRoutes{uc: uc}
 
 	mux := chi.NewRouter()
@@ -24,10 +26,12 @@ func NewRouter(uc usecase.ServerMetric) chi.Router {
 		r.Get("/", s.getListOfMetrics)
 
 		r.Route("/value", func(r chi.Router) {
+			r.Post("/", s.postValueByJson)
 			r.Get("/{type}/{name}", s.getMetricValue)
 		})
 
 		r.Route("/update", func(r chi.Router) {
+			r.Post("/", s.postUpdateByJson)
 
 			r.Route("/gauge", func(r chi.Router) {
 				r.Post("/", func(rw http.ResponseWriter, r *http.Request) {
@@ -99,13 +103,58 @@ func (s *serverRoutes) getListOfMetrics(rw http.ResponseWriter, r *http.Request)
 }
 
 func (s *serverRoutes) getMetricValue(rw http.ResponseWriter, r *http.Request) {
-	typeName := chi.URLParam(r, "type")
+	mType := chi.URLParam(r, "type")
 	name := chi.URLParam(r, "name")
 
-	value, err := s.uc.GetValueByType(typeName, name)
+	value, err := s.uc.GetValueByType(mType, name)
 	if err != nil {
 		rw.WriteHeader(http.StatusNotFound)
 		return
 	}
 	rw.Write([]byte(value))
+}
+
+func (s *serverRoutes) postValueByJson(rw http.ResponseWriter, r *http.Request) {
+	// 1. В теле запроса JSON с ID и MType
+	// 2. Заполнить значение метрики
+	// 3. Отправить ответный JSON
+	if r.Header.Get("Content-Type") != "application/json" {
+		rw.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	resp, err := s.uc.GetValueByJson(body)
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	rw.Write(resp)
+}
+
+func (s *serverRoutes) postUpdateByJson(rw http.ResponseWriter, r *http.Request) {
+	// Обработать JSON из тела запроса - сохранить в соответствующую метрику переданное значение
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if r.Header.Get("Content-Type") != "application/json" {
+		rw.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err = s.uc.SaveValueByJson(body)
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	rw.WriteHeader(http.StatusOK)
 }
