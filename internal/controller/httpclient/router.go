@@ -11,7 +11,7 @@ import (
 const (
 	pollTime   = 2 * time.Second
 	reportTime = 5 * time.Second
-	endpoint   = ":8080/update"
+	endpoint   = "http://localhost:8080/update"
 )
 
 type clientRoutes struct {
