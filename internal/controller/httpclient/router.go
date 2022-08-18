@@ -11,7 +11,7 @@ import (
 const (
 	pollTime   = 2 * time.Second
 	reportTime = 5 * time.Second
-	endpoint   = "http://127.0.0.1:8080/update"
+	endpoint   = ":8080/update"
 )
 
 type clientRoutes struct {
@@ -56,14 +56,14 @@ func (r *clientRoutes) sendMetricsByURL(client *req.Client, routes []string) {
 
 func (r *clientRoutes) sendMetricsByJSON(client *req.Client, data [][]byte) {
 	for _, rawMetric := range data {
-		resp, err := client.R().
+		_, err := client.R().
 			SetHeader("Content-Type", "application/json").
 			SetBody(rawMetric).
-			Post(endpoint + "/")
+			Post(endpoint)
 
 		if err != nil {
 			log.Fatal(err)
 		}
-		resp.Close = true
+		//resp.Close = true
 	}
 }

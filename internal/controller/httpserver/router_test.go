@@ -89,5 +89,4 @@ func TestRouter(t *testing.T) {
 			assert.Equal(t, tt.want, resp.StatusCode)
 		})
 	}
-
 }

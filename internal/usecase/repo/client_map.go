@@ -57,6 +57,7 @@ func (r *ClientRepo) ReadCurrentValues() [][]byte {
 		metric.ID = name
 		metric.MType = "gauge"
 		metric.Value = gauge.GetPointer()
+
 		data, err := json.Marshal(metric)
 		if err != nil {
 			log.Fatal(err)
@@ -68,6 +69,7 @@ func (r *ClientRepo) ReadCurrentValues() [][]byte {
 		metric.ID = name
 		metric.MType = "counter"
 		metric.Delta = counter.GetPointer()
+
 		data, err := json.Marshal(metric)
 		if err != nil {
 			log.Fatal(err)
