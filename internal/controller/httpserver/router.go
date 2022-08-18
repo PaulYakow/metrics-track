@@ -130,7 +130,7 @@ func (s *serverRoutes) postValueByJSON(rw http.ResponseWriter, r *http.Request) 
 
 	resp, err := s.uc.GetValueByJSON(body)
 	if err != nil {
-		rw.WriteHeader(http.StatusBadRequest)
+		rw.WriteHeader(http.StatusNotFound)
 		return
 	}
 
