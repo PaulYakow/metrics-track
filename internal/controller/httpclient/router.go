@@ -2,29 +2,27 @@ package httpclient
 
 import (
 	"context"
+	"fmt"
+	"github.com/PaulYakow/metrics-track/config"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
 	"github.com/imroc/req/v3"
 	"log"
 	"time"
 )
 
-const (
-	pollTime   = 2 * time.Second
-	reportTime = 5 * time.Second
-	endpoint   = "http://localhost:8080/update"
-)
-
 type clientRoutes struct {
 	uc           usecase.IClient
+	endpoint     string
 	pollTicker   *time.Ticker
 	reportTicker *time.Ticker
 }
 
-func NewRouter(ctx context.Context, client *req.Client, uc usecase.IClient) {
+func NewRouter(ctx context.Context, cfg *config.ClientCfg, client *req.Client, uc usecase.IClient) {
 	r := &clientRoutes{
 		uc:           uc,
-		pollTicker:   time.NewTicker(pollTime),
-		reportTicker: time.NewTicker(reportTime),
+		endpoint:     fmt.Sprintf("http://%s:%s/update", cfg.Address[0], cfg.Address[1]),
+		pollTicker:   time.NewTicker(cfg.PollInterval),
+		reportTicker: time.NewTicker(cfg.ReportInterval),
 	}
 
 	for {
@@ -45,10 +43,10 @@ func (r *clientRoutes) sendMetricsByURL(client *req.Client, routes []string) {
 	for _, route := range routes {
 		resp, err := client.R().
 			SetHeader("Content-Type", "plain/text").
-			Post(endpoint + route)
+			Post(r.endpoint + route)
 
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		resp.Close = true
 	}
@@ -56,14 +54,14 @@ func (r *clientRoutes) sendMetricsByURL(client *req.Client, routes []string) {
 
 func (r *clientRoutes) sendMetricsByJSON(client *req.Client, data [][]byte) {
 	for _, rawMetric := range data {
-		_, err := client.R().
+		resp, err := client.R().
 			SetHeader("Content-Type", "application/json").
 			SetBody(rawMetric).
-			Post(endpoint)
+			Post(r.endpoint)
 
 		if err != nil {
 			log.Fatal(err)
 		}
-		//resp.Close = true
+		resp.Close = true
 	}
 }

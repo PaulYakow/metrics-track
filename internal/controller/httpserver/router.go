@@ -125,7 +125,7 @@ func (s *serverRoutes) postValueByJSON(rw http.ResponseWriter, r *http.Request) 
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	resp, err := s.uc.GetValueByJSON(body)
@@ -142,7 +142,7 @@ func (s *serverRoutes) postUpdateByJSON(rw http.ResponseWriter, r *http.Request)
 	// Обработать JSON из тела запроса - сохранить в соответствующую метрику переданное значение
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	if r.Header.Get("Content-Type") != "application/json" {

@@ -60,7 +60,7 @@ func (r *ClientRepo) ReadCurrentValues() [][]byte {
 
 		data, err := json.Marshal(metric)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		result = append(result, data)
 	}
@@ -72,7 +72,7 @@ func (r *ClientRepo) ReadCurrentValues() [][]byte {
 
 		data, err := json.Marshal(metric)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		result = append(result, data)
 	}

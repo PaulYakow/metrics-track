@@ -1,6 +1,8 @@
 package server
 
 import (
+	"fmt"
+	"github.com/PaulYakow/metrics-track/config"
 	"github.com/PaulYakow/metrics-track/internal/controller/httpserver"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
 	"github.com/PaulYakow/metrics-track/internal/usecase/repo"
@@ -8,14 +10,10 @@ import (
 	"net/http"
 )
 
-const (
-	endpoint = ":8080"
-)
-
-func Run() {
+func Run(cfg *config.ServerCfg) {
 	serverRepo := repo.NewServerRepo()
 
 	serverUseCase := usecase.NewServerUC(serverRepo)
-
+	endpoint := fmt.Sprintf("http://%s:%s", cfg.Address[0], cfg.Address[1])
 	log.Fatal(http.ListenAndServe(endpoint, httpserver.NewRouter(serverUseCase)))
 }
