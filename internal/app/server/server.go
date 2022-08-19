@@ -14,6 +14,6 @@ func Run(cfg *config.ServerCfg) {
 	serverRepo := repo.NewServerRepo()
 
 	serverUseCase := usecase.NewServerUC(serverRepo)
-	endpoint := fmt.Sprintf("http://%s:%s", cfg.Address[0], cfg.Address[1])
+	endpoint := fmt.Sprintf("%s:%s", cfg.Address[0], cfg.Address[1])
 	log.Fatal(http.ListenAndServe(endpoint, httpserver.NewRouter(serverUseCase)))
 }
