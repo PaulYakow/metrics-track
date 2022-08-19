@@ -35,7 +35,7 @@ func NewRouter(ctx context.Context, cfg *config.ClientCfg, client *req.Client, u
 		case <-ctx.Done():
 			r.pollTicker.Stop()
 			r.reportTicker.Stop()
-			return
+			//return
 		}
 	}
 }
@@ -56,17 +56,13 @@ func (r *clientRoutes) sendMetricsByJSON(client *req.Client, data [][]byte) {
 	request := client.R()
 
 	for _, rawMetric := range data {
-		r.sendMetric(request, rawMetric)
-	}
-}
+		_, err := request.
+			SetHeader("Content-Type", "application/json").
+			SetBody(rawMetric).
+			Post(r.endpoint)
 
-func (r *clientRoutes) sendMetric(request *req.Request, rawMetric []byte) {
-	_, err := request.
-		SetHeader("Content-Type", "application/json").
-		SetBody(rawMetric).
-		Post(r.endpoint)
-
-	if err != nil {
-		log.Println(err)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 }
