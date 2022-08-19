@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/PaulYakow/metrics-track/config"
 	"github.com/PaulYakow/metrics-track/internal/app/client"
 	"log"
@@ -13,6 +14,7 @@ func main() {
 
 	cfg, err := config.NewClientConfig()
 	if err != nil {
+		fmt.Println("load cfg: ", err)
 		log.Println(err)
 	}
 
