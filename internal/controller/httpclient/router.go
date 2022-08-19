@@ -53,16 +53,16 @@ func (r *clientRoutes) sendMetricsByURL(client *req.Client, routes []string) {
 }
 
 func (r *clientRoutes) sendMetricsByJSON(client *req.Client, data [][]byte) {
-	request := client.R()
+	//request := client.R()
 
 	for _, rawMetric := range data {
-		_, err := request.
+		_, err := client.R().
 			SetHeader("Content-Type", "application/json").
 			SetBody(rawMetric).
 			Post(r.endpoint)
 
 		if err != nil {
-			log.Println(err)
+			log.Println("httpclient-> ", err)
 		}
 	}
 }
