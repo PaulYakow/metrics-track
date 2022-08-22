@@ -29,3 +29,6 @@ todo*
 
 # txt files with some helpers
 *.txt
+
+# env files
+*.env

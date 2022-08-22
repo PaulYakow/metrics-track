@@ -20,7 +20,7 @@ type clientRoutes struct {
 func NewRouter(ctx context.Context, cfg *config.ClientCfg, client *req.Client, uc usecase.IClient) {
 	r := &clientRoutes{
 		uc:           uc,
-		endpoint:     fmt.Sprintf("http://%s:%s/update", cfg.Address[0], cfg.Address[1]),
+		endpoint:     fmt.Sprintf("http://%s/update", cfg.Address),
 		pollTicker:   time.NewTicker(cfg.PollInterval),
 		reportTicker: time.NewTicker(cfg.ReportInterval),
 	}
@@ -30,7 +30,6 @@ func NewRouter(ctx context.Context, cfg *config.ClientCfg, client *req.Client, u
 		case <-r.pollTicker.C:
 			r.uc.Poll()
 		case <-r.reportTicker.C:
-			//r.sendMetricsByURL(client, r.uc.UpdateRoutes())
 			r.sendMetricsByJSON(client, r.uc.UpdateValues())
 		case <-ctx.Done():
 			r.pollTicker.Stop()
