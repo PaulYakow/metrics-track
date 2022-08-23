@@ -19,18 +19,19 @@ func NewScheduler(ctx context.Context, uc usecase.ISchedule, restore bool, inter
 		sched.uc.InitMetrics()
 	}
 
-	storeTicker := time.NewTicker(interval)
+	if interval > 0 {
+		storeTicker := time.NewTicker(interval)
 
-	go func() {
-		for {
-			select {
-			case <-storeTicker.C:
-				sched.uc.RunStoring()
-			case <-ctx.Done():
-				storeTicker.Stop()
-				return
+		go func() {
+			for {
+				select {
+				case <-storeTicker.C:
+					sched.uc.RunStoring()
+				case <-ctx.Done():
+					storeTicker.Stop()
+					return
+				}
 			}
-		}
-	}()
-
+		}()
+	}
 }

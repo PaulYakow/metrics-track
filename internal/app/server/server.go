@@ -13,17 +13,19 @@ import (
 
 func Run(cfg *config.ServerCfg) {
 	serverMemory := repo.NewServerMemory()
-	serverFile, err := repo.NewServerFile(cfg.StoreFile)
-	if err != nil {
-		log.Println(err)
-	}
-
 	serverUseCase := usecase.NewServerUC(serverMemory)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	schedulerUseCase := usecase.NewScheduleUC(serverFile, serverMemory)
-	scheduler.NewScheduler(ctx, schedulerUseCase, cfg.Restore, cfg.StoreInterval)
+	if cfg.StoreFile != "" {
+		serverFile, err := repo.NewServerFile(cfg.StoreFile)
+		if err != nil {
+			log.Println(err)
+		}
+
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		schedulerUseCase := usecase.NewScheduleUC(serverFile, serverMemory)
+		scheduler.NewScheduler(ctx, schedulerUseCase, cfg.Restore, cfg.StoreInterval)
+	}
 
 	log.Fatal(http.ListenAndServe(cfg.Address, httpserver.NewRouter(serverUseCase)))
 }
