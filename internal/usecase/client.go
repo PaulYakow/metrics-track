@@ -1,27 +1,8 @@
 package usecase
 
 import (
-	"github.com/PaulYakow/metrics-track/internal/entity"
 	"github.com/PaulYakow/metrics-track/internal/usecase/services/gather"
 )
-
-// Адаптеры для клиента
-
-type IClient interface {
-	Poll()
-	UpdateRoutes() []string
-	UpdateValues() [][]byte
-}
-
-type IClientRepo interface {
-	Store(map[string]*entity.Gauge, map[string]*entity.Counter)
-	ReadCurrentMetrics() []string
-	ReadCurrentValues() [][]byte
-}
-
-type IClientGather interface {
-	Update() (map[string]*entity.Gauge, map[string]*entity.Counter)
-}
 
 // Реализация клиента
 

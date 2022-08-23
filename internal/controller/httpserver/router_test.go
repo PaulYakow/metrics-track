@@ -77,7 +77,7 @@ func TestRouter(t *testing.T) {
 		},
 	}
 
-	r := NewRouter(usecase.NewServerUC(repo.NewServerRepo()))
+	r := NewRouter(usecase.NewServerUC(repo.NewServerMemory()))
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 

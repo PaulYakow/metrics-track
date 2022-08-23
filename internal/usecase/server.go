@@ -4,33 +4,14 @@ import (
 	"fmt"
 )
 
-//Адаптеры для сервера
-
-type IServer interface {
-	SaveGauge(name string, value float64)
-	SaveCounter(name string, value int)
-	SaveValueByJSON(data []byte) error
-	GetValueByType(mType string, name string) (string, error)
-	GetValueByJSON(data []byte) ([]byte, error)
-	GetAllMetrics() []string
-}
-
-type IServerRepo interface {
-	Store(mType string, name string, value any) error
-	StoreByJSON(data []byte) error
-	ReadValueByType(mType string, name string) (any, error)
-	ReadValueByJSON(data []byte) ([]byte, error)
-	ReadAll() []string // Прочитать все известные на данный момент значения - "Имя = Значение [Тип]"
-}
-
 // Реализация сервера
 
 type Server struct {
-	repo IServerRepo
+	repo IServerMemory
 }
 
-func NewServerUC(r IServerRepo) *Server {
-	return &Server{repo: r}
+func NewServerUC(repo IServerMemory) *Server {
+	return &Server{repo: repo}
 }
 
 func (s *Server) SaveGauge(name string, value float64) {
@@ -39,10 +20,6 @@ func (s *Server) SaveGauge(name string, value float64) {
 
 func (s *Server) SaveCounter(name string, value int) {
 	s.repo.Store("counter", name, value)
-}
-
-func (s *Server) SaveValueByJSON(data []byte) error {
-	return s.repo.StoreByJSON(data)
 }
 
 func (s *Server) GetValueByType(mType string, name string) (string, error) {
@@ -54,7 +31,22 @@ func (s *Server) GetValueByType(mType string, name string) (string, error) {
 }
 
 func (s *Server) GetAllMetrics() []string {
-	return s.repo.ReadAll()
+	result := make([]string, 0)
+	gauges, counters := s.repo.ReadAll()
+
+	for name, gauge := range gauges {
+		result = append(result, fmt.Sprintf("%s = %v [%s]", name, gauge.GetValue(), gauge.GetType()))
+	}
+
+	for name, counter := range counters {
+		result = append(result, fmt.Sprintf("%s = %v [%s]", name, counter.GetValue(), counter.GetType()))
+	}
+
+	return result
+}
+
+func (s *Server) SaveValueByJSON(data []byte) error {
+	return s.repo.StoreByJSON(data)
 }
 
 func (s *Server) GetValueByJSON(data []byte) ([]byte, error) {
