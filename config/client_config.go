@@ -70,12 +70,13 @@ func (cfg *ClientCfg) updateCfgFromFlags() {
 
 func NewClientConfig() (*ClientCfg, error) {
 	cfg := &ClientCfg{}
+
+	cfg.updateCfgFromFlags()
+
 	err := cleanenv.ReadEnv(cfg)
 	if err != nil {
 		return nil, err
 	}
-
-	cfg.updateCfgFromFlags()
 
 	return cfg, nil
 }

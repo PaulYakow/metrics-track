@@ -89,12 +89,12 @@ func (cfg *ServerCfg) updateCfgFromFlags() {
 func NewServerConfig() (*ServerCfg, error) {
 	cfg := &ServerCfg{}
 
+	cfg.updateCfgFromFlags()
+
 	err := cleanenv.ReadEnv(cfg)
 	if err != nil {
 		return nil, err
 	}
-
-	cfg.updateCfgFromFlags()
 
 	return cfg, nil
 }
