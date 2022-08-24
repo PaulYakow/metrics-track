@@ -102,7 +102,10 @@ func (s *serverRoutes) postDefault(rw http.ResponseWriter, r *http.Request) {
 
 func (s *serverRoutes) getListOfMetrics(rw http.ResponseWriter, r *http.Request) {
 	respBody := []byte(strings.Join(s.uc.GetAllMetrics(), "\n"))
-	rw.Header().Set("Content-Type", http.DetectContentType(respBody))
+	//if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+	//	rw.Header().Set("Content-Encoding", "gzip")
+	//}
+	rw.Header().Set("Content-Type", "text/plain")
 	rw.Write(respBody)
 }
 
@@ -117,7 +120,7 @@ func (s *serverRoutes) getMetricValue(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	respBody := []byte(value)
-	rw.Header().Set("Content-Type", http.DetectContentType(respBody))
+	rw.Header().Set("Content-Type", "application/json")
 	rw.Write(respBody)
 }
 
@@ -141,7 +144,7 @@ func (s *serverRoutes) postValueByJSON(rw http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	rw.Header().Set("Content-Type", http.DetectContentType(respBody))
+	rw.Header().Set("Content-Type", "application/json")
 	rw.Write(respBody)
 }
 
