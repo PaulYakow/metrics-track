@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"compress/flate"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -20,6 +21,7 @@ func NewRouter(uc usecase.IServer) chi.Router {
 
 	mux := chi.NewRouter()
 	mux.Use(middleware.Recoverer)
+	mux.Use(middleware.Compress(flate.BestCompression))
 
 	mux.Route("/", func(r chi.Router) {
 		//Обработка GET-запроса к хосту
@@ -99,7 +101,9 @@ func (s *serverRoutes) postDefault(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (s *serverRoutes) getListOfMetrics(rw http.ResponseWriter, r *http.Request) {
-	rw.Write([]byte(strings.Join(s.uc.GetAllMetrics(), "\n")))
+	respBody := []byte(strings.Join(s.uc.GetAllMetrics(), "\n"))
+	rw.Header().Set("Content-Type", http.DetectContentType(respBody))
+	rw.Write(respBody)
 }
 
 func (s *serverRoutes) getMetricValue(rw http.ResponseWriter, r *http.Request) {
@@ -111,7 +115,10 @@ func (s *serverRoutes) getMetricValue(rw http.ResponseWriter, r *http.Request) {
 		rw.WriteHeader(http.StatusNotFound)
 		return
 	}
-	rw.Write([]byte(value))
+
+	respBody := []byte(value)
+	rw.Header().Set("Content-Type", http.DetectContentType(respBody))
+	rw.Write(respBody)
 }
 
 func (s *serverRoutes) postValueByJSON(rw http.ResponseWriter, r *http.Request) {
@@ -123,19 +130,19 @@ func (s *serverRoutes) postValueByJSON(rw http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	body, err := io.ReadAll(r.Body)
+	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Println(err)
 	}
 
-	resp, err := s.uc.GetValueByJSON(body)
+	respBody, err := s.uc.GetValueByJSON(reqBody)
 	if err != nil {
 		rw.WriteHeader(http.StatusNotFound)
 		return
 	}
 
-	rw.Header().Set("Content-Type", "application/json")
-	rw.Write(resp)
+	rw.Header().Set("Content-Type", http.DetectContentType(respBody))
+	rw.Write(respBody)
 }
 
 func (s *serverRoutes) postUpdateByJSON(rw http.ResponseWriter, r *http.Request) {
