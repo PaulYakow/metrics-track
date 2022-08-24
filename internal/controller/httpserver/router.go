@@ -102,10 +102,7 @@ func (s *serverRoutes) postDefault(rw http.ResponseWriter, r *http.Request) {
 
 func (s *serverRoutes) getListOfMetrics(rw http.ResponseWriter, r *http.Request) {
 	respBody := []byte(strings.Join(s.uc.GetAllMetrics(), "\n"))
-	//if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
-	//	rw.Header().Set("Content-Encoding", "gzip")
-	//}
-	rw.Header().Set("Content-Type", "text/plain")
+	rw.Header().Set("Content-Type", r.Header.Get("Accept"))
 	rw.Write(respBody)
 }
 
