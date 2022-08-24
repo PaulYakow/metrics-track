@@ -102,7 +102,7 @@ func (s *serverRoutes) postDefault(rw http.ResponseWriter, r *http.Request) {
 
 func (s *serverRoutes) getListOfMetrics(rw http.ResponseWriter, r *http.Request) {
 	respBody := []byte(strings.Join(s.uc.GetAllMetrics(), "\n"))
-	rw.Header().Set("Content-Type", r.Header.Get("Accept"))
+	rw.Header().Set("Content-Type", "text/html")
 	rw.Write(respBody)
 }
 
