@@ -26,7 +26,7 @@ func NewRouter(uc usecase.IServer) chi.Router {
 	mux.Route("/", func(r chi.Router) {
 		r.Get("/", s.getListOfMetrics)
 
-		r.Post("/value/", s.postValueByJSON)
+		r.Post("/value", s.postValueByJSON)
 		r.Get("/value/{type}/{name}", s.getMetricValue)
 
 		r.Post("/update", s.postUpdateByJSON)
