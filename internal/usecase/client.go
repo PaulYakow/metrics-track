@@ -1,20 +1,28 @@
 package usecase
 
-import "github.com/PaulYakow/metrics-track/internal/usecase/services/gather"
+import (
+	"github.com/PaulYakow/metrics-track/internal/usecase/services/gather"
+)
 
-type ClientUseCase struct {
-	repo   ClientMetricRepo
-	gather ClientMetricGather
+// Реализация клиента
+
+type Client struct {
+	repo   IClientRepo
+	gather IClientGather
 }
 
-func NewClientUC(r ClientMetricRepo) *ClientUseCase {
-	return &ClientUseCase{repo: r, gather: gather.New()}
+func NewClientUC(r IClientRepo) *Client {
+	return &Client{repo: r, gather: gather.New()}
 }
 
-func (m *ClientUseCase) Poll() {
-	m.repo.Store(m.gather.Update())
+func (c *Client) Poll() {
+	c.repo.Store(c.gather.Update())
 }
 
-func (m *ClientUseCase) Report() []string {
-	return m.repo.ReadCurrentMetrics()
+func (c *Client) UpdateRoutes() []string {
+	return c.repo.ReadCurrentMetrics()
+}
+
+func (c *Client) UpdateValues() [][]byte {
+	return c.repo.ReadCurrentValues()
 }

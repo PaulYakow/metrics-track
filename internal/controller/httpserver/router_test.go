@@ -64,10 +64,10 @@ func TestRouter(t *testing.T) {
 			want:   404,
 		},
 		{
-			name:   "only_update",
+			name:   "update_without_header",
 			method: "POST",
-			path:   "/update/",
-			want:   501,
+			path:   "/update",
+			want:   400,
 		},
 		{
 			name:   "unknown_type",
@@ -77,7 +77,7 @@ func TestRouter(t *testing.T) {
 		},
 	}
 
-	r := NewRouter(usecase.NewServerUC(repo.NewServerRepo()))
+	r := NewRouter(usecase.NewServerUC(repo.NewServerMemory()))
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 
@@ -89,5 +89,4 @@ func TestRouter(t *testing.T) {
 			assert.Equal(t, tt.want, resp.StatusCode)
 		})
 	}
-
 }

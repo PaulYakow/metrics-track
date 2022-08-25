@@ -1,21 +1,31 @@
 package server
 
 import (
+	"context"
+	"github.com/PaulYakow/metrics-track/config"
 	"github.com/PaulYakow/metrics-track/internal/controller/httpserver"
+	"github.com/PaulYakow/metrics-track/internal/controller/scheduler"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
 	"github.com/PaulYakow/metrics-track/internal/usecase/repo"
 	"log"
 	"net/http"
 )
 
-const (
-	endpoint = ":8080"
-)
+func Run(cfg *config.ServerCfg) {
+	serverMemory := repo.NewServerMemory()
+	serverUseCase := usecase.NewServerUC(serverMemory)
 
-func Run() {
-	serverRepo := repo.NewServerRepo()
+	if cfg.StoreFile != "" {
+		serverFile, err := repo.NewServerFile(cfg.StoreFile)
+		if err != nil {
+			log.Println(err)
+		}
 
-	serverUseCase := usecase.NewServerUC(serverRepo)
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		schedulerUseCase := usecase.NewScheduleUC(serverFile, serverMemory)
+		scheduler.NewScheduler(ctx, schedulerUseCase, cfg.Restore, cfg.StoreInterval)
+	}
 
-	log.Fatal(http.ListenAndServe(endpoint, httpserver.NewRouter(serverUseCase)))
+	log.Fatal(http.ListenAndServe(cfg.Address, httpserver.NewRouter(serverUseCase)))
 }
