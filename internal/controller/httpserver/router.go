@@ -5,11 +5,11 @@ import (
 	"github.com/PaulYakow/metrics-track/internal/usecase"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"html/template"
 	"io"
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
 )
 
 type serverRoutes struct {
@@ -24,45 +24,28 @@ func NewRouter(uc usecase.IServer) chi.Router {
 	mux.Use(middleware.Compress(flate.BestCompression))
 
 	mux.Route("/", func(r chi.Router) {
-		//Обработка GET-запроса к хосту
 		r.Get("/", s.getListOfMetrics)
 
-		r.Route("/value", func(r chi.Router) {
-			r.Post("/", s.postValueByJSON)
-			r.Get("/{type}/{name}", s.getMetricValue)
+		r.Post("/value", s.postValueByJSON)
+		r.Get("/value/{type}/{name}", s.getMetricValue)
+
+		r.Post("/update", s.postUpdateByJSON)
+
+		r.Post("/update/gauge", func(rw http.ResponseWriter, r *http.Request) {
+			rw.WriteHeader(http.StatusNotFound)
 		})
-
-		r.Route("/update", func(r chi.Router) {
-			r.Post("/", s.postUpdateByJSON)
-
-			r.Route("/gauge", func(r chi.Router) {
-				r.Post("/", func(rw http.ResponseWriter, r *http.Request) {
-					rw.WriteHeader(http.StatusNotFound)
-				})
-				r.Route("/{name}", func(r chi.Router) {
-					r.Post("/", func(rw http.ResponseWriter, r *http.Request) {
-						rw.WriteHeader(http.StatusBadRequest)
-					})
-					r.Post("/{value}", s.postGauge)
-				})
-			})
-
-			r.Route("/counter", func(r chi.Router) {
-				r.Post("/", func(rw http.ResponseWriter, r *http.Request) {
-					rw.WriteHeader(http.StatusNotFound)
-				})
-				r.Route("/{name}", func(r chi.Router) {
-					r.Post("/", func(rw http.ResponseWriter, r *http.Request) {
-						rw.WriteHeader(http.StatusBadRequest)
-					})
-					r.Post("/{value}", s.postCounter)
-				})
-			})
-
-			r.Route("/", func(r chi.Router) {
-				r.Post("/*", s.postDefault)
-			})
+		r.Post("/update/gauge/{name}", func(rw http.ResponseWriter, r *http.Request) {
+			rw.WriteHeader(http.StatusBadRequest)
 		})
+		r.Post("/update/gauge/{name}/{value}", s.postGauge)
+
+		r.Post("/update/counter", func(rw http.ResponseWriter, r *http.Request) {
+			rw.WriteHeader(http.StatusNotFound)
+		})
+		r.Post("/update/counter/{name}", func(rw http.ResponseWriter, r *http.Request) {
+			rw.WriteHeader(http.StatusBadRequest)
+		})
+		r.Post("/update/counter/{name}/{value}", s.postCounter)
 	})
 
 	return mux
@@ -103,9 +86,13 @@ func (s *serverRoutes) postDefault(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (s *serverRoutes) getListOfMetrics(rw http.ResponseWriter, r *http.Request) {
-	respBody := []byte(strings.Join(s.uc.GetAllMetrics(), "\n"))
+	tmpl := template.Must(template.ParseFiles("./web/templates/metrics_list.html"))
+	data := s.uc.GetAllMetrics()
 	rw.Header().Set("Content-Type", "text/html")
-	rw.Write(respBody)
+	err := tmpl.Execute(rw, data)
+	if err != nil {
+		log.Printf("apply template: %v", err)
+	}
 }
 
 func (s *serverRoutes) getMetricValue(rw http.ResponseWriter, r *http.Request) {
