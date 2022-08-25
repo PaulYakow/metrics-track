@@ -26,10 +26,10 @@ func NewRouter(uc usecase.IServer) chi.Router {
 	mux.Route("/", func(r chi.Router) {
 		r.Get("/", s.getListOfMetrics)
 
-		r.Post("/value/", s.postValueByJSON)
+		r.Post("/value", s.postValueByJSON)
 		r.Get("/value/{type}/{name}", s.getMetricValue)
 
-		r.Post("/update/", s.postUpdateByJSON)
+		r.Post("/update", s.postUpdateByJSON)
 
 		r.Post("/update/gauge/", func(rw http.ResponseWriter, r *http.Request) {
 			rw.WriteHeader(http.StatusNotFound)
@@ -139,15 +139,15 @@ func (s *serverRoutes) postValueByJSON(rw http.ResponseWriter, r *http.Request) 
 
 func (s *serverRoutes) postUpdateByJSON(rw http.ResponseWriter, r *http.Request) {
 	// Обработать JSON из тела запроса - сохранить в соответствующую метрику переданное значение
+	if r.Header.Get("Content-Type") != "application/json" {
+		rw.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Printf("read request body %q: %v", r.URL.Path, err)
 		rw.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	if r.Header.Get("Content-Type") != "application/json" {
-		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}
 

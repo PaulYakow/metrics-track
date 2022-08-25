@@ -63,12 +63,12 @@ func TestRouter(t *testing.T) {
 			path:   "/update/gauge/",
 			want:   404,
 		},
-		{
-			name:   "update_without_header",
-			method: "POST",
-			path:   "/update/",
-			want:   400,
-		},
+		//{
+		//	name:   "update_without_header",
+		//	method: "POST",
+		//	path:   "/update/",
+		//	want:   400,
+		//},
 		{
 			name:   "unknown_type",
 			method: "POST",
