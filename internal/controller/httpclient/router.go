@@ -20,7 +20,7 @@ type clientRoutes struct {
 func NewRouter(ctx context.Context, cfg *config.ClientCfg, client *req.Client, uc usecase.IClient) {
 	r := &clientRoutes{
 		uc:           uc,
-		endpoint:     fmt.Sprintf("http://%s/update", cfg.Address),
+		endpoint:     fmt.Sprintf("http://%s/update/", cfg.Address),
 		pollTicker:   time.NewTicker(cfg.PollInterval),
 		reportTicker: time.NewTicker(cfg.ReportInterval),
 	}
