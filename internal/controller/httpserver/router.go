@@ -29,7 +29,11 @@ func NewRouter(uc usecase.IServer) chi.Router {
 		r.Post("/value/", s.postValueByJSON)
 		r.Get("/value/{type}/{name}", s.getMetricValue)
 
-		r.Post("/update/*", s.postUpdateByJSON)
+		r.Post("/update", s.postUpdateByJSON)
+
+		r.Post("/update/*", func(rw http.ResponseWriter, r *http.Request) {
+			rw.WriteHeader(http.StatusNotImplemented)
+		})
 
 		r.Post("/update/gauge/", func(rw http.ResponseWriter, r *http.Request) {
 			rw.WriteHeader(http.StatusNotFound)
@@ -124,7 +128,6 @@ func (s *serverRoutes) postValueByJSON(rw http.ResponseWriter, r *http.Request) 
 
 	respBody, err := s.uc.GetValueByJSON(reqBody)
 	if err != nil {
-		log.Printf("read value from storage: %v", err)
 		rw.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -135,12 +138,6 @@ func (s *serverRoutes) postValueByJSON(rw http.ResponseWriter, r *http.Request) 
 
 func (s *serverRoutes) postUpdateByJSON(rw http.ResponseWriter, r *http.Request) {
 	// Обработать JSON из тела запроса - сохранить в соответствующую метрику переданное значение
-	wildcard := chi.URLParam(r, "*")
-	if wildcard != "" {
-		rw.WriteHeader(http.StatusNotImplemented)
-		return
-	}
-
 	if r.Header.Get("Content-Type") != "application/json" {
 		rw.WriteHeader(http.StatusBadRequest)
 		return

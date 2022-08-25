@@ -98,7 +98,7 @@ func (repo *ServerMemory) ReadValueByJSON(data []byte) ([]byte, error) {
 	case "gauge":
 		value, err := repo.readGauge(metric.ID)
 		if err != nil {
-			log.Printf("read gauge: %v", err)
+			log.Printf("read gauge %q: %v", metric.ID, err)
 			return nil, err
 		}
 		metric.Value = &value
@@ -106,7 +106,7 @@ func (repo *ServerMemory) ReadValueByJSON(data []byte) ([]byte, error) {
 	case "counter":
 		value, err := repo.readCounter(metric.ID)
 		if err != nil {
-			log.Printf("read counter: %v", err)
+			log.Printf("read counter %q: %v", metric.ID, err)
 			return nil, err
 		}
 
