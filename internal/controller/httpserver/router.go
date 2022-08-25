@@ -26,10 +26,10 @@ func NewRouter(uc usecase.IServer) chi.Router {
 	mux.Route("/", func(r chi.Router) {
 		r.Get("/", s.getListOfMetrics)
 
-		r.Post("/value", s.postValueByJSON)
+		r.Post("/value/", s.postValueByJSON)
 		r.Get("/value/{type}/{name}", s.getMetricValue)
 
-		r.Post("/update", s.postUpdateByJSON)
+		r.Post("/update/*", s.postUpdateByJSON)
 
 		r.Post("/update/gauge/", func(rw http.ResponseWriter, r *http.Request) {
 			rw.WriteHeader(http.StatusNotFound)
@@ -46,10 +46,6 @@ func NewRouter(uc usecase.IServer) chi.Router {
 			rw.WriteHeader(http.StatusBadRequest)
 		})
 		r.Post("/update/counter/{name}/{value}", s.postCounter)
-
-		r.Post("/update/*", func(rw http.ResponseWriter, r *http.Request) {
-			rw.WriteHeader(http.StatusNotImplemented)
-		})
 	})
 
 	return mux
@@ -139,6 +135,12 @@ func (s *serverRoutes) postValueByJSON(rw http.ResponseWriter, r *http.Request) 
 
 func (s *serverRoutes) postUpdateByJSON(rw http.ResponseWriter, r *http.Request) {
 	// Обработать JSON из тела запроса - сохранить в соответствующую метрику переданное значение
+	wildcard := chi.URLParam(r, "*")
+	if wildcard != "" {
+		rw.WriteHeader(http.StatusNotImplemented)
+		return
+	}
+
 	if r.Header.Get("Content-Type") != "application/json" {
 		rw.WriteHeader(http.StatusBadRequest)
 		return
