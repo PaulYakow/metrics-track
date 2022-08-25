@@ -31,21 +31,25 @@ func NewRouter(uc usecase.IServer) chi.Router {
 
 		r.Post("/update", s.postUpdateByJSON)
 
-		r.Post("/update/gauge", func(rw http.ResponseWriter, r *http.Request) {
+		r.Post("/update/gauge/", func(rw http.ResponseWriter, r *http.Request) {
 			rw.WriteHeader(http.StatusNotFound)
 		})
-		r.Post("/update/gauge/{name}", func(rw http.ResponseWriter, r *http.Request) {
+		r.Post("/update/gauge/{name}/", func(rw http.ResponseWriter, r *http.Request) {
 			rw.WriteHeader(http.StatusBadRequest)
 		})
 		r.Post("/update/gauge/{name}/{value}", s.postGauge)
 
-		r.Post("/update/counter", func(rw http.ResponseWriter, r *http.Request) {
+		r.Post("/update/counter/", func(rw http.ResponseWriter, r *http.Request) {
 			rw.WriteHeader(http.StatusNotFound)
 		})
-		r.Post("/update/counter/{name}", func(rw http.ResponseWriter, r *http.Request) {
+		r.Post("/update/counter/{name}/", func(rw http.ResponseWriter, r *http.Request) {
 			rw.WriteHeader(http.StatusBadRequest)
 		})
 		r.Post("/update/counter/{name}/{value}", s.postCounter)
+
+		r.Post("/update/*", func(rw http.ResponseWriter, r *http.Request) {
+			rw.WriteHeader(http.StatusNotImplemented)
+		})
 	})
 
 	return mux
@@ -79,10 +83,6 @@ func (s *serverRoutes) postCounter(rw http.ResponseWriter, r *http.Request) {
 
 	s.uc.SaveCounter(name, value)
 	rw.WriteHeader(http.StatusOK)
-}
-
-func (s *serverRoutes) postDefault(rw http.ResponseWriter, r *http.Request) {
-	rw.WriteHeader(http.StatusNotImplemented)
 }
 
 func (s *serverRoutes) getListOfMetrics(rw http.ResponseWriter, r *http.Request) {
