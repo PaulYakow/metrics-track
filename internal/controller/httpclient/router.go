@@ -46,7 +46,7 @@ func (r *clientRoutes) sendMetricsByURL(client *req.Client, routes []string) {
 			Post(r.endpoint + route)
 
 		if err != nil {
-			log.Println(err)
+			log.Printf("post metric to %q: %v", r.endpoint, err)
 		}
 	}
 }
@@ -61,7 +61,7 @@ func (r *clientRoutes) sendMetricsByJSON(client *req.Client, data [][]byte) {
 			Post(r.endpoint)
 
 		if err != nil {
-			log.Println(err)
+			log.Printf("post metric to %q: %v", r.endpoint, err)
 		}
 	}
 }

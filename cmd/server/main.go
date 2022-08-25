@@ -9,7 +9,7 @@ import (
 func main() {
 	cfg, err := config.NewServerConfig()
 	if err != nil {
-		log.Println(err)
+		log.Printf("create config for server: %v", err)
 	}
 
 	server.Run(cfg)

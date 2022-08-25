@@ -35,7 +35,10 @@ func (repo *ServerMemory) InitializeMetrics(metrics []entity.Metrics) {
 			value = metric.Delta
 		}
 
-		repo.Store(metric.MType, metric.ID, value)
+		err := repo.Store(metric.MType, metric.ID, value)
+		if err != nil {
+			log.Printf("init metrics: %v", err)
+		}
 	}
 }
 
@@ -56,7 +59,8 @@ func (repo *ServerMemory) Store(mType string, name string, value any) error {
 func (repo *ServerMemory) StoreByJSON(data []byte) error {
 	metric := entity.Metrics{}
 	if err := json.Unmarshal(data, &metric); err != nil {
-		log.Println(err)
+		log.Printf("store by json: %v", err)
+		return err
 	}
 
 	switch metric.MType {
@@ -86,13 +90,15 @@ func (repo *ServerMemory) ReadValueByType(mType string, name string) (any, error
 func (repo *ServerMemory) ReadValueByJSON(data []byte) ([]byte, error) {
 	metric := entity.Metrics{}
 	if err := json.Unmarshal(data, &metric); err != nil {
-		log.Println(err)
+		log.Printf("read value by json (unmarshal): %v", err)
+		return nil, err
 	}
 
 	switch metric.MType {
 	case "gauge":
 		value, err := repo.readGauge(metric.ID)
 		if err != nil {
+			log.Printf("read gauge: %v", err)
 			return nil, err
 		}
 		metric.Value = &value
@@ -100,6 +106,7 @@ func (repo *ServerMemory) ReadValueByJSON(data []byte) ([]byte, error) {
 	case "counter":
 		value, err := repo.readCounter(metric.ID)
 		if err != nil {
+			log.Printf("read counter: %v", err)
 			return nil, err
 		}
 
@@ -111,7 +118,8 @@ func (repo *ServerMemory) ReadValueByJSON(data []byte) ([]byte, error) {
 
 	result, err := json.Marshal(metric)
 	if err != nil {
-		log.Println(err)
+		log.Printf("read value by json (marshal): %v", err)
+		return nil, err
 	}
 
 	return result, nil

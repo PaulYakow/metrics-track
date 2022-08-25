@@ -13,7 +13,8 @@ func main() {
 
 	cfg, err := config.NewClientConfig()
 	if err != nil {
-		log.Println(err)
+		log.Printf("create config for agent: %v", err)
+		return
 	}
 
 	client.Run(ctx, cfg)

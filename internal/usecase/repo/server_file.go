@@ -37,7 +37,7 @@ func (repo *ServerFile) SaveMetrics(metrics []entity.Metrics) {
 
 	err := repo.producer.WriteMetric(&metrics)
 	if err != nil {
-		log.Println(err)
+		log.Printf("save in file: %v", err)
 	}
 }
 
@@ -47,7 +47,7 @@ func (repo *ServerFile) ReadMetrics() []entity.Metrics {
 
 	metrics, err := repo.consumer.ReadMetric()
 	if err != nil {
-		log.Println(err)
+		log.Printf("read from file: %v", err)
 	}
 
 	return metrics

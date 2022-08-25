@@ -18,7 +18,7 @@ func Run(cfg *config.ServerCfg) {
 	if cfg.StoreFile != "" {
 		serverFile, err := repo.NewServerFile(cfg.StoreFile)
 		if err != nil {
-			log.Println(err)
+			log.Printf("create file storage for server: %v", err)
 		}
 
 		ctx, cancel := context.WithCancel(context.Background())

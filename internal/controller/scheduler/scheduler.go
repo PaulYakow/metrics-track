@@ -20,9 +20,8 @@ func NewScheduler(ctx context.Context, uc usecase.ISchedule, restore bool, inter
 	}
 
 	if interval > 0 {
-		storeTicker := time.NewTicker(interval)
-
-		go func() {
+		go func(ctx context.Context) {
+			storeTicker := time.NewTicker(interval)
 			for {
 				select {
 				case <-storeTicker.C:
@@ -32,6 +31,6 @@ func NewScheduler(ctx context.Context, uc usecase.ISchedule, restore bool, inter
 					return
 				}
 			}
-		}()
+		}(ctx)
 	}
 }

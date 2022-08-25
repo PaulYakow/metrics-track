@@ -74,6 +74,7 @@ func (s *serverRoutes) postGauge(rw http.ResponseWriter, r *http.Request) {
 
 	value, err := strconv.ParseFloat(rawValue, 64)
 	if err != nil {
+		log.Printf("post gauge value: %v", err)
 		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -88,6 +89,7 @@ func (s *serverRoutes) postCounter(rw http.ResponseWriter, r *http.Request) {
 
 	value, err := strconv.Atoi(rawValue)
 	if err != nil {
+		log.Printf("post counter value: %v", err)
 		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -132,11 +134,14 @@ func (s *serverRoutes) postValueByJSON(rw http.ResponseWriter, r *http.Request) 
 
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Println(err)
+		log.Printf("read request body %q: %v", r.URL.Path, err)
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	respBody, err := s.uc.GetValueByJSON(reqBody)
 	if err != nil {
+		log.Printf("read value from storage: %v", err)
 		rw.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -149,7 +154,9 @@ func (s *serverRoutes) postUpdateByJSON(rw http.ResponseWriter, r *http.Request)
 	// Обработать JSON из тела запроса - сохранить в соответствующую метрику переданное значение
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Println(err)
+		log.Printf("read request body %q: %v", r.URL.Path, err)
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	if r.Header.Get("Content-Type") != "application/json" {
@@ -159,7 +166,8 @@ func (s *serverRoutes) postUpdateByJSON(rw http.ResponseWriter, r *http.Request)
 
 	err = s.uc.SaveValueByJSON(body)
 	if err != nil {
-		rw.WriteHeader(http.StatusBadRequest)
+		log.Printf("save value to storage: %v", err)
+		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
