@@ -1,4 +1,4 @@
-package httpserver
+package v1
 
 import (
 	"github.com/PaulYakow/metrics-track/internal/usecase"

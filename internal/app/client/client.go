@@ -5,7 +5,7 @@ package client
 import (
 	"context"
 	"github.com/PaulYakow/metrics-track/config"
-	"github.com/PaulYakow/metrics-track/internal/controller/httpclient"
+	"github.com/PaulYakow/metrics-track/internal/controller/client/v1"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
 	"github.com/PaulYakow/metrics-track/internal/usecase/repo"
 	"github.com/imroc/req/v3"
@@ -20,5 +20,5 @@ func Run(ctx context.Context, cfg *config.ClientCfg) {
 	client := req.C().
 		SetTimeout(time.Second)
 
-	httpclient.NewRouter(ctx, cfg, client, agentUseCase)
+	v1.NewRouter(ctx, cfg, client, agentUseCase)
 }

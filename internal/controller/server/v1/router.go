@@ -1,4 +1,4 @@
-package httpserver
+package v1
 
 import (
 	"compress/flate"
@@ -86,7 +86,7 @@ func (s *serverRoutes) postCounter(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (s *serverRoutes) getListOfMetrics(rw http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.ParseFiles("./web/templates/metrics_list.html"))
+	tmpl := template.Must(template.ParseFiles("./web/templates/metrics_list.gohtml"))
 	data := s.uc.GetAllMetrics()
 	rw.Header().Set("Content-Type", "text/html")
 	err := tmpl.Execute(rw, data)
