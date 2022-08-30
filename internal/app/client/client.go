@@ -4,12 +4,16 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"github.com/PaulYakow/metrics-track/config"
-	"github.com/PaulYakow/metrics-track/internal/controller/client/v1"
+	"github.com/PaulYakow/metrics-track/internal/controller/client"
+	"github.com/PaulYakow/metrics-track/internal/pkg/httpclient"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
 	"github.com/PaulYakow/metrics-track/internal/usecase/repo"
-	"github.com/imroc/req/v3"
-	"time"
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func Run(ctx context.Context, cfg *config.ClientCfg) {
@@ -17,8 +21,18 @@ func Run(ctx context.Context, cfg *config.ClientCfg) {
 
 	agentUseCase := usecase.NewClientUC(agentRepo)
 
-	client := req.C().
-		SetTimeout(time.Second)
+	collector := client.NewCollector(ctx, agentUseCase)
+	go collector.Run(cfg.PollInterval)
 
-	v1.NewRouter(ctx, cfg, client, agentUseCase)
+	c := httpclient.New(ctx)
+	endpoint := fmt.Sprintf("http://%s/update/", cfg.Address)
+	sender := client.NewSender(c, agentUseCase, endpoint, cfg.ReportInterval)
+	go sender.Run()
+
+	// Waiting signal
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	s := <-interrupt
+	log.Printf("client - Run - signal: %s", s.String())
 }
