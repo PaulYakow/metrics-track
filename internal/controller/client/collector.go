@@ -2,36 +2,38 @@ package client
 
 import (
 	"context"
+	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
-	"log"
+	"sync"
 	"time"
 )
 
 type collector struct {
 	ctx context.Context
 	uc  usecase.IClient
+	l   logger.ILogger
 }
 
-func NewCollector(ctx context.Context, uc usecase.IClient) *collector {
+func NewCollector(ctx context.Context, uc usecase.IClient, l logger.ILogger) *collector {
 	return &collector{
 		ctx: ctx,
 		uc:  uc,
+		l:   l,
 	}
 }
 
-func (c *collector) Run(interval time.Duration) {
+func (c *collector) Run(wg *sync.WaitGroup, interval time.Duration) {
 	ticker := time.NewTicker(interval)
-	defer ticker.Stop()
+	defer wg.Done()
 
-	log.Printf("collector run with interval %v", interval)
+	c.l.Info("collector - run with interval %v", interval)
 	for {
 		select {
 		case <-ticker.C:
 			c.uc.Poll()
-			log.Printf("polling... %v", time.Now())
 		case <-c.ctx.Done():
 			ticker.Stop()
-			log.Printf("collector context %v", c.ctx.Err())
+			c.l.Info("collector - context %v", c.ctx.Err())
 			return
 		}
 	}

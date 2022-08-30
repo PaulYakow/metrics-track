@@ -40,8 +40,11 @@ func (c *Client) Done() <-chan struct{} {
 }
 
 func (c *Client) PostByURL(route string) error {
+	ctx, cancel := context.WithTimeout(c.ctx, 1*time.Second)
+	defer cancel()
+
 	_, err := c.client.R().
-		SetContext(c.ctx).
+		SetContext(ctx).
 		SetHeader("Content-Type", "plain/text").
 		Post(route)
 
@@ -49,8 +52,11 @@ func (c *Client) PostByURL(route string) error {
 }
 
 func (c *Client) PostByJSON(route string, data []byte) error {
+	ctx, cancel := context.WithTimeout(c.ctx, 1*time.Second)
+	defer cancel()
+
 	_, err := c.client.R().
-		SetContext(c.ctx).
+		SetContext(ctx).
 		SetHeader("Content-Type", "application/json").
 		SetBody(data).
 		Post(route)

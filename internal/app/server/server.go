@@ -2,19 +2,21 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"github.com/PaulYakow/metrics-track/config"
 	"github.com/PaulYakow/metrics-track/internal/controller/scheduler"
 	"github.com/PaulYakow/metrics-track/internal/controller/server/v1"
 	"github.com/PaulYakow/metrics-track/internal/pkg/httpserver"
+	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
 	"github.com/PaulYakow/metrics-track/internal/usecase/repo"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
 )
 
 func Run(cfg *config.ServerCfg) {
+	l := logger.New()
 	// In-memory repository
 	serverMemory := repo.NewServerMemory()
 	serverUseCase := usecase.NewServerUC(serverMemory)
@@ -23,7 +25,7 @@ func Run(cfg *config.ServerCfg) {
 	if cfg.StoreFile != "" {
 		serverFile, err := repo.NewServerFile(cfg.StoreFile)
 		if err != nil {
-			log.Printf("create file storage for server: %v", err)
+			l.Error(fmt.Errorf("server - create file storage: %v", err))
 		}
 
 		ctx, cancel := context.WithCancel(context.Background())
@@ -42,14 +44,14 @@ func Run(cfg *config.ServerCfg) {
 
 	select {
 	case s := <-interrupt:
-		log.Printf("server - Run - signal: %s", s.String())
+		l.Info("server - Run - signal: %v", s.String())
 	case err := <-server.Notify():
-		log.Printf("server - Run - Notify: %s", err)
+		l.Error(fmt.Errorf("server - Run - Notify: %w", err))
 	}
 
 	// Shutdown
 	err := server.Shutdown()
 	if err != nil {
-		log.Printf("server - Run - Shutdown: %s", err)
+		l.Error(fmt.Errorf("server - Run - Shutdown: %w", err))
 	}
 }

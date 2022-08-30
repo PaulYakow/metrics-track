@@ -2,8 +2,10 @@ package client
 
 import (
 	"github.com/PaulYakow/metrics-track/internal/pkg/httpclient"
+	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
 	"log"
+	"sync"
 	"time"
 )
 
@@ -11,27 +13,29 @@ type sender struct {
 	client   *httpclient.Client
 	uc       usecase.IClient
 	endpoint string
-	ticker   *time.Ticker
+	l        logger.ILogger
 }
 
-func NewSender(client *httpclient.Client, uc usecase.IClient, endpoint string, interval time.Duration) *sender {
-	log.Printf("new sender with interval %v, endpoint %v", interval, endpoint)
+func NewSender(client *httpclient.Client, uc usecase.IClient, endpoint string, l logger.ILogger) *sender {
 	return &sender{
 		client:   client,
 		uc:       uc,
 		endpoint: endpoint,
-		ticker:   time.NewTicker(interval),
+		l:        l,
 	}
 }
 
-func (s *sender) Run() {
+func (s *sender) Run(wg *sync.WaitGroup, interval time.Duration) {
+	ticker := time.NewTicker(interval)
+	defer wg.Done()
+
+	s.l.Info("sender with interval %v", interval)
 	for {
 		select {
-		case <-s.ticker.C:
+		case <-ticker.C:
 			s.sendMetricsByJSON(s.uc.UpdateValues())
-			log.Printf("sending... %v", time.Now())
 		case <-s.client.Done():
-			s.ticker.Stop()
+			ticker.Stop()
 			return
 		}
 	}
