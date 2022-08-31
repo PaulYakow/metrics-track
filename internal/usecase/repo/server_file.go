@@ -35,7 +35,7 @@ func (repo *ServerFile) SaveMetrics(metrics []entity.Metric) {
 	repo.Lock()
 	defer repo.Unlock()
 
-	err := repo.producer.WriteMetric(&metrics)
+	err := repo.producer.Write(&metrics)
 	if err != nil {
 		log.Printf("save in file: %v", err)
 	}
@@ -45,7 +45,7 @@ func (repo *ServerFile) ReadMetrics() []entity.Metric {
 	repo.Lock()
 	defer repo.Unlock()
 
-	metrics, err := repo.consumer.ReadMetric()
+	metrics, err := repo.consumer.Read()
 	if err != nil {
 		log.Printf("read from file: %v", err)
 	}

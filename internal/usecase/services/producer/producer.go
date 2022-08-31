@@ -27,7 +27,7 @@ func NewProducer(filename string) (*Producer, error) {
 	}, nil
 }
 
-func (p *Producer) WriteMetric(metrics *[]entity.Metric) error {
+func (p *Producer) Write(metrics *[]entity.Metric) error {
 	defer p.file.Close()
 
 	return p.encoder.Encode(&metrics)

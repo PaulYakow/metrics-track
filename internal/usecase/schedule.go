@@ -1,7 +1,5 @@
 package usecase
 
-import "github.com/PaulYakow/metrics-track/internal/entity"
-
 // Реализация планировщика
 
 type Schedule struct {
@@ -17,26 +15,7 @@ func NewScheduleUC(file IServerFile, memory IServerMemory) *Schedule {
 }
 
 func (s *Schedule) RunStoring() {
-	gauges, counters := s.memoryRepo.ReadAll()
-	metrics := make([]entity.Metric, 0)
-
-	for name, gauge := range gauges {
-		metrics = append(metrics, entity.Metric{
-			ID:    name,
-			MType: "gauge",
-			Value: gauge.GetPointer(),
-		})
-	}
-
-	for name, counter := range counters {
-		metrics = append(metrics, entity.Metric{
-			ID:    name,
-			MType: "counter",
-			Delta: counter.GetPointer(),
-		})
-	}
-
-	s.fileRepo.SaveMetrics(metrics)
+	s.fileRepo.SaveMetrics(s.memoryRepo.ReadAll())
 }
 
 func (s *Schedule) InitMetrics() {

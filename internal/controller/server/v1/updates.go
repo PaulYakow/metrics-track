@@ -1,11 +1,13 @@
 package v1
 
 import (
+	"encoding/json"
+	"fmt"
+	"github.com/PaulYakow/metrics-track/internal/entity"
 	"github.com/go-chi/chi/v5"
 	"io"
 	"log"
 	"net/http"
-	"strconv"
 )
 
 type updates struct{}
@@ -15,60 +17,40 @@ func (rs updates) Routes(s *serverRoutes) chi.Router {
 
 	r.Post("/", s.updateByJSON)
 
-	r.Post("/*", func(rw http.ResponseWriter, r *http.Request) {
-		rw.WriteHeader(http.StatusNotImplemented)
-	})
-
-	r.Route("/gauge", func(r chi.Router) {
+	r.Route("/{type}", func(r chi.Router) {
 		r.Post("/", func(rw http.ResponseWriter, r *http.Request) {
 			rw.WriteHeader(http.StatusNotFound)
 		})
 		r.Post("/{name}/", func(rw http.ResponseWriter, r *http.Request) {
 			rw.WriteHeader(http.StatusBadRequest)
 		})
-		r.Post("/{name}/{value}", s.updateGaugeByURL)
-	})
-
-	r.Route("/counter", func(r chi.Router) {
-		r.Post("/", func(rw http.ResponseWriter, r *http.Request) {
-			rw.WriteHeader(http.StatusNotFound)
-		})
-		r.Post("/{name}/", func(rw http.ResponseWriter, r *http.Request) {
-			rw.WriteHeader(http.StatusBadRequest)
-		})
-		r.Post("/{name}/{value}", s.updateCounterByURL)
+		r.Post("/{name}/{value}", s.updateByURL)
 	})
 
 	return r
 }
 
-func (s *serverRoutes) updateGaugeByURL(rw http.ResponseWriter, r *http.Request) {
+func (s *serverRoutes) updateByURL(rw http.ResponseWriter, r *http.Request) {
+	mType := chi.URLParam(r, "type")
 	name := chi.URLParam(r, "name")
 	rawValue := chi.URLParam(r, "value")
 
-	value, err := strconv.ParseFloat(rawValue, 64)
+	metric, err := s.uc.Get(entity.Metric{
+		ID:    name,
+		MType: mType,
+	})
 	if err != nil {
-		log.Printf("post gauge value: %v", err)
+		s.logger.Error(err)
+		rw.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	if err = metric.Update(rawValue); err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	s.uc.SaveGauge(name, value)
-	rw.WriteHeader(http.StatusOK)
-}
-
-func (s *serverRoutes) updateCounterByURL(rw http.ResponseWriter, r *http.Request) {
-	name := chi.URLParam(r, "name")
-	rawValue := chi.URLParam(r, "value")
-
-	value, err := strconv.Atoi(rawValue)
-	if err != nil {
-		log.Printf("post counter value: %v", err)
-		rw.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	s.uc.SaveCounter(name, value)
+	s.uc.Save(*metric)
 	rw.WriteHeader(http.StatusOK)
 }
 
@@ -86,9 +68,16 @@ func (s *serverRoutes) updateByJSON(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.uc.SaveValueByJSON(body)
-	if err != nil {
-		log.Printf("save value to storage: %v", err)
+	// todo: повторяется дважды (в values) - вынести в отдельную функцию (возможно убрать в метод самой метрики)
+	metric := entity.Metric{}
+	if err = json.Unmarshal(body, &metric); err != nil {
+		s.logger.Error(fmt.Errorf("router - update metric: %q", err))
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if err = s.uc.Save(metric); err != nil {
+		s.logger.Error(fmt.Errorf("router - save value to storage: %q", err))
 		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}

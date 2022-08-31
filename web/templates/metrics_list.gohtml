@@ -5,11 +5,24 @@
     <title>List of all</title>
 </head>
 <body>
-<div>
-    <div style="margin-bottom: 20px">...metrics</div>
+<table>
+    <caption>...metrics...</caption>
+
+    <th>Name</th>
+    <th>Value</th>
+    <th>Type</th>
+
     {{ range . }}
-    <div style="margin-bottom: 10px">{{ . }}</div>
+        <tr>
+            <td>{{ .ID }}</td>
+            <td>{{ if eq .MType "gauge" }}
+                    {{ .Value }}
+                {{ else if eq .MType "counter" }}
+                    {{ .Delta }}
+                {{ end }}</td>
+            <td>{{ .MType }}</td>
+        </tr>
     {{ end }}
-</div>
+</table>
 </body>
 </html>

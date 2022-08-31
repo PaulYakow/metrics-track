@@ -1,9 +1,11 @@
 package v1
 
 import (
+	"encoding/json"
+	"fmt"
+	"github.com/PaulYakow/metrics-track/internal/entity"
 	"github.com/go-chi/chi/v5"
 	"io"
-	"log"
 	"net/http"
 )
 
@@ -22,13 +24,17 @@ func (s *serverRoutes) valueByURL(rw http.ResponseWriter, r *http.Request) {
 	mType := chi.URLParam(r, "type")
 	name := chi.URLParam(r, "name")
 
-	value, err := s.uc.GetValueByType(mType, name)
+	metric, err := s.uc.Get(entity.Metric{
+		ID:    name,
+		MType: mType,
+	})
 	if err != nil {
+		s.logger.Error(err)
 		rw.WriteHeader(http.StatusNotFound)
 		return
 	}
 
-	respBody := []byte(value)
+	respBody := []byte(metric.GetValue())
 	rw.Header().Set("Content-Type", "application/json")
 	rw.Write(respBody)
 }
@@ -44,12 +50,20 @@ func (s *serverRoutes) valueByJSON(rw http.ResponseWriter, r *http.Request) {
 
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Printf("read request body %q: %v", r.URL.Path, err)
+		s.logger.Error(fmt.Errorf("router - read request body %q: %v", r.URL.Path, err))
 		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	respBody, err := s.uc.GetValueByJSON(reqBody)
+	metric := entity.Metric{}
+	if err = json.Unmarshal(reqBody, &metric); err != nil {
+		s.logger.Error(fmt.Errorf("router - read value by json (unmarshal): %v", err))
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	value, _ := s.uc.Get(metric)
+	respBody, err := json.Marshal(value)
 	if err != nil {
 		rw.WriteHeader(http.StatusNotFound)
 		return

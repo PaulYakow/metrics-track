@@ -35,7 +35,7 @@ func NewRouter(uc usecase.IServer, l logger.ILogger) chi.Router {
 
 func (s *serverRoutes) listOfMetrics(rw http.ResponseWriter, r *http.Request) {
 	tmpl := template.Must(template.ParseFiles("./web/templates/metrics_list.gohtml"))
-	data := s.uc.GetAllMetrics()
+	data, _ := s.uc.GetAll()
 	rw.Header().Set("Content-Type", "text/html")
 	err := tmpl.Execute(rw, data)
 	if err != nil {

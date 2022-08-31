@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"time"
 )
 
 type ILogger interface {
@@ -20,9 +19,10 @@ type Logger struct {
 
 func New() *Logger {
 	config := zap.NewProductionConfig()
-	config.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(time.RFC3339)
-	config.EncoderConfig.CallerKey = zapcore.OmitKey
+	config.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 | 15:04:05")
 	config.EncoderConfig.MessageKey = "message"
+	config.EncoderConfig.CallerKey = zapcore.OmitKey
+	config.EncoderConfig.StacktraceKey = zapcore.OmitKey
 
 	logger, _ := config.Build()
 	return &Logger{logger: logger}

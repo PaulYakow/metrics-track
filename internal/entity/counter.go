@@ -6,48 +6,50 @@ type Counter struct {
 	value int64
 }
 
-func (m *Counter) GetType() string {
+func (c *Counter) GetType() string {
 	return "counter"
 }
 
-func (m *Counter) SetValue(value any) {
+func (c *Counter) SetValue(value any) {
 	switch v := value.(type) {
 	case int64:
-		m.value = v
+		c.value = v
 	case *int64:
-		m.value = *v
+		c.value = *v
 	case int:
-		m.value = int64(v)
+		c.value = int64(v)
 	case int32:
-		m.value = int64(v)
+		c.value = int64(v)
 	default:
-		m.value = 0
+		// todo: return error
+		c.value = 0
 	}
 }
 
-func (m *Counter) GetValue() int64 {
-	return m.value
+func (c *Counter) GetValue() int64 {
+	return c.value
 }
 
-func (m *Counter) GetPointer() *int64 {
-	return &m.value
+func (c *Counter) GetPointer() *int64 {
+	return &c.value
 }
 
-func (m *Counter) Increment() {
-	m.value++
+func (c *Counter) Increment() {
+	c.value++
 }
 
-func (m *Counter) IncrementDelta(delta any) {
+func (c *Counter) IncrementDelta(delta any) {
 	switch d := delta.(type) {
 	case int64:
-		m.value += d
+		c.value += d
 	case *int64:
-		m.value += *d
+		c.value += *d
 	case int:
-		m.value += int64(d)
+		c.value += int64(d)
 	case int32:
-		m.value += int64(d)
+		c.value += int64(d)
 	default:
-		m.value = 0
+		// todo: return error
+		c.value = 0
 	}
 }
