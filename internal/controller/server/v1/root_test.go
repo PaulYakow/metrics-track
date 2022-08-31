@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
 	"github.com/PaulYakow/metrics-track/internal/usecase/repo"
 	"github.com/stretchr/testify/assert"
@@ -77,7 +78,7 @@ func TestRouter(t *testing.T) {
 		},
 	}
 
-	r := NewRouter(usecase.NewServerUC(repo.NewServerMemory()))
+	r := NewRouter(usecase.NewServerUC(repo.NewServerMemory()), logger.New())
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 

@@ -25,7 +25,7 @@ func NewServerMemory() *ServerMemory {
 	}
 }
 
-func (repo *ServerMemory) InitializeMetrics(metrics []entity.Metrics) {
+func (repo *ServerMemory) InitializeMetrics(metrics []entity.Metric) {
 	var value any
 	for _, metric := range metrics {
 		switch metric.MType {
@@ -57,7 +57,7 @@ func (repo *ServerMemory) Store(mType string, name string, value any) error {
 }
 
 func (repo *ServerMemory) StoreByJSON(data []byte) error {
-	metric := entity.Metrics{}
+	metric := entity.Metric{}
 	if err := json.Unmarshal(data, &metric); err != nil {
 		log.Printf("store by json: %v", err)
 		return err
@@ -88,7 +88,7 @@ func (repo *ServerMemory) ReadValueByType(mType string, name string) (any, error
 }
 
 func (repo *ServerMemory) ReadValueByJSON(data []byte) ([]byte, error) {
-	metric := entity.Metrics{}
+	metric := entity.Metric{}
 	if err := json.Unmarshal(data, &metric); err != nil {
 		log.Printf("read value by json (unmarshal): %v", err)
 		return nil, err

@@ -4,6 +4,9 @@ import "github.com/PaulYakow/metrics-track/internal/entity"
 
 // Адаптеры для клиента
 
+// todo: возвращать error во всех функциях (для обработки в контроллере)
+// todo: оперировать типом Metric
+
 type IClient interface {
 	Poll()
 	UpdateRoutes() []string
@@ -45,10 +48,10 @@ type IServerMemory interface {
 	StoreByJSON(data []byte) error
 	ReadValueByJSON(data []byte) ([]byte, error)
 
-	InitializeMetrics([]entity.Metrics)
+	InitializeMetrics([]entity.Metric)
 }
 
 type IServerFile interface {
-	SaveMetrics(metrics []entity.Metrics)
-	ReadMetrics() []entity.Metrics
+	SaveMetrics(metrics []entity.Metric)
+	ReadMetrics() []entity.Metric
 }

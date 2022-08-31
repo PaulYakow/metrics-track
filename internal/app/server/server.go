@@ -35,7 +35,7 @@ func Run(cfg *config.ServerCfg) {
 	}
 
 	// HTTP server
-	handler := v1.NewRouter(serverUseCase)
+	handler := v1.NewRouter(serverUseCase, l)
 	server := httpserver.New(handler, httpserver.Address(cfg.Address))
 
 	// Waiting signal

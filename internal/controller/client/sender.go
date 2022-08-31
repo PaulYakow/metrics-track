@@ -1,10 +1,10 @@
 package client
 
 import (
+	"fmt"
 	"github.com/PaulYakow/metrics-track/internal/pkg/httpclient"
 	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
-	"log"
 	"sync"
 	"time"
 )
@@ -29,7 +29,7 @@ func (s *sender) Run(wg *sync.WaitGroup, interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	defer wg.Done()
 
-	s.l.Info("sender with interval %v", interval)
+	s.l.Info("sender - run with interval %v", interval)
 	for {
 		select {
 		case <-ticker.C:
@@ -44,7 +44,7 @@ func (s *sender) Run(wg *sync.WaitGroup, interval time.Duration) {
 func (s *sender) sendMetricsByURL(routes []string) {
 	for _, route := range routes {
 		if err := s.client.PostByURL(s.endpoint + route); err != nil {
-			log.Printf("sender - post metric by URL to %q: %v", s.endpoint+route, err)
+			s.l.Error(fmt.Errorf("sender - post metric by URL to %q: %w", s.endpoint+route, err))
 		}
 	}
 }
@@ -52,7 +52,7 @@ func (s *sender) sendMetricsByURL(routes []string) {
 func (s *sender) sendMetricsByJSON(data [][]byte) {
 	for _, rawMetric := range data {
 		if err := s.client.PostByJSON(s.endpoint, rawMetric); err != nil {
-			log.Printf("sender - post metric by JSON to %q: %v", s.endpoint, err)
+			s.l.Error(fmt.Errorf("sender - post metric by JSON to %q: %w", s.endpoint, err))
 		}
 	}
 }

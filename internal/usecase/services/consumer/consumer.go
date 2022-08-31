@@ -22,10 +22,10 @@ func NewConsumer(filename string) (*Consumer, error) {
 	}, nil
 }
 
-func (c *Consumer) ReadMetric() ([]entity.Metrics, error) {
+func (c *Consumer) ReadMetric() ([]entity.Metric, error) {
 	defer c.file.Close()
 
-	var metrics []entity.Metrics
+	var metrics []entity.Metric
 	if err := c.decoder.Decode(&metrics); err != nil {
 		return nil, err
 	}

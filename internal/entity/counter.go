@@ -1,5 +1,7 @@
 package entity
 
+// todo: убрать типы counter и gauge (оставить их "под капотом" либо вообще переделать функции обработки)
+
 type Counter struct {
 	value int64
 }

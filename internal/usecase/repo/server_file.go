@@ -31,7 +31,7 @@ func NewServerFile(filename string) (*ServerFile, error) {
 	}, nil
 }
 
-func (repo *ServerFile) SaveMetrics(metrics []entity.Metrics) {
+func (repo *ServerFile) SaveMetrics(metrics []entity.Metric) {
 	repo.Lock()
 	defer repo.Unlock()
 
@@ -41,7 +41,7 @@ func (repo *ServerFile) SaveMetrics(metrics []entity.Metrics) {
 	}
 }
 
-func (repo *ServerFile) ReadMetrics() []entity.Metrics {
+func (repo *ServerFile) ReadMetrics() []entity.Metric {
 	repo.Lock()
 	defer repo.Unlock()
 

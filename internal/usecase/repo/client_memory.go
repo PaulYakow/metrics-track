@@ -48,7 +48,7 @@ func (r *ClientRepo) ReadCurrentMetrics() []string {
 
 func (r *ClientRepo) ReadCurrentValues() [][]byte {
 	result := make([][]byte, 0)
-	metric := entity.Metrics{}
+	metric := entity.Metric{}
 
 	r.Lock()
 	defer r.Unlock()
