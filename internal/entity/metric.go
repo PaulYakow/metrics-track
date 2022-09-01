@@ -4,6 +4,8 @@ import (
 	"strconv"
 )
 
+// todo: убрать типы counter и gauge (оставить их "под капотом" либо вообще переделать функции обработки)
+
 type Metric struct {
 	ID    string   `json:"id"`              // имя метрики
 	MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
@@ -63,13 +65,13 @@ func Create(mType, name, value string) (*Metric, error) {
 	}
 }
 
-func (m *Metric) Update(in *Metric) error {
+func (m *Metric) Update(metric *Metric) error {
 	switch m.MType {
 	case "gauge":
-		m.Value = in.Value
+		m.Value = metric.Value
 
 	case "counter":
-		*m.Delta += *in.Delta
+		*m.Delta += *metric.Delta
 
 	default:
 		return typeErr{
@@ -77,6 +79,44 @@ func (m *Metric) Update(in *Metric) error {
 			tName: m.MType,
 			err:   ErrUnknownType,
 		}
+	}
+
+	return nil
+}
+
+func (m *Metric) UpdateValue(value any) error {
+	switch v := value.(type) {
+	case float64:
+		m.Value = &v
+	case *float64:
+		m.Value = v
+	case uint64:
+		val := float64(v)
+		m.Value = &val
+	case uint32:
+		val := float64(v)
+		m.Value = &val
+	default:
+		return ErrUnknownType
+	}
+
+	return nil
+}
+
+func (m *Metric) UpdateDelta(value any) error {
+	switch d := value.(type) {
+	case int64:
+		*m.Delta += d
+	case *int64:
+		*m.Delta += *d
+	case int:
+		val := int64(d)
+		*m.Delta += val
+	case int32:
+		val := int64(d)
+		*m.Delta += val
+	default:
+		return ErrUnknownType
 	}
 
 	return nil

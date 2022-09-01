@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"github.com/PaulYakow/metrics-track/internal/entity"
 	"github.com/PaulYakow/metrics-track/internal/usecase/services/gather"
 )
 
@@ -19,10 +20,6 @@ func (c *Client) Poll() {
 	c.repo.Store(c.gather.Update())
 }
 
-func (c *Client) UpdateRoutes() []string {
-	return c.repo.ReadCurrentMetrics()
-}
-
-func (c *Client) UpdateValues() [][]byte {
-	return c.repo.ReadCurrentValues()
+func (c *Client) GetAll() []entity.Metric {
+	return c.repo.ReadAll()
 }

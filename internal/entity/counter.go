@@ -1,7 +1,6 @@
 package entity
 
-// todo: убрать типы counter и gauge (оставить их "под капотом" либо вообще переделать функции обработки)
-
+// Deprecated: use Metric instead.
 type Counter struct {
 	delta int64
 }
@@ -21,7 +20,6 @@ func (c *Counter) SetValue(value any) {
 	case int32:
 		c.delta = int64(v)
 	default:
-		// todo: return error
 		c.delta = 0
 	}
 }
@@ -49,7 +47,6 @@ func (c *Counter) IncrementDelta(delta any) {
 	case int32:
 		c.delta += int64(d)
 	default:
-		// todo: return error
 		c.delta = 0
 	}
 }

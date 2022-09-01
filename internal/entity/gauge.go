@@ -2,6 +2,7 @@ package entity
 
 import "math"
 
+// Deprecated: use Metric instead.
 type Gauge struct {
 	value float64
 }
@@ -21,7 +22,6 @@ func (g *Gauge) SetValue(value any) {
 	case uint32:
 		g.value = float64(v)
 	default:
-		// todo: return error
 		g.value = math.NaN()
 	}
 }

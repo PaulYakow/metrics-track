@@ -1,10 +1,13 @@
 package client
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/PaulYakow/metrics-track/internal/entity"
 	"github.com/PaulYakow/metrics-track/internal/pkg/httpclient"
 	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
+	"log"
 	"sync"
 	"time"
 )
@@ -33,7 +36,7 @@ func (s *sender) Run(wg *sync.WaitGroup, interval time.Duration) {
 	for {
 		select {
 		case <-ticker.C:
-			s.sendMetricsByJSON(s.uc.UpdateValues())
+			s.sendMetricsByJSON(s.uc.GetAll())
 		case <-s.client.Done():
 			s.l.Info("sender - context canceled")
 			ticker.Stop()
@@ -50,9 +53,13 @@ func (s *sender) sendMetricsByURL(routes []string) {
 	}
 }
 
-func (s *sender) sendMetricsByJSON(data [][]byte) {
-	for _, rawMetric := range data {
-		if err := s.client.PostByJSON(s.endpoint, rawMetric); err != nil {
+func (s *sender) sendMetricsByJSON(metrics []entity.Metric) {
+	for _, metric := range metrics {
+		data, err := json.Marshal(metric)
+		if err != nil {
+			log.Printf("sender - read metric %q: %v", metric.ID, err)
+		}
+		if err = s.client.PostByJSON(s.endpoint, data); err != nil {
 			s.l.Error(fmt.Errorf("sender - post metric by JSON to %q: %w", s.endpoint, err))
 		}
 	}

@@ -5,22 +5,19 @@ import "github.com/PaulYakow/metrics-track/internal/entity"
 // Адаптеры для клиента
 type (
 	// todo: возвращать error во всех функциях (для обработки в контроллере)
-	// todo: оперировать типом Metric
 
 	IClient interface {
 		Poll()
-		UpdateRoutes() []string
-		UpdateValues() [][]byte
+		GetAll() []entity.Metric
 	}
 
 	IClientRepo interface {
-		Store(map[string]*entity.Gauge, map[string]*entity.Counter)
-		ReadCurrentMetrics() []string
-		ReadCurrentValues() [][]byte
+		Store(map[string]*entity.Metric)
+		ReadAll() []entity.Metric
 	}
 
 	IClientGather interface {
-		Update() (map[string]*entity.Gauge, map[string]*entity.Counter)
+		Update() map[string]*entity.Metric
 	}
 )
 
