@@ -82,6 +82,8 @@ func (s *serverRoutes) updateByJSON(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	s.logger.Info("router - request update metric: %v", reqMetric)
+
 	if err = s.uc.Save(&reqMetric); err != nil {
 		s.logger.Error(fmt.Errorf("router - save value to storage: %q", err))
 		rw.WriteHeader(http.StatusInternalServerError)
