@@ -62,9 +62,11 @@ func (r *ClientRepo) ReadCurrentValues() [][]byte {
 		if err != nil {
 			log.Printf("read gauge: %v", err)
 		}
+
 		result = append(result, data)
 	}
 
+	metric.Value = nil // clean before operate counters
 	for name, counter := range r.counters {
 		metric.ID = name
 		metric.MType = "counter"
@@ -74,6 +76,10 @@ func (r *ClientRepo) ReadCurrentValues() [][]byte {
 		if err != nil {
 			log.Printf("read counter: %v", err)
 		}
+
+		fmt.Println("read current metric: ", metric)
+		fmt.Println("marshal to: ", string(data))
+
 		result = append(result, data)
 	}
 
