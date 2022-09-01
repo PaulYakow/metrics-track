@@ -59,7 +59,7 @@ func initMetrics() map[string]*entity.Metric {
 	result := make(map[string]*entity.Metric)
 
 	result["Alloc"], _ = entity.Create("gauge", "Alloc", "0")
-	result["BuckHashSys"], _ = entity.Create("gauge", "Alloc", "0")
+	result["BuckHashSys"], _ = entity.Create("gauge", "BuckHashSys", "0")
 	result["Frees"], _ = entity.Create("gauge", "Frees", "0")
 	result["GCCPUFraction"], _ = entity.Create("gauge", "GCCPUFraction", "0")
 	result["GCSys"], _ = entity.Create("gauge", "GCSys", "0")

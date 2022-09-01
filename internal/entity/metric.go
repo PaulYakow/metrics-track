@@ -84,7 +84,7 @@ func (m *Metric) Update(metric *Metric) error {
 	return nil
 }
 
-func (m *Metric) UpdateValue(value any) error {
+func (m *Metric) UpdateValue(value any) {
 	switch v := value.(type) {
 	case float64:
 		m.Value = &v
@@ -97,13 +97,11 @@ func (m *Metric) UpdateValue(value any) error {
 		val := float64(v)
 		m.Value = &val
 	default:
-		return ErrUnknownType
+		m.Value = nil
 	}
-
-	return nil
 }
 
-func (m *Metric) UpdateDelta(value any) error {
+func (m *Metric) UpdateDelta(value any) {
 	switch d := value.(type) {
 	case int64:
 		*m.Delta += d
@@ -116,8 +114,6 @@ func (m *Metric) UpdateDelta(value any) error {
 		val := int64(d)
 		*m.Delta += val
 	default:
-		return ErrUnknownType
-	}
 
-	return nil
+	}
 }
