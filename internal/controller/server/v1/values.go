@@ -62,9 +62,16 @@ func (s *serverRoutes) valueByJSON(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	value, _ := s.uc.Get(metric)
+	value, err := s.uc.Get(metric)
+	if err != nil {
+		s.logger.Error(fmt.Errorf("router - get value: %v", err))
+		rw.WriteHeader(http.StatusNotFound)
+		return
+	}
+
 	respBody, err := json.Marshal(value)
 	if err != nil {
+		s.logger.Error(fmt.Errorf("router - marshal to json: %v", err))
 		rw.WriteHeader(http.StatusNotFound)
 		return
 	}
