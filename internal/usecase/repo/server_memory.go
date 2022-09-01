@@ -14,21 +14,18 @@ var (
 
 type ServerMemory struct {
 	sync.Mutex
-	metrics  map[string]*entity.Metric
-	counters map[string]*entity.Counter
+	metrics map[string]*entity.Metric
 }
 
 func NewServerMemory() *ServerMemory {
 	return &ServerMemory{
-		metrics:  make(map[string]*entity.Metric),
-		counters: make(map[string]*entity.Counter),
+		metrics: make(map[string]*entity.Metric),
 	}
 }
 
-func (repo *ServerMemory) InitializeMetrics(metrics []entity.Metric) {
+func (repo *ServerMemory) InitializeMetrics(metrics []*entity.Metric) {
 	for _, metric := range metrics {
-		err := repo.Store(&metric)
-		if err != nil {
+		if err := repo.Store(metric); err != nil {
 			log.Printf("init metrics: %v", err)
 		}
 	}
@@ -70,24 +67,4 @@ func (repo *ServerMemory) ReadAll() []entity.Metric {
 		result = append(result, *metric)
 	}
 	return result
-}
-
-func (repo *ServerMemory) readCounter(name string) (int64, error) {
-	repo.Lock()
-	defer repo.Unlock()
-
-	if _, ok := repo.counters[name]; !ok {
-		return 0, errNotFound
-	}
-	return repo.counters[name].GetValue(), nil
-}
-
-func (repo *ServerMemory) storeCounter(name string, value any) {
-	repo.Lock()
-	defer repo.Unlock()
-
-	if _, ok := repo.counters[name]; !ok {
-		repo.counters[name] = &entity.Counter{}
-	}
-	repo.counters[name].IncrementDelta(value)
 }

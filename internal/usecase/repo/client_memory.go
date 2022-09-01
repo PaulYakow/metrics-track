@@ -77,9 +77,6 @@ func (r *ClientRepo) ReadCurrentValues() [][]byte {
 			log.Printf("read counter: %v", err)
 		}
 
-		fmt.Println("read current metric: ", metric)
-		fmt.Println("marshal to: ", string(data))
-
 		result = append(result, data)
 	}
 

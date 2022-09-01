@@ -41,7 +41,7 @@ func (repo *ServerFile) SaveMetrics(metrics []entity.Metric) {
 	}
 }
 
-func (repo *ServerFile) ReadMetrics() []entity.Metric {
+func (repo *ServerFile) ReadMetrics() []*entity.Metric {
 	repo.Lock()
 	defer repo.Unlock()
 

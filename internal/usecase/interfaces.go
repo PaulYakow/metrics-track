@@ -2,11 +2,11 @@ package usecase
 
 import "github.com/PaulYakow/metrics-track/internal/entity"
 
-// todo: возвращать error во всех функциях (для обработки в контроллере)
-// todo: оперировать типом Metric
-
 // Адаптеры для клиента
 type (
+	// todo: возвращать error во всех функциях (для обработки в контроллере)
+	// todo: оперировать типом Metric
+
 	IClient interface {
 		Poll()
 		UpdateRoutes() []string
@@ -42,11 +42,11 @@ type (
 		Read(metric entity.Metric) (*entity.Metric, error)
 		ReadAll() []entity.Metric
 
-		InitializeMetrics([]entity.Metric)
+		InitializeMetrics([]*entity.Metric)
 	}
 
 	IServerFile interface {
 		SaveMetrics(metrics []entity.Metric)
-		ReadMetrics() []entity.Metric
+		ReadMetrics() []*entity.Metric
 	}
 )
