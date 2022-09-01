@@ -27,7 +27,7 @@ type (
 //Адаптеры для сервера
 type (
 	IServer interface {
-		Save(metric entity.Metric) error
+		Save(metric *entity.Metric) error
 		Get(metric entity.Metric) (*entity.Metric, error)
 		GetAll() ([]entity.Metric, error)
 	}
@@ -38,7 +38,7 @@ type (
 	}
 
 	IServerMemory interface {
-		Store(metric entity.Metric) error
+		Store(metric *entity.Metric) error
 		Read(metric entity.Metric) (*entity.Metric, error)
 		ReadAll() []entity.Metric
 

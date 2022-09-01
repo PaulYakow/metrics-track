@@ -2,6 +2,7 @@ package v1
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/PaulYakow/metrics-track/internal/entity"
 	"github.com/go-chi/chi/v5"
@@ -35,22 +36,27 @@ func (s *serverRoutes) updateByURL(rw http.ResponseWriter, r *http.Request) {
 	name := chi.URLParam(r, "name")
 	rawValue := chi.URLParam(r, "value")
 
-	metric, err := s.uc.Get(entity.Metric{
-		ID:    name,
-		MType: mType,
-	})
+	m, err := entity.Create(mType, name, rawValue)
 	if err != nil {
-		s.logger.Error(err)
-		rw.WriteHeader(http.StatusNotFound)
+		s.logger.Error(fmt.Errorf("router - create temp metric: %w", err))
+
+		if errors.Is(err, entity.ErrParseValue) {
+			rw.WriteHeader(http.StatusBadRequest)
+		}
+
+		if errors.Is(err, entity.ErrUnknownType) {
+			rw.WriteHeader(http.StatusNotImplemented)
+		}
+
 		return
 	}
 
-	if err = metric.Update(rawValue); err != nil {
+	if err = s.uc.Save(m); err != nil {
+		s.logger.Error(fmt.Errorf("router - save metric: %w", err))
 		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	s.uc.Save(*metric)
 	rw.WriteHeader(http.StatusOK)
 }
 
@@ -69,14 +75,14 @@ func (s *serverRoutes) updateByJSON(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	// todo: повторяется дважды (в values) - вынести в отдельную функцию (возможно убрать в метод самой метрики)
-	metric := entity.Metric{}
-	if err = json.Unmarshal(body, &metric); err != nil {
+	reqMetric := entity.Metric{}
+	if err = json.Unmarshal(body, &reqMetric); err != nil {
 		s.logger.Error(fmt.Errorf("router - update metric: %q", err))
 		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	if err = s.uc.Save(metric); err != nil {
+	if err = s.uc.Save(&reqMetric); err != nil {
 		s.logger.Error(fmt.Errorf("router - save value to storage: %q", err))
 		rw.WriteHeader(http.StatusInternalServerError)
 		return

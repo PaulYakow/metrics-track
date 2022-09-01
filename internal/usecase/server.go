@@ -14,7 +14,7 @@ func NewServerUC(repo IServerMemory) *Server {
 	return &Server{repo: repo}
 }
 
-func (s *Server) Save(metric entity.Metric) error {
+func (s *Server) Save(metric *entity.Metric) error {
 	return s.repo.Store(metric)
 }
 

@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"fmt"
 	"strconv"
 )
 
@@ -23,24 +22,61 @@ func (m *Metric) GetValue() string {
 	}
 }
 
-func (m *Metric) Update(value string) error {
-	switch m.MType {
+func Create(mType, name, value string) (*Metric, error) {
+	switch mType {
 	case "gauge":
 		v, err := strconv.ParseFloat(value, 64)
 		if err != nil {
-			return fmt.Errorf("router - update gauge value: %w", err)
+			return nil, valueErr{
+				name:  name,
+				value: value,
+				err:   ErrParseValue,
+			}
 		}
-		m.Value = &v
+		return &Metric{
+			ID:    name,
+			MType: mType,
+			Value: &v,
+		}, nil
 
 	case "counter":
 		v, err := strconv.ParseInt(value, 10, 64)
 		if err != nil {
-			return fmt.Errorf("router - update counter value: %w", err)
+			return nil, valueErr{
+				name:  name,
+				value: value,
+				err:   ErrParseValue,
+			}
 		}
-		*m.Delta += v
+		return &Metric{
+			ID:    name,
+			MType: mType,
+			Delta: &v,
+		}, nil
 
 	default:
-		return fmt.Errorf("router - update unknown type: %q", m.MType)
+		return nil, typeErr{
+			name:  name,
+			tName: mType,
+			err:   ErrUnknownType,
+		}
+	}
+}
+
+func (m *Metric) Update(in *Metric) error {
+	switch m.MType {
+	case "gauge":
+		m.Value = in.Value
+
+	case "counter":
+		*m.Delta += *in.Delta
+
+	default:
+		return typeErr{
+			name:  m.ID,
+			tName: m.MType,
+			err:   ErrUnknownType,
+		}
 	}
 
 	return nil

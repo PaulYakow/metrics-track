@@ -35,6 +35,7 @@ func (s *sender) Run(wg *sync.WaitGroup, interval time.Duration) {
 		case <-ticker.C:
 			s.sendMetricsByJSON(s.uc.UpdateValues())
 		case <-s.client.Done():
+			s.l.Info("sender - context canceled")
 			ticker.Stop()
 			return
 		}

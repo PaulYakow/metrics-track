@@ -27,21 +27,26 @@ func NewServerMemory() *ServerMemory {
 
 func (repo *ServerMemory) InitializeMetrics(metrics []entity.Metric) {
 	for _, metric := range metrics {
-		err := repo.Store(metric)
+		err := repo.Store(&metric)
 		if err != nil {
 			log.Printf("init metrics: %v", err)
 		}
 	}
 }
 
-func (repo *ServerMemory) Store(metric entity.Metric) error {
+func (repo *ServerMemory) Store(metric *entity.Metric) error {
 	repo.Lock()
 	defer repo.Unlock()
 
 	if _, ok := repo.metrics[metric.ID]; !ok {
-		repo.metrics[metric.ID] = &entity.Metric{}
+		repo.metrics[metric.ID] = metric
+		return nil
 	}
-	repo.metrics[metric.ID] = &metric
+
+	if err := repo.metrics[metric.ID].Update(metric); err != nil {
+		return err
+	}
+
 	return nil
 }
 
