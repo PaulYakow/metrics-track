@@ -42,10 +42,12 @@ func (s *serverRoutes) updateByURL(rw http.ResponseWriter, r *http.Request) {
 
 		if errors.Is(err, entity.ErrParseValue) {
 			rw.WriteHeader(http.StatusBadRequest)
+			return
 		}
 
 		if errors.Is(err, entity.ErrUnknownType) {
 			rw.WriteHeader(http.StatusNotImplemented)
+			return
 		}
 
 		return
@@ -86,6 +88,12 @@ func (s *serverRoutes) updateByJSON(rw http.ResponseWriter, r *http.Request) {
 
 	if err = s.uc.Save(&reqMetric); err != nil {
 		s.logger.Error(fmt.Errorf("router - save value to storage: %q", err))
+
+		if errors.Is(err, entity.ErrHashMismatch) {
+			rw.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
 		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}

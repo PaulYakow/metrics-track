@@ -1,6 +1,8 @@
 package config
 
-import "github.com/spf13/pflag"
+import (
+	"github.com/spf13/pflag"
+)
 
 func isFlagPassed(name string) bool {
 	found := false

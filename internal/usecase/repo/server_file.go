@@ -8,13 +8,13 @@ import (
 	"sync"
 )
 
-type ServerFile struct {
+type serverFile struct {
 	sync.Mutex
 	producer *producer.Producer
 	consumer *consumer.Consumer
 }
 
-func NewServerFile(filename string) (*ServerFile, error) {
+func NewServerFile(filename string) (*serverFile, error) {
 	p, err := producer.NewProducer(filename)
 	if err != nil {
 		return nil, err
@@ -25,13 +25,13 @@ func NewServerFile(filename string) (*ServerFile, error) {
 		return nil, err
 	}
 
-	return &ServerFile{
+	return &serverFile{
 		producer: p,
 		consumer: c,
 	}, nil
 }
 
-func (repo *ServerFile) SaveMetrics(metrics []entity.Metric) {
+func (repo *serverFile) SaveMetrics(metrics []entity.Metric) {
 	repo.Lock()
 	defer repo.Unlock()
 
@@ -41,7 +41,7 @@ func (repo *ServerFile) SaveMetrics(metrics []entity.Metric) {
 	}
 }
 
-func (repo *ServerFile) ReadMetrics() []*entity.Metric {
+func (repo *serverFile) ReadMetrics() []*entity.Metric {
 	repo.Lock()
 	defer repo.Unlock()
 

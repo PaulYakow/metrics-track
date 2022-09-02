@@ -11,6 +11,7 @@ import (
 	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
 	"github.com/PaulYakow/metrics-track/internal/usecase/repo"
+	"github.com/PaulYakow/metrics-track/internal/usecase/services/hasher"
 	"os"
 	"os/signal"
 	"sync"
@@ -25,8 +26,9 @@ func Run(cfg *config.ClientCfg) {
 	l := logger.New()
 
 	agentRepo := repo.NewClientRepo()
+	agentHasher := hasher.New(cfg.Key)
 
-	agentUseCase := usecase.NewClientUC(agentRepo)
+	agentUseCase := usecase.NewClientUC(agentRepo, agentHasher)
 
 	collector := client.NewCollector(ctx, agentUseCase, l)
 	wg.Add(1)

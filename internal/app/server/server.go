@@ -10,6 +10,7 @@ import (
 	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
 	"github.com/PaulYakow/metrics-track/internal/usecase/repo"
+	"github.com/PaulYakow/metrics-track/internal/usecase/services/hasher"
 	"os"
 	"os/signal"
 	"syscall"
@@ -17,9 +18,13 @@ import (
 
 func Run(cfg *config.ServerCfg) {
 	l := logger.New()
+
 	// In-memory repository
 	serverMemory := repo.NewServerMemory()
-	serverUseCase := usecase.NewServerUC(serverMemory)
+
+	serverHasher := hasher.New(cfg.Key)
+
+	serverUseCase := usecase.NewServerUC(serverMemory, serverHasher)
 
 	// File repository
 	if cfg.StoreFile != "" {

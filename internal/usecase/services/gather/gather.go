@@ -8,17 +8,17 @@ import (
 
 var stats runtime.MemStats
 
-type MetricGather struct {
+type metricGather struct {
 	metrics map[string]*entity.Metric
 }
 
-func New() *MetricGather {
-	return &MetricGather{
+func New() *metricGather {
+	return &metricGather{
 		metrics: initMetrics(),
 	}
 }
 
-func (g MetricGather) Update() map[string]*entity.Metric {
+func (g metricGather) Update() map[string]*entity.Metric {
 	runtime.ReadMemStats(&stats)
 
 	g.metrics["Alloc"].UpdateValue(stats.Alloc)

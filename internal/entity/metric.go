@@ -1,6 +1,9 @@
 package entity
 
 import (
+	"bytes"
+	"crypto/sha256"
+	"fmt"
 	"strconv"
 )
 
@@ -11,6 +14,7 @@ type Metric struct {
 	MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
 	Delta *int64   `json:"delta,omitempty"` // значение метрики в случае передачи counter
 	Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
+	Hash  string   `json:"hash,omitempty"`  // значение хеш-функции
 }
 
 func (m *Metric) GetValue() string {
@@ -114,6 +118,36 @@ func (m *Metric) UpdateDelta(value any) {
 		val := int64(d)
 		*m.Delta += val
 	default:
-
+		m.Delta = nil
 	}
+}
+
+func (m *Metric) calcHash(key string) string {
+	var val any
+
+	switch m.MType {
+	case "gauge":
+		val = *m.Value
+
+	case "counter":
+		val = *m.Delta
+
+	default:
+		return ""
+	}
+
+	data := append([]byte(fmt.Sprintf("%s:%s:%d", m.ID, m.MType, val)), []byte(key)...)
+	return fmt.Sprintf("%x", sha256.Sum256(data))
+}
+
+func (m *Metric) SetHash(key string) {
+	m.Hash = m.calcHash(key)
+}
+
+func (m *Metric) CheckHash(hash, key string) error {
+	if !bytes.Equal([]byte(hash), []byte(m.calcHash(key))) {
+		return ErrHashMismatch
+	}
+
+	return nil
 }

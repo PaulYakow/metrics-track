@@ -1,15 +1,10 @@
 package repo
 
 import (
-	"errors"
 	"fmt"
 	"github.com/PaulYakow/metrics-track/internal/entity"
 	"log"
 	"sync"
-)
-
-var (
-	errNotFound = errors.New("not found")
 )
 
 type ServerMemory struct {

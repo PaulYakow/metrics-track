@@ -11,6 +11,7 @@ type ServerCfg struct {
 	StoreInterval time.Duration `env:"STORE_INTERVAL" env-default:"300s"`
 	StoreFile     string        `env:"STORE_FILE" env-default:"/tmp/devops-metrics-db.json"`
 	Restore       bool          `env:"RESTORE" env-default:"true"`
+	Key           string        `env:"KEY" env-default:""`
 }
 
 var serverAddress = struct {
@@ -61,11 +62,24 @@ var restore = struct {
 	true,
 }
 
+var serverKey = struct {
+	name         string
+	shorthand    string
+	value        *string
+	defaultValue string
+}{
+	"key",
+	"k",
+	new(string),
+	"",
+}
+
 func (cfg *ServerCfg) updateCfgFromFlags() {
 	serverAddress.value = pflag.StringP(serverAddress.name, serverAddress.shorthand, serverAddress.defaultValue, "address of server in host:port format")
 	storeInterval.value = pflag.DurationP(storeInterval.name, storeInterval.shorthand, storeInterval.defaultValue, "store interval in seconds")
 	storeFile.value = pflag.StringP(storeFile.name, storeFile.shorthand, storeFile.defaultValue, "path to file")
 	restore.value = pflag.BoolP(restore.name, restore.shorthand, restore.defaultValue, "restore after restart")
+	serverKey.value = pflag.StringP(serverKey.name, serverKey.shorthand, serverKey.defaultValue, "hash key")
 
 	pflag.Parse()
 
@@ -83,6 +97,10 @@ func (cfg *ServerCfg) updateCfgFromFlags() {
 
 	if isFlagPassed(restore.name) {
 		cfg.Restore = *restore.value
+	}
+
+	if isFlagPassed(serverKey.name) {
+		cfg.Key = *serverKey.value
 	}
 }
 

@@ -7,19 +7,24 @@ import (
 
 // Реализация клиента
 
-type Client struct {
+type client struct {
 	repo   IClientRepo
 	gather IClientGather
+	hasher IHasher
 }
 
-func NewClientUC(r IClientRepo) *Client {
-	return &Client{repo: r, gather: gather.New()}
+func NewClientUC(r IClientRepo, h IHasher) *client {
+	return &client{
+		repo:   r,
+		gather: gather.New(),
+		hasher: h,
+	}
 }
 
-func (c *Client) Poll() {
+func (c *client) Poll() {
 	c.repo.Store(c.gather.Update())
 }
 
-func (c *Client) GetAll() []entity.Metric {
-	return c.repo.ReadAll()
+func (c *client) GetAll() []entity.Metric {
+	return c.hasher.ProcessBatch(c.repo.ReadAll())
 }

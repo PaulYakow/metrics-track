@@ -6,8 +6,9 @@ import (
 )
 
 var (
-	ErrParseValue  = errors.New("parsing error")
-	ErrUnknownType = errors.New("unknown type")
+	ErrParseValue   = errors.New("parsing error")
+	ErrUnknownType  = errors.New("unknown type")
+	ErrHashMismatch = errors.New("hash mismatch")
 )
 
 type (
@@ -21,6 +22,11 @@ type (
 		name  string
 		tName string
 		err   error
+	}
+
+	hashErr struct {
+		name string
+		err  error
 	}
 )
 
@@ -38,4 +44,12 @@ func (te typeErr) Error() string {
 
 func (te typeErr) Unwrap() error {
 	return te.err
+}
+
+func (he hashErr) Error() string {
+	return fmt.Sprintf("hash %q error: %v", he.name, he.err)
+}
+
+func (he hashErr) Unwrap() error {
+	return he.err
 }

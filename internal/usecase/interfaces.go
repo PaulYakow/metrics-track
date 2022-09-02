@@ -47,3 +47,13 @@ type (
 		ReadMetrics() []*entity.Metric
 	}
 )
+
+// Общие адаптеры
+type (
+	IHasher interface {
+		ProcessBatch([]entity.Metric) []entity.Metric
+		ProcessSingle(entity.Metric) entity.Metric
+		ProcessPointer(*entity.Metric) *entity.Metric
+		Check(*entity.Metric) error
+	}
+)
