@@ -2,6 +2,7 @@ package entity
 
 import (
 	"bytes"
+	"crypto/hmac"
 	"crypto/sha256"
 	"fmt"
 	"strconv"
@@ -123,21 +124,17 @@ func (m *Metric) UpdateDelta(value any) {
 }
 
 func (m *Metric) calcHash(key string) string {
-	var val any
-
+	var data string
 	switch m.MType {
-	case "gauge":
-		val = *m.Value
-
 	case "counter":
-		val = *m.Delta
-
-	default:
-		return ""
+		data = fmt.Sprintf("%s:%s:%d", m.ID, m.MType, *m.Delta)
+	case "gauge":
+		data = fmt.Sprintf("%s:%s:%f", m.ID, m.MType, *m.Value)
 	}
 
-	data := append([]byte(fmt.Sprintf("%s:%s:%d", m.ID, m.MType, val)), []byte(key)...)
-	return fmt.Sprintf("%x", sha256.Sum256(data))
+	h := hmac.New(sha256.New, []byte(key))
+	h.Write([]byte(data))
+	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
 func (m *Metric) SetHash(key string) {
