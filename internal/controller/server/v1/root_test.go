@@ -4,6 +4,7 @@ import (
 	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
 	"github.com/PaulYakow/metrics-track/internal/usecase/repo"
+	"github.com/PaulYakow/metrics-track/internal/usecase/services/hasher"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io/ioutil"
@@ -78,7 +79,7 @@ func TestRouter(t *testing.T) {
 		},
 	}
 
-	r := NewRouter(usecase.NewServerUC(repo.NewServerMemory()), logger.New())
+	r := NewRouter(usecase.NewServerUC(repo.NewServerMemory(), hasher.New("")), logger.New())
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 
