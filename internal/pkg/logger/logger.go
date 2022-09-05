@@ -11,6 +11,7 @@ type ILogger interface {
 	Info(message string, args ...any)
 	Warn(message string, args ...any)
 	Error(message error, args ...any)
+	Fatal(message error, args ...any)
 }
 
 type Logger struct {
@@ -42,6 +43,10 @@ func (l *Logger) Warn(message string, args ...any) {
 
 func (l *Logger) Error(message error, args ...any) {
 	l.logger.Log(zap.ErrorLevel, fmt.Sprintf(message.Error(), args...))
+}
+
+func (l *Logger) Fatal(message error, args ...any) {
+	l.logger.Log(zap.FatalLevel, fmt.Sprintf(message.Error(), args...))
 }
 
 func (l *Logger) Exit() {

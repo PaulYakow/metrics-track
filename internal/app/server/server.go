@@ -7,6 +7,7 @@ import (
 	"github.com/PaulYakow/metrics-track/internal/controller/server/v1"
 	"github.com/PaulYakow/metrics-track/internal/pkg/httpserver"
 	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
+	"github.com/PaulYakow/metrics-track/internal/pkg/postgre"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
 	"github.com/PaulYakow/metrics-track/internal/usecase/repo"
 	"github.com/PaulYakow/metrics-track/internal/usecase/services/hasher"
@@ -34,10 +35,15 @@ func Run(cfg *config.ServerCfg) {
 		}
 	}
 
-	//if cfg.Dsn != "" {
-	//
-	//}
-	//
+	if cfg.Dsn != "" {
+		pg, err := postgre.New(cfg.Dsn, postgre.MaxPoolSize(2))
+		if err != nil {
+			l.Fatal(fmt.Errorf("server - Run - postgre.New: %w", err))
+		}
+
+		serverRepo = repo.NewServerPostgre(pg)
+	}
+
 	serverUseCase := usecase.NewServerUC(serverMemory, serverRepo, serverHasher)
 
 	// Server scheduler (memory <-> repo)
@@ -51,8 +57,8 @@ func Run(cfg *config.ServerCfg) {
 	handler := v1.NewRouter(serverUseCase, l)
 	server := httpserver.New(handler, httpserver.Address(cfg.Address))
 
-	l.Info("server - run with params: a=%s | i=%v | f=%s | r=%v",
-		cfg.Address, cfg.StoreInterval, cfg.StoreFile, cfg.Restore)
+	l.Info("server - run with params: a=%s | i=%v | f=%s | r=%v | d=%s",
+		cfg.Address, cfg.StoreInterval, cfg.StoreFile, cfg.Restore, cfg.Dsn)
 
 	// Waiting signal
 	interrupt := make(chan os.Signal, 1)
