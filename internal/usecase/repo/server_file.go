@@ -16,20 +16,24 @@ type serverFile struct {
 }
 
 func NewServerFile(filename string) (*serverFile, error) {
-	p, err := producer.NewProducer(filename)
-	if err != nil {
-		return nil, err
+	if filename != "" {
+		p, err := producer.NewProducer(filename)
+		if err != nil {
+			return nil, err
+		}
+
+		c, err := consumer.NewConsumer(filename)
+		if err != nil {
+			return nil, err
+		}
+
+		return &serverFile{
+			producer: p,
+			consumer: c,
+		}, nil
 	}
 
-	c, err := consumer.NewConsumer(filename)
-	if err != nil {
-		return nil, err
-	}
-
-	return &serverFile{
-		producer: p,
-		consumer: c,
-	}, nil
+	return nil, nil
 }
 
 func (repo *serverFile) SaveMetrics(metrics []entity.Metric) {
