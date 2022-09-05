@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/PaulYakow/metrics-track/config"
-	"github.com/PaulYakow/metrics-track/internal/controller/scheduler"
 	"github.com/PaulYakow/metrics-track/internal/controller/server/v1"
 	"github.com/PaulYakow/metrics-track/internal/pkg/httpserver"
 	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
@@ -17,27 +16,36 @@ import (
 )
 
 func Run(cfg *config.ServerCfg) {
+	var err error
 	l := logger.New()
 
-	// In-memory repository
+	// In-memory storage
 	serverMemory := repo.NewServerMemory()
 
 	serverHasher := hasher.New(cfg.Key)
 
-	serverUseCase := usecase.NewServerUC(serverMemory, serverHasher)
+	// File or db storage
+	var serverRepo usecase.IServerRepo
 
-	// File repository
-	if cfg.StoreFile != "" {
-		serverFile, err := repo.NewServerFile(cfg.StoreFile)
+	if cfg.StoreFile != "" && cfg.Dsn == "" {
+		serverRepo, err = repo.NewServerFile(cfg.StoreFile)
 		if err != nil {
 			l.Error(fmt.Errorf("server - create file storage: %v", err))
 		}
-
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
-		schedulerUseCase := usecase.NewScheduleUC(serverFile, serverMemory)
-		scheduler.NewScheduler(ctx, schedulerUseCase, cfg.Restore, cfg.StoreInterval)
 	}
+
+	if cfg.Dsn != "" {
+
+	}
+
+	serverUseCase := usecase.NewServerUC(serverMemory, serverRepo, serverHasher)
+
+	// Server scheduler (memory <-> repo)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	scheduler := v1.NewScheduler(serverMemory, serverRepo)
+	scheduler.Run(ctx, cfg.Restore, cfg.StoreInterval)
 
 	// HTTP server
 	handler := v1.NewRouter(serverUseCase, l)
@@ -58,7 +66,7 @@ func Run(cfg *config.ServerCfg) {
 	}
 
 	// Shutdown
-	err := server.Shutdown()
+	err = server.Shutdown()
 	if err != nil {
 		l.Error(fmt.Errorf("server - Run - Shutdown: %w", err))
 	}

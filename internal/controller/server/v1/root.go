@@ -29,6 +29,7 @@ func NewRouter(uc usecase.IServer, l logger.ILogger) chi.Router {
 	mux.Get("/", s.listOfMetrics) // return HTML with all metrics
 	mux.Mount("/update", updates{}.Routes(s))
 	mux.Mount("/value", values{}.Routes(s))
+	mux.Mount("/ping", ping{}.Routes(s))
 
 	return mux
 }

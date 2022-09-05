@@ -27,11 +27,7 @@ type (
 		Save(metric *entity.Metric) error
 		Get(metric entity.Metric) (*entity.Metric, error)
 		GetAll() ([]entity.Metric, error)
-	}
-
-	ISchedule interface {
-		RunStoring()
-		InitMetrics()
+		CheckRepo() error
 	}
 
 	IServerMemory interface {
@@ -42,9 +38,10 @@ type (
 		InitializeMetrics([]*entity.Metric)
 	}
 
-	IServerFile interface {
+	IServerRepo interface {
 		SaveMetrics(metrics []entity.Metric)
 		ReadMetrics() []*entity.Metric
+		CheckConnection() error
 	}
 )
 

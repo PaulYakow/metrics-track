@@ -7,12 +7,14 @@ import (
 // Реализация сервера
 
 type Server struct {
-	repo   IServerMemory
+	memory IServerMemory
+	repo   IServerRepo
 	hasher IHasher
 }
 
-func NewServerUC(repo IServerMemory, hasher IHasher) *Server {
+func NewServerUC(memory IServerMemory, repo IServerRepo, hasher IHasher) *Server {
 	return &Server{
+		memory: memory,
 		repo:   repo,
 		hasher: hasher,
 	}
@@ -23,11 +25,11 @@ func (s *Server) Save(metric *entity.Metric) error {
 		return err
 	}
 	s.hasher.ProcessPointer(metric)
-	return s.repo.Store(metric)
+	return s.memory.Store(metric)
 }
 
 func (s *Server) Get(metric entity.Metric) (*entity.Metric, error) {
-	auxMetric, err := s.repo.Read(metric)
+	auxMetric, err := s.memory.Read(metric)
 	if err != nil {
 		return nil, err
 	}
@@ -37,5 +39,9 @@ func (s *Server) Get(metric entity.Metric) (*entity.Metric, error) {
 }
 
 func (s *Server) GetAll() ([]entity.Metric, error) {
-	return s.repo.ReadAll(), nil
+	return s.memory.ReadAll(), nil
+}
+
+func (s *Server) CheckRepo() error {
+	return s.repo.CheckConnection()
 }

@@ -13,7 +13,7 @@ import (
 
 type updates struct{}
 
-func (rs updates) Routes(s *serverRoutes) chi.Router {
+func (rs updates) Routes(s *serverRoutes) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Post("/", s.updateByJSON)

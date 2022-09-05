@@ -11,7 +11,7 @@ import (
 
 type values struct{}
 
-func (rs values) Routes(s *serverRoutes) chi.Router {
+func (rs values) Routes(s *serverRoutes) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Post("/", s.valueByJSON)

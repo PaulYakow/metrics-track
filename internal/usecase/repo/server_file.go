@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"fmt"
 	"github.com/PaulYakow/metrics-track/internal/entity"
 	"github.com/PaulYakow/metrics-track/internal/usecase/services/consumer"
 	"github.com/PaulYakow/metrics-track/internal/usecase/services/producer"
@@ -51,4 +52,8 @@ func (repo *serverFile) ReadMetrics() []*entity.Metric {
 	}
 
 	return metrics
+}
+
+func (repo *serverFile) CheckConnection() error {
+	return fmt.Errorf("not implement to file storage")
 }
