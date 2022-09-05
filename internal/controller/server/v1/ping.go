@@ -10,12 +10,12 @@ type ping struct{}
 func (rs ping) Routes(s *serverRoutes) *chi.Mux {
 	r := chi.NewRouter()
 
-	r.Get("/", s.pingDb)
+	r.Get("/", s.pingDB)
 
 	return r
 }
 
-func (s *serverRoutes) pingDb(rw http.ResponseWriter, r *http.Request) {
+func (s *serverRoutes) pingDB(rw http.ResponseWriter, r *http.Request) {
 	err := s.uc.CheckRepo()
 	if err != nil {
 		rw.WriteHeader(http.StatusInternalServerError)

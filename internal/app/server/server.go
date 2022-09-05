@@ -27,17 +27,17 @@ func Run(cfg *config.ServerCfg) {
 	// File or db storage
 	var serverRepo usecase.IServerRepo
 
-	if cfg.StoreFile != "" && cfg.Dsn == "" {
+	if cfg.StoreFile != "" {
 		serverRepo, err = repo.NewServerFile(cfg.StoreFile)
 		if err != nil {
 			l.Error(fmt.Errorf("server - create file storage: %v", err))
 		}
 	}
 
-	if cfg.Dsn != "" {
-
-	}
-
+	//if cfg.Dsn != "" {
+	//
+	//}
+	//
 	serverUseCase := usecase.NewServerUC(serverMemory, serverRepo, serverHasher)
 
 	// Server scheduler (memory <-> repo)
