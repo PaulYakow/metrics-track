@@ -36,6 +36,9 @@ func Run(cfg *config.ServerCfg) {
 		defer pg.Close()
 
 		serverRepo, err = repo.NewServerPostgre(pg)
+		if err != nil {
+			l.Fatal(fmt.Errorf("server - Run - repo.New: %w", err))
+		}
 		storage = true
 	}
 
