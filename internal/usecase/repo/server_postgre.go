@@ -38,7 +38,7 @@ WHERE id = $1 AND type = $2;
 `
 	_createRow = `
 INSERT INTO metrics (id, type, value, delta, hash)
-VALUES($1,$2,NULL,NULL,"");
+VALUES($1,$2,NULL,NULL,'');
 `
 )
 
