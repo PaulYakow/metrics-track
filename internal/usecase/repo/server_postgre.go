@@ -1,10 +1,14 @@
 package repo
 
+// todo: необходимо убрать лишние зависимости
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/PaulYakow/metrics-track/internal/entity"
 	"github.com/PaulYakow/metrics-track/internal/pkg/postgre"
+	"github.com/jackc/pgx/v4"
 	"log"
 	"time"
 )
@@ -27,7 +31,15 @@ ON CONFLICT (id) DO UPDATE
 SET value = EXCLUDED.value, delta = EXCLUDED.delta, hash = EXCLUDED.hash;
 `
 	_readMetrics = `SELECT * FROM metrics;`
-	_readMetric  = `SELECT * FROM metrics WHERE id = $1 AND type = $2;`
+	_readMetric  = `
+SELECT *
+FROM metrics
+WHERE id = $1 AND type = $2;
+`
+	_createRow = `
+INSERT INTO metrics (id, type, value, delta, hash)
+VALUES($1,$2,NULL,NULL,"");
+`
 )
 
 type serverPSQLRepo struct {
@@ -52,17 +64,24 @@ func (repo *serverPSQLRepo) Store(metric *entity.Metric) error {
 
 	m, err := repo.Read(*metric)
 	if err != nil {
-		return fmt.Errorf("repo - save metric - update/insert: %w", err)
+		if errors.Is(err, pgx.ErrNoRows) {
+			_, err = repo.Pool.Exec(ctx, _createRow, metric.ID, metric.MType)
+			if err != nil {
+				return fmt.Errorf("repo - Store - try create row: %w", err)
+			}
+			log.Printf("repo - Store - ok")
+		}
+		return fmt.Errorf("repo - Store - not exists: %w", err)
 	}
 
 	err = m.Update(metric)
 	if err != nil {
-		return fmt.Errorf("repo - save metric - update/insert: %w", err)
+		return fmt.Errorf("repo - Store - update metric: %w", err)
 	}
 
 	_, err = repo.Pool.Exec(ctx, _upsertMetric, m.ID, m.MType, m.Value, m.Delta, m.Hash)
 	if err != nil {
-		return fmt.Errorf("repo - save metric - update/insert: %w", err)
+		return fmt.Errorf("repo - Store - Pool.Exec: %w", err)
 	}
 
 	return nil
@@ -72,13 +91,15 @@ func (repo *serverPSQLRepo) Read(metric entity.Metric) (*entity.Metric, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	row := repo.Pool.QueryRow(ctx, _readMetric, metric.ID, metric.MType)
 	m := &entity.Metric{}
-	err := row.Scan(&m.ID, &m.MType, &m.Value, &m.Delta, &m.Hash)
+	var hash sql.NullString
+	err := repo.Pool.QueryRow(ctx, _readMetric, metric.ID, metric.MType).
+		Scan(&m.ID, &m.MType, &m.Value, &m.Delta, &hash)
 	if err != nil {
 		return nil, fmt.Errorf("repo - Read - row.Scan: %w", err)
 	}
 
+	m.Hash = hash.String
 	return m, nil
 }
 
