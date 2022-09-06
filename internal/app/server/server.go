@@ -63,8 +63,8 @@ func Run(cfg *config.ServerCfg) {
 	handler := v1.NewRouter(serverUseCase, l)
 	server := httpserver.New(handler, httpserver.Address(cfg.Address))
 
-	l.Info("server - run with params: a=%s | i=%v | f=%s | r=%v | d=%s",
-		cfg.Address, cfg.StoreInterval, cfg.StoreFile, cfg.Restore, cfg.Dsn)
+	l.Info("server - run with params: a=%s | i=%v | f=%s | r=%v | k=%v | d=%s",
+		cfg.Address, cfg.StoreInterval, cfg.StoreFile, cfg.Restore, cfg.Key, cfg.Dsn)
 
 	// Waiting signal
 	interrupt := make(chan os.Signal, 1)

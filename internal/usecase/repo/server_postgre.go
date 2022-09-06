@@ -50,7 +50,17 @@ func (repo *serverPSQLRepo) Store(metric *entity.Metric) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	_, err := repo.Pool.Exec(ctx, _upsertMetric, metric.ID, metric.MType, metric.Value, metric.Delta, metric.Hash)
+	m, err := repo.Read(*metric)
+	if err != nil {
+		return fmt.Errorf("repo - save metric - update/insert: %w", err)
+	}
+
+	err = m.Update(metric)
+	if err != nil {
+		return fmt.Errorf("repo - save metric - update/insert: %w", err)
+	}
+
+	_, err = repo.Pool.Exec(ctx, _upsertMetric, m.ID, m.MType, m.Value, m.Delta, m.Hash)
 	if err != nil {
 		return fmt.Errorf("repo - save metric - update/insert: %w", err)
 	}
