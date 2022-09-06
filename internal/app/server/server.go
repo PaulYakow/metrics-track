@@ -40,6 +40,7 @@ func Run(cfg *config.ServerCfg) {
 		if err != nil {
 			l.Fatal(fmt.Errorf("server - Run - postgre.New: %w", err))
 		}
+		defer pg.Close()
 
 		serverRepo = repo.NewServerPostgre(pg)
 	}

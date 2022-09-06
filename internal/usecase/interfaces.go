@@ -11,7 +11,7 @@ type (
 		GetAll() []entity.Metric
 	}
 
-	IClientRepo interface {
+	IClientMemory interface {
 		Store(map[string]*entity.Metric)
 		ReadAll() []entity.Metric
 	}

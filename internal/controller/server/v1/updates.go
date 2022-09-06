@@ -11,9 +11,9 @@ import (
 	"net/http"
 )
 
-type updates struct{}
+type update struct{}
 
-func (rs updates) Routes(s *serverRoutes) *chi.Mux {
+func (rs update) Routes(s *serverRoutes) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Post("/", s.updateByJSON)

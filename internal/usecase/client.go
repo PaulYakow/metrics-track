@@ -8,12 +8,12 @@ import (
 // Реализация клиента
 
 type client struct {
-	repo   IClientRepo
+	repo   IClientMemory
 	gather IClientGather
 	hasher IHasher
 }
 
-func NewClientUC(r IClientRepo, h IHasher) *client {
+func NewClientUC(r IClientMemory, h IHasher) *client {
 	return &client{
 		repo:   r,
 		gather: gather.New(),

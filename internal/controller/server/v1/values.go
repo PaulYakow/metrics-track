@@ -9,9 +9,9 @@ import (
 	"net/http"
 )
 
-type values struct{}
+type value struct{}
 
-func (rs values) Routes(s *serverRoutes) *chi.Mux {
+func (rs value) Routes(s *serverRoutes) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Post("/", s.valueByJSON)
