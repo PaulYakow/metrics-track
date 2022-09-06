@@ -70,8 +70,9 @@ func (repo *serverPSQLRepo) Store(metric *entity.Metric) error {
 				return fmt.Errorf("repo - Store - try create row: %w", err)
 			}
 			log.Printf("repo - Store - ok")
+		} else {
+			return fmt.Errorf("repo - Store - not exists: %w", err)
 		}
-		return fmt.Errorf("repo - Store - not exists: %w", err)
 	}
 
 	err = m.Update(metric)
