@@ -30,17 +30,11 @@ type (
 		CheckRepo() error
 	}
 
-	IServerMemory interface {
+	IServerRepo interface {
 		Store(metric *entity.Metric) error
 		Read(metric entity.Metric) (*entity.Metric, error)
 		ReadAll() []entity.Metric
 
-		InitializeMetrics([]*entity.Metric)
-	}
-
-	IServerRepo interface {
-		SaveMetrics(metrics []entity.Metric)
-		ReadMetrics() []*entity.Metric
 		CheckConnection() error
 	}
 )

@@ -21,19 +21,12 @@ func Run(cfg *config.ServerCfg) {
 	l := logger.New()
 
 	// In-memory storage
-	serverMemory := repo.NewServerMemory()
+	var serverRepo usecase.IServerRepo = repo.NewServerMemory()
 
 	serverHasher := hasher.New(cfg.Key)
 
 	// File or db storage
-	var serverRepo usecase.IServerRepo
-
-	if cfg.StoreFile != "" {
-		serverRepo, err = repo.NewServerFile(cfg.StoreFile)
-		if err != nil {
-			l.Error(fmt.Errorf("server - create file storage: %v", err))
-		}
-	}
+	storage := false
 
 	if cfg.Dsn != "" {
 		pg, err := postgre.New(cfg.Dsn, postgre.MaxPoolSize(2))
@@ -42,17 +35,23 @@ func Run(cfg *config.ServerCfg) {
 		}
 		defer pg.Close()
 
-		serverRepo = repo.NewServerPostgre(pg)
+		serverRepo, err = repo.NewServerPostgre(pg)
+		storage = true
 	}
 
-	serverUseCase := usecase.NewServerUC(serverMemory, serverRepo, serverHasher)
+	if cfg.StoreFile != "" && !storage {
+		// Server scheduler (memory <-> repo)
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
 
-	// Server scheduler (memory <-> repo)
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+		scheduler, err := v1.NewScheduler(serverRepo, cfg.StoreFile)
+		if err != nil {
+			l.Error(fmt.Errorf("server - run scheduler: %w", err))
+		}
+		scheduler.Run(ctx, cfg.Restore, cfg.StoreInterval)
+	}
 
-	scheduler := v1.NewScheduler(serverMemory, serverRepo)
-	scheduler.Run(ctx, cfg.Restore, cfg.StoreInterval)
+	serverUseCase := usecase.NewServerUC(serverRepo, serverHasher)
 
 	// HTTP server
 	handler := v1.NewRouter(serverUseCase, l)

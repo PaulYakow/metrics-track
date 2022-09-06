@@ -79,8 +79,7 @@ func TestRouter(t *testing.T) {
 		},
 	}
 
-	fileMock, _ := repo.NewServerFile("")
-	r := NewRouter(usecase.NewServerUC(repo.NewServerMemory(), fileMock, hasher.New("")), logger.New())
+	r := NewRouter(usecase.NewServerUC(repo.NewServerMemory(), hasher.New("")), logger.New())
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 

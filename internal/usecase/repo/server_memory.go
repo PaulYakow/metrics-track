@@ -3,30 +3,21 @@ package repo
 import (
 	"fmt"
 	"github.com/PaulYakow/metrics-track/internal/entity"
-	"log"
 	"sync"
 )
 
-type ServerMemory struct {
+type serverMemoryRepo struct {
 	sync.Mutex
 	metrics map[string]*entity.Metric
 }
 
-func NewServerMemory() *ServerMemory {
-	return &ServerMemory{
+func NewServerMemory() *serverMemoryRepo {
+	return &serverMemoryRepo{
 		metrics: make(map[string]*entity.Metric),
 	}
 }
 
-func (repo *ServerMemory) InitializeMetrics(metrics []*entity.Metric) {
-	for _, metric := range metrics {
-		if err := repo.Store(metric); err != nil {
-			log.Printf("init metrics: %v", err)
-		}
-	}
-}
-
-func (repo *ServerMemory) Store(metric *entity.Metric) error {
+func (repo *serverMemoryRepo) Store(metric *entity.Metric) error {
 	repo.Lock()
 	defer repo.Unlock()
 
@@ -42,7 +33,7 @@ func (repo *ServerMemory) Store(metric *entity.Metric) error {
 	return nil
 }
 
-func (repo *ServerMemory) Read(metric entity.Metric) (*entity.Metric, error) {
+func (repo *serverMemoryRepo) Read(metric entity.Metric) (*entity.Metric, error) {
 	repo.Lock()
 	defer repo.Unlock()
 
@@ -52,7 +43,7 @@ func (repo *ServerMemory) Read(metric entity.Metric) (*entity.Metric, error) {
 	return repo.metrics[metric.ID], nil
 }
 
-func (repo *ServerMemory) ReadAll() []entity.Metric {
+func (repo *serverMemoryRepo) ReadAll() []entity.Metric {
 	result := make([]entity.Metric, 0)
 
 	repo.Lock()
@@ -62,4 +53,8 @@ func (repo *ServerMemory) ReadAll() []entity.Metric {
 		result = append(result, *metric)
 	}
 	return result
+}
+
+func (repo *serverMemoryRepo) CheckConnection() error {
+	return fmt.Errorf("not implement to file storage")
 }
