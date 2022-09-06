@@ -34,12 +34,14 @@ func Run(cfg *config.ServerCfg) {
 			l.Fatal(fmt.Errorf("server - Run - postgre.New: %w", err))
 		}
 		defer pg.Close()
+		l.Info("server - Run - PSQL connection ok")
 
 		serverRepo, err = repo.NewServerPostgre(pg)
 		if err != nil {
 			l.Fatal(fmt.Errorf("server - Run - repo.New: %w", err))
 		}
 		storage = true
+		l.Info("server - Run - PSQL in use")
 	}
 
 	if cfg.StoreFile != "" && !storage {
@@ -52,6 +54,7 @@ func Run(cfg *config.ServerCfg) {
 			l.Error(fmt.Errorf("server - run scheduler: %w", err))
 		}
 		scheduler.Run(ctx, cfg.Restore, cfg.StoreInterval)
+		l.Info("server - Run - file storage in use")
 	}
 
 	serverUseCase := usecase.NewServerUC(serverRepo, serverHasher)

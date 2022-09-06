@@ -26,8 +26,8 @@ VALUES($1,$2,$3,$4,$5)
 ON CONFLICT (id) DO UPDATE
 SET value = EXCLUDED.value, delta = EXCLUDED.delta, hash = EXCLUDED.hash;
 `
-	_readMetrics = `SELECT * FROM metrics`
-	_readMetric  = `SELECT $1,$2,$3,$4,$5 FROM metrics`
+	_readMetrics = `SELECT * FROM metrics;`
+	_readMetric  = `SELECT * FROM metrics WHERE id = $1 AND type = $2;`
 )
 
 type serverPSQLRepo struct {
@@ -62,7 +62,7 @@ func (repo *serverPSQLRepo) Read(metric entity.Metric) (*entity.Metric, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	row := repo.Pool.QueryRow(ctx, _readMetric, metric.ID, metric.MType, metric.Value, metric.Delta, metric.Hash)
+	row := repo.Pool.QueryRow(ctx, _readMetric, metric.ID, metric.MType)
 	m := &entity.Metric{}
 	err := row.Scan(&m.ID, &m.MType, &m.Value, &m.Delta, &m.Hash)
 	if err != nil {
