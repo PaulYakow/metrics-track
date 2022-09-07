@@ -7,7 +7,6 @@ import (
 	"github.com/PaulYakow/metrics-track/internal/entity"
 	"github.com/go-chi/chi/v5"
 	"io"
-	"log"
 	"net/http"
 )
 
@@ -71,7 +70,7 @@ func (s *serverRoutes) updateByJSON(rw http.ResponseWriter, r *http.Request) {
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Printf("read request body %q: %v", r.URL.Path, err)
+		s.logger.Error(fmt.Errorf("read request body %q: %w", r.URL.Path, err))
 		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}

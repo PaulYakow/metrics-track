@@ -37,7 +37,7 @@ func (s *Server) Get(metric entity.Metric) (*entity.Metric, error) {
 }
 
 func (s *Server) GetAll() ([]entity.Metric, error) {
-	return s.repo.ReadAll(), nil
+	return s.repo.ReadAll()
 }
 
 func (s *Server) CheckRepo() error {

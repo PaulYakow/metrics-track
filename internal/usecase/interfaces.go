@@ -33,7 +33,7 @@ type (
 	IServerRepo interface {
 		Store(metric *entity.Metric) error
 		Read(metric entity.Metric) (*entity.Metric, error)
-		ReadAll() []entity.Metric
+		ReadAll() ([]entity.Metric, error)
 
 		CheckConnection() error
 	}

@@ -2,12 +2,12 @@ package v1
 
 import (
 	"compress/flate"
+	"fmt"
 	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"html/template"
-	"log"
 	"net/http"
 )
 
@@ -44,10 +44,16 @@ func NewRouter(uc usecase.IServer, l logger.ILogger) chi.Router {
 
 func (s *serverRoutes) listOfMetrics(rw http.ResponseWriter, r *http.Request) {
 	tmpl := template.Must(template.ParseFiles(templateName))
-	data, _ := s.uc.GetAll()
-	rw.Header().Set("Content-Type", "text/html")
-	err := tmpl.Execute(rw, data)
+	data, err := s.uc.GetAll()
 	if err != nil {
-		log.Printf("apply template: %v", err)
+		s.logger.Error(fmt.Errorf("router - GetAll metrics failed: %w", err))
+		rw.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	rw.Header().Set("Content-Type", "text/html")
+	err = tmpl.Execute(rw, data)
+	if err != nil {
+		s.logger.Error(fmt.Errorf("router - apply template failed: %w", err))
 	}
 }

@@ -32,3 +32,6 @@ todo*
 
 # env files
 *.env
+
+# docker files
+pg_data

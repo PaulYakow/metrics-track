@@ -7,7 +7,6 @@ import (
 	"github.com/PaulYakow/metrics-track/internal/pkg/httpclient"
 	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
-	"log"
 	"sync"
 	"time"
 )
@@ -57,7 +56,7 @@ func (s *sender) sendMetricsByJSON(metrics []entity.Metric) {
 	for _, metric := range metrics {
 		data, err := json.Marshal(metric)
 		if err != nil {
-			log.Printf("sender - read metric %q: %v", metric.ID, err)
+			s.l.Error(fmt.Errorf("sender - read metric %q: %w", metric.ID, err))
 		}
 		if err = s.client.PostByJSON(s.endpoint, data); err != nil {
 			s.l.Error(fmt.Errorf("sender - post metric by JSON to %q: %w", s.endpoint, err))

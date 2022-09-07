@@ -59,23 +59,26 @@ func (s *scheduler) Run(ctx context.Context, restore bool, interval time.Duratio
 }
 
 func (s *scheduler) storing() {
-	metrics := s.repo.ReadAll()
-
-	err := s.producer.Write(&metrics)
+	metrics, err := s.repo.ReadAll()
 	if err != nil {
-		log.Printf("save in file: %v", err)
+		log.Printf("scheduler - read all metrics: %v", err)
+	}
+
+	err = s.producer.Write(&metrics)
+	if err != nil {
+		log.Printf("scheduler - save in file: %v", err)
 	}
 }
 
 func (s *scheduler) initMemory() {
 	metrics, err := s.consumer.Read()
 	if err != nil {
-		log.Printf("read from file: %v", err)
+		log.Printf("scheduler - read from file: %v", err)
 	}
 
 	for _, metric := range metrics {
 		if err = s.repo.Store(metric); err != nil {
-			log.Printf("init metrics: %v", err)
+			log.Printf("scheduler - init metric: %v", err)
 		}
 	}
 }

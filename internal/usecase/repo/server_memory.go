@@ -43,7 +43,7 @@ func (repo *serverMemoryRepo) Read(metric entity.Metric) (*entity.Metric, error)
 	return repo.metrics[metric.ID], nil
 }
 
-func (repo *serverMemoryRepo) ReadAll() []entity.Metric {
+func (repo *serverMemoryRepo) ReadAll() ([]entity.Metric, error) {
 	result := make([]entity.Metric, 0)
 
 	repo.Lock()
@@ -52,7 +52,7 @@ func (repo *serverMemoryRepo) ReadAll() []entity.Metric {
 	for _, metric := range repo.metrics {
 		result = append(result, *metric)
 	}
-	return result
+	return result, nil
 }
 
 func (repo *serverMemoryRepo) CheckConnection() error {
