@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/PaulYakow/metrics-track/config"
-	"github.com/PaulYakow/metrics-track/internal/controller/server/v1"
+	serverCtrl "github.com/PaulYakow/metrics-track/internal/controller/server/v1"
 	"github.com/PaulYakow/metrics-track/internal/pkg/httpserver"
 	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
-	"github.com/PaulYakow/metrics-track/internal/pkg/postgre"
+	postgre "github.com/PaulYakow/metrics-track/internal/pkg/postgre/v2"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
 	"github.com/PaulYakow/metrics-track/internal/usecase/repo"
 	"github.com/PaulYakow/metrics-track/internal/usecase/services/hasher"
@@ -29,14 +29,14 @@ func Run(cfg *config.ServerCfg) {
 	storage := false
 
 	if cfg.Dsn != "" {
-		pg, err := postgre.New(cfg.Dsn, postgre.MaxPoolSize(2))
+		pg, err := postgre.New(cfg.Dsn)
 		if err != nil {
 			l.Fatal(fmt.Errorf("server - Run - postgre.New: %w", err))
 		}
 		defer pg.Close()
 		l.Info("server - Run - PSQL connection ok")
 
-		serverRepo, err = repo.NewServerPostgre(pg)
+		serverRepo, err = repo.NewSqlxImpl(pg)
 		if err != nil {
 			l.Fatal(fmt.Errorf("server - Run - repo.New: %w", err))
 		}
@@ -49,7 +49,7 @@ func Run(cfg *config.ServerCfg) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		scheduler, err := v1.NewScheduler(serverRepo, cfg.StoreFile)
+		scheduler, err := serverCtrl.NewScheduler(serverRepo, cfg.StoreFile)
 		if err != nil {
 			l.Error(fmt.Errorf("server - run scheduler: %w", err))
 		}
@@ -60,7 +60,7 @@ func Run(cfg *config.ServerCfg) {
 	serverUseCase := usecase.NewServerUC(serverRepo, serverHasher)
 
 	// HTTP server
-	handler := v1.NewRouter(serverUseCase, l)
+	handler := serverCtrl.NewRouter(serverUseCase, l)
 	server := httpserver.New(handler, httpserver.Address(cfg.Address))
 
 	l.Info("server - run with params: a=%s | i=%v | f=%s | r=%v | k=%v | d=%s",

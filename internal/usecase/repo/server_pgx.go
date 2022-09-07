@@ -7,61 +7,32 @@ import (
 	"errors"
 	"fmt"
 	"github.com/PaulYakow/metrics-track/internal/entity"
-	"github.com/PaulYakow/metrics-track/internal/pkg/postgre"
+	"github.com/PaulYakow/metrics-track/internal/pkg/postgre/v1"
 	"github.com/jackc/pgx/v4"
 	"time"
 )
 
 const (
 	_defaultEntityCap = 30
-	_createTable      = `
-CREATE TABLE IF NOT EXISTS metrics(
-    "id" VARCHAR(255) UNIQUE NOT NULL,
-    "type" VARCHAR(50) NOT NULL,
-    "delta" BIGINT,
-    "value" DOUBLE PRECISION,
-    "hash" VARCHAR(255)
-    );
-`
-	_upsertMetric = `
-INSERT INTO metrics (id, type, delta, value, hash)
-VALUES($1,$2,$3,$4,$5) 
-ON CONFLICT (id) DO UPDATE
-SET delta = EXCLUDED.delta, value = EXCLUDED.value, hash = EXCLUDED.hash;
-`
-	_readMetrics = `SELECT * FROM metrics;`
-	_readMetric  = `
-SELECT *
-FROM metrics
-WHERE id = $1 AND type = $2;
-`
-	_createRow = `
-INSERT INTO metrics (id, type, delta, value, hash)
-SELECT $1::VARCHAR,$2,$3,$4,$5
-WHERE NOT EXISTS (
-    SELECT 1 FROM metrics WHERE id = $1
-)
-RETURNING *;
-`
 )
 
-type serverPSQLRepo struct {
-	*postgre.Postgre
+type serverPgxImpl struct {
+	*v1.Postgre
 }
 
-func NewServerPostgre(pg *postgre.Postgre) (*serverPSQLRepo, error) {
+func NewPgxImpl(pg *v1.Postgre) (*serverPgxImpl, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	_, err := pg.Pool.Exec(ctx, _createTable)
+	_, err := pg.Pool.Exec(ctx, _schema)
 	if err != nil {
-		return nil, fmt.Errorf("repo - NewServerPostgre - create table failed: %w", err)
+		return nil, fmt.Errorf("repo - NewPgxImpl - create table failed: %w", err)
 	}
 
-	return &serverPSQLRepo{pg}, nil
+	return &serverPgxImpl{pg}, nil
 }
 
-func (repo *serverPSQLRepo) Store(metric *entity.Metric) error {
+func (repo *serverPgxImpl) Store(metric *entity.Metric) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -91,7 +62,7 @@ func (repo *serverPSQLRepo) Store(metric *entity.Metric) error {
 	return nil
 }
 
-func (repo *serverPSQLRepo) Read(metric entity.Metric) (*entity.Metric, error) {
+func (repo *serverPgxImpl) Read(metric entity.Metric) (*entity.Metric, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -107,7 +78,7 @@ func (repo *serverPSQLRepo) Read(metric entity.Metric) (*entity.Metric, error) {
 	return m, nil
 }
 
-func (repo *serverPSQLRepo) ReadAll() ([]entity.Metric, error) {
+func (repo *serverPgxImpl) ReadAll() ([]entity.Metric, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -130,7 +101,7 @@ func (repo *serverPSQLRepo) ReadAll() ([]entity.Metric, error) {
 	return metrics, nil
 }
 
-func (repo *serverPSQLRepo) CheckConnection() error {
+func (repo *serverPgxImpl) CheckConnection() error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 	if err := repo.Pool.Ping(ctx); err != nil {

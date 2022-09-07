@@ -6,7 +6,9 @@ require (
 	github.com/go-chi/chi/v5 v5.0.7
 	github.com/ilyakaznacheev/cleanenv v1.3.0
 	github.com/imroc/req/v3 v3.17.6
+	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/jackc/pgx/v4 v4.17.2
+	github.com/jmoiron/sqlx v1.3.5
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.0
 	go.uber.org/zap v1.23.0
@@ -21,6 +23,7 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
+	github.com/jackc/fake v0.0.0-20150926172116-812a484cc733 // indirect
 	github.com/jackc/pgconn v1.13.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
@@ -37,6 +40,7 @@ require (
 	github.com/marten-seemann/qtls-go1-19 v0.1.0 // indirect
 	github.com/nxadm/tail v1.4.8 // indirect
 	github.com/onsi/ginkgo v1.16.5 // indirect
+	github.com/pkg/errors v0.8.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect

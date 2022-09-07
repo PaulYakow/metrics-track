@@ -1,4 +1,4 @@
-package postgre
+package v1
 
 import (
 	"context"
@@ -9,25 +9,32 @@ import (
 )
 
 const (
-	_defaultMaxPoolSize  = 1
+	_defaultMaxPoolSize     = 4
+	_defaultMaxConnIdleTime = time.Second * 30
+	_defaultMaxConnLifetime = time.Minute * 2
+
 	_defaultConnAttempts = 10
 	_defaultConnTimeout  = time.Second
 )
 
 //goland:noinspection SpellCheckingInspection
 type Postgre struct {
-	maxPollSize  int
-	connAttempts int
-	connTimeout  time.Duration
+	maxPollSize     int
+	maxConnIdleTime time.Duration
+	maxConnLifeTime time.Duration
+	connAttempts    int
+	connTimeout     time.Duration
 
 	Pool *pgxpool.Pool
 }
 
 func New(dsn string, opts ...Option) (*Postgre, error) {
 	pg := &Postgre{
-		maxPollSize:  _defaultMaxPoolSize,
-		connAttempts: _defaultConnAttempts,
-		connTimeout:  _defaultConnTimeout,
+		maxPollSize:     _defaultMaxPoolSize,
+		maxConnIdleTime: _defaultMaxConnIdleTime,
+		maxConnLifeTime: _defaultMaxConnLifetime,
+		connAttempts:    _defaultConnAttempts,
+		connTimeout:     _defaultConnTimeout,
 	}
 
 	for _, opt := range opts {
@@ -40,6 +47,8 @@ func New(dsn string, opts ...Option) (*Postgre, error) {
 	}
 
 	poolConfig.MaxConns = int32(pg.maxPollSize)
+	poolConfig.MaxConnIdleTime = pg.maxConnIdleTime
+	poolConfig.MaxConnLifetime = pg.maxConnLifeTime
 
 	for pg.connAttempts > 0 {
 		pg.Pool, err = pgxpool.ConnectConfig(context.Background(), poolConfig)
