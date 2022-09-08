@@ -37,7 +37,7 @@ Content-Type: application/json
 {
   "id": "testCounter",
   "type": "counter",
-  "value": 987654
+  "delta": 123456
 }
 
 ### get all metrics
@@ -45,7 +45,39 @@ GET http://localhost:8080/
 Accept-Encoding: gzip, deflate, br
 Content-Type: text/html
 
+### update batch
+POST http://localhost:8080/updates
+Accept-Encoding: gzip, deflate, br
+Content-Type: application/json
+
+[
+  {
+    "id": "batchCounter1",
+    "type": "counter",
+    "delta": 100
+  },
+  {
+    "id": "batchCounter2",
+    "type": "counter",
+    "delta": 200
+  },
+  {
+    "id": "batchGauge1",
+    "type": "gauge",
+    "value": 1000
+  },
+  {
+    "id": "batchGauge2",
+    "type": "gauge",
+    "value": 2000
+  },
+  {
+    "id": "testCounter",
+    "type": "counter",
+    "delta": 123456
+  }
+]
+
 ### ping
 GET http://localhost:8080/ping
 
-###

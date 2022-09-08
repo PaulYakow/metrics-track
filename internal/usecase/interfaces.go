@@ -26,12 +26,14 @@ type (
 	IServer interface {
 		Save(metric *entity.Metric) error
 		Get(metric entity.Metric) (*entity.Metric, error)
+		SaveBatch(metrics []entity.Metric) error
 		GetAll() ([]entity.Metric, error)
 		CheckRepo() error
 	}
 
 	IServerRepo interface {
 		Store(metric *entity.Metric) error
+		StoreBatch(metrics []entity.Metric) error
 		Read(metric entity.Metric) (*entity.Metric, error)
 		ReadAll() ([]entity.Metric, error)
 
@@ -44,7 +46,7 @@ type (
 	IHasher interface {
 		ProcessBatch([]entity.Metric) []entity.Metric
 		ProcessSingle(entity.Metric) entity.Metric
-		ProcessPointer(*entity.Metric) *entity.Metric
+		ProcessPointer(*entity.Metric)
 		Check(*entity.Metric) error
 	}
 )

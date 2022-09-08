@@ -53,7 +53,7 @@ func (repo *serverPgxImpl) Store(metric *entity.Metric) error {
 		return fmt.Errorf("repo - Store - update metric: %w", err)
 	}
 
-	_, err = repo.Pool.Exec(ctx, _upsertMetric, m.ID, m.MType, m.Delta, m.Value, m.Hash)
+	_, err = repo.Pool.Exec(ctx, _upsertMetricOld, m.ID, m.MType, m.Delta, m.Value, m.Hash)
 	if err != nil {
 		return fmt.Errorf("repo - Store - update in DB: %w", err)
 	}

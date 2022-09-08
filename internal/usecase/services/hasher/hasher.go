@@ -14,14 +14,13 @@ func New(key string) *hasherImpl {
 
 func (h *hasherImpl) ProcessBatch(metrics []entity.Metric) []entity.Metric {
 	if h.key != "" {
-		result := make([]entity.Metric, len(metrics))
-		for idx, metric := range metrics {
+		result := make([]entity.Metric, 0, len(metrics))
+		for _, metric := range metrics {
 			metric.SetHash(h.key)
-			result[idx] = metric
+			result = append(result, metric)
 		}
 		return result
 	}
-
 	return metrics
 }
 
@@ -33,12 +32,10 @@ func (h *hasherImpl) ProcessSingle(metric entity.Metric) entity.Metric {
 	return metric
 }
 
-func (h *hasherImpl) ProcessPointer(ptr *entity.Metric) *entity.Metric {
+func (h *hasherImpl) ProcessPointer(ptr *entity.Metric) {
 	if h.key != "" {
 		ptr.SetHash(h.key)
 	}
-
-	return ptr
 }
 
 func (h *hasherImpl) Check(ptr *entity.Metric) error {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/PaulYakow/metrics-track/internal/entity"
 	"github.com/PaulYakow/metrics-track/internal/pkg/postgre/v2"
+	"log"
 	"time"
 )
 
@@ -30,10 +31,11 @@ func (repo *serverSqlxImpl) Store(metric *entity.Metric) error {
 
 	m, err := repo.Read(*metric)
 	if err != nil {
-		_, err = repo.ExecContext(ctx, _createRow, metric.ID, metric.MType, metric.Delta, metric.Value, metric.Hash)
+		_, err = repo.NamedExecContext(ctx, _createNamedRow, *metric)
 		if err != nil {
 			return fmt.Errorf("repo - Store - try create row: %w", err)
 		}
+		log.Printf("metric created: %v", metric)
 		return nil
 	}
 
@@ -42,12 +44,38 @@ func (repo *serverSqlxImpl) Store(metric *entity.Metric) error {
 		return fmt.Errorf("repo - Store - update metric: %w", err)
 	}
 
-	_, err = repo.ExecContext(ctx, _upsertMetric, m.ID, m.MType, m.Delta, m.Value, m.Hash)
+	_, err = repo.NamedExecContext(ctx, _upsertNamed, m)
 	if err != nil {
 		return fmt.Errorf("repo - Store - update in DB: %w", err)
 	}
 
 	return nil
+}
+
+func (repo *serverSqlxImpl) StoreBatch(metrics []entity.Metric) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	stmtUpsertMetric, err := repo.PrepareNamed(_upsertMetric)
+	if err != nil {
+		return fmt.Errorf("repo - stmt prepare: %w", err)
+	}
+
+	tx, err := repo.BeginTxx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("repo - start transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	txStmt := tx.NamedStmtContext(ctx, stmtUpsertMetric)
+
+	for _, metric := range metrics {
+		if _, err = txStmt.ExecContext(ctx, metric); err != nil {
+			return fmt.Errorf("repo - ExecContext: %w", err)
+		}
+	}
+
+	return tx.Commit()
 }
 
 func (repo *serverSqlxImpl) Read(metric entity.Metric) (*entity.Metric, error) {

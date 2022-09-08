@@ -26,6 +26,10 @@ func (s *Server) Save(metric *entity.Metric) error {
 	return s.repo.Store(metric)
 }
 
+func (s *Server) SaveBatch(metrics []entity.Metric) error {
+	return s.repo.StoreBatch(s.hasher.ProcessBatch(metrics))
+}
+
 func (s *Server) Get(metric entity.Metric) (*entity.Metric, error) {
 	auxMetric, err := s.repo.Read(metric)
 	if err != nil {

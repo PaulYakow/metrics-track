@@ -33,6 +33,10 @@ func (repo *serverMemoryRepo) Store(metric *entity.Metric) error {
 	return nil
 }
 
+func (repo *serverMemoryRepo) StoreBatch(metrics []entity.Metric) error {
+	return nil
+}
+
 func (repo *serverMemoryRepo) Read(metric entity.Metric) (*entity.Metric, error) {
 	repo.Lock()
 	defer repo.Unlock()
