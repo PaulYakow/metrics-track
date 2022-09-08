@@ -3,7 +3,6 @@ package repo
 // todo: необходимо убрать лишние зависимости
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"github.com/PaulYakow/metrics-track/internal/entity"
@@ -67,14 +66,14 @@ func (repo *serverPgxImpl) Read(metric entity.Metric) (*entity.Metric, error) {
 	defer cancel()
 
 	m := &entity.Metric{}
-	var hash sql.NullString
+	//var hash sql.NullString
 	err := repo.Pool.QueryRow(ctx, _readMetric, metric.ID, metric.MType).
-		Scan(&m.ID, &m.MType, &m.Delta, &m.Value, &hash)
+		Scan(&m.ID, &m.MType, &m.Delta, &m.Value, &m.Hash)
 	if err != nil {
 		return nil, fmt.Errorf("repo - Read - row.Scan: %w", err)
 	}
 
-	m.Hash = hash.String
+	//m.Hash = hash.String
 	return m, nil
 }
 

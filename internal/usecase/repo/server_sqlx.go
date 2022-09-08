@@ -2,7 +2,6 @@ package repo
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"github.com/PaulYakow/metrics-track/internal/entity"
 	"github.com/PaulYakow/metrics-track/internal/pkg/postgre/v2"
@@ -11,14 +10,6 @@ import (
 
 type serverSqlxImpl struct {
 	*v2.Postgre
-}
-
-type dbMetric struct {
-	ID    string         `db:"id"`    // имя метрики
-	MType string         `db:"type"`  // параметр, принимающий значение gauge или counter
-	Delta *int64         `db:"delta"` // значение метрики в случае передачи counter
-	Value *float64       `db:"value"` // значение метрики в случае передачи gauge
-	Hash  sql.NullString `db:"hash"`  // значение хеш-функции
 }
 
 func NewSqlxImpl(pg *v2.Postgre) (*serverSqlxImpl, error) {
@@ -40,6 +31,9 @@ func (repo *serverSqlxImpl) Store(metric *entity.Metric) error {
 	m, err := repo.Read(*metric)
 	if err != nil {
 		_, err = repo.ExecContext(ctx, _createRow, metric.ID, metric.MType, metric.Delta, metric.Value, metric.Hash)
+		if err != nil {
+			return fmt.Errorf("repo - Store - try create row: %w", err)
+		}
 		return nil
 	}
 
@@ -60,18 +54,12 @@ func (repo *serverSqlxImpl) Read(metric entity.Metric) (*entity.Metric, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	var result dbMetric
+	var result entity.Metric
 	if err := repo.GetContext(ctx, &result, _readMetric, metric.ID, metric.MType); err != nil {
 		return nil, fmt.Errorf("repo - Read: %w", err)
 	}
 
-	return &entity.Metric{
-		ID:    result.ID,
-		MType: result.MType,
-		Delta: result.Delta,
-		Value: result.Value,
-		Hash:  result.Hash.String,
-	}, nil
+	return &result, nil
 }
 
 func (repo *serverSqlxImpl) ReadAll() ([]entity.Metric, error) {
@@ -80,7 +68,7 @@ func (repo *serverSqlxImpl) ReadAll() ([]entity.Metric, error) {
 
 	var result []entity.Metric
 	if err := repo.SelectContext(ctx, &result, _readMetrics); err != nil {
-		return nil, fmt.Errorf("repo - Read: %w", err)
+		return nil, fmt.Errorf("repo - Read [%v]: %w", result, err)
 	}
 
 	return result, nil

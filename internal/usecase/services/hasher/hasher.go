@@ -43,7 +43,7 @@ func (h *hasherImpl) ProcessPointer(ptr *entity.Metric) *entity.Metric {
 
 func (h *hasherImpl) Check(ptr *entity.Metric) error {
 	if h.key != "" {
-		return ptr.CheckHash(ptr.Hash, h.key)
+		return ptr.CheckHash(ptr.GetHash(), h.key)
 	}
 
 	return nil

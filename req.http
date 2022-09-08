@@ -1,0 +1,51 @@
+### read gauge by JSON
+POST http://localhost:8080/value
+Accept-Encoding: gzip, deflate, br
+Content-Type: application/json
+
+{
+  "id": "testGauge",
+  "type": "gauge"
+}
+
+### update gauge by JSON
+POST http://localhost:8080/update
+Accept-Encoding: gzip, deflate, br
+Content-Type: application/json
+
+{
+  "id": "testGauge",
+  "type": "gauge",
+  "value": 12345
+}
+
+### read counter by JSON
+POST http://localhost:8080/value
+Accept-Encoding: gzip, deflate, br
+Content-Type: application/json
+
+{
+  "id": "testCounter",
+  "type": "counter"
+}
+
+### update counter by JSON
+POST http://localhost:8080/update
+Accept-Encoding: gzip, deflate, br
+Content-Type: application/json
+
+{
+  "id": "testCounter",
+  "type": "counter",
+  "value": 987654
+}
+
+### get all metrics
+GET http://localhost:8080/
+Accept-Encoding: gzip, deflate, br
+Content-Type: text/html
+
+### ping
+GET http://localhost:8080/ping
+
+###
