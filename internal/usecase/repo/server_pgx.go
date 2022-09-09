@@ -3,11 +3,9 @@ package repo
 // todo: необходимо убрать лишние зависимости
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/PaulYakow/metrics-track/internal/entity"
 	"github.com/PaulYakow/metrics-track/internal/pkg/postgre/v1"
-	"github.com/jackc/pgx/v4"
 	"time"
 )
 
@@ -35,25 +33,7 @@ func (repo *serverPgxImpl) Store(metric *entity.Metric) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	m, err := repo.Read(*metric)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			_, err = repo.Pool.Exec(ctx, _createRow, metric.ID, metric.MType, metric.Delta, metric.Value, metric.Hash)
-			if err != nil {
-				return fmt.Errorf("repo - Store - try create row: %w", err)
-			}
-			return nil
-		} else {
-			return fmt.Errorf("repo - Store - not exists: %w", err)
-		}
-	}
-
-	err = m.Update(metric)
-	if err != nil {
-		return fmt.Errorf("repo - Store - update metric: %w", err)
-	}
-
-	_, err = repo.Pool.Exec(ctx, _upsertMetricOld, m.ID, m.MType, m.Delta, m.Value, m.Hash)
+	_, err := repo.Pool.Exec(ctx, _upsertMetric, metric.ID, metric.MType, metric.Delta, metric.Value, metric.Hash)
 	if err != nil {
 		return fmt.Errorf("repo - Store - update in DB: %w", err)
 	}
@@ -67,7 +47,7 @@ func (repo *serverPgxImpl) Read(metric entity.Metric) (*entity.Metric, error) {
 
 	m := &entity.Metric{}
 	//var hash sql.NullString
-	err := repo.Pool.QueryRow(ctx, _readMetric, metric.ID, metric.MType).
+	err := repo.Pool.QueryRow(ctx, _selectMetricByIdAndType, metric.ID, metric.MType).
 		Scan(&m.ID, &m.MType, &m.Delta, &m.Value, &m.Hash)
 	if err != nil {
 		return nil, fmt.Errorf("repo - Read - row.Scan: %w", err)
@@ -81,7 +61,7 @@ func (repo *serverPgxImpl) ReadAll() ([]entity.Metric, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := repo.Pool.Query(ctx, _readMetrics)
+	rows, err := repo.Pool.Query(ctx, _selectAllMetrics)
 	if err != nil {
 		return nil, fmt.Errorf("repo - ReadAll - Pool.Query: %w", err)
 	}

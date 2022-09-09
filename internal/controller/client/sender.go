@@ -31,11 +31,11 @@ func (s *sender) Run(wg *sync.WaitGroup, interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	defer wg.Done()
 
-	s.logger.Info("sender - run with interval %v", interval)
+	s.logger.Info("sender - run with params: a=%s | r=%v", s.endpoint, interval)
 	for {
 		select {
 		case <-ticker.C:
-			s.sendMetricsByJSON(s.uc.GetAll())
+			s.sendMetricsByJSONBatch(s.uc.GetAll())
 		case <-s.client.Done():
 			s.logger.Info("sender - context canceled")
 			ticker.Stop()
@@ -61,5 +61,16 @@ func (s *sender) sendMetricsByJSON(metrics []entity.Metric) {
 		if err = s.client.PostByJSON(s.endpoint, data); err != nil {
 			s.logger.Error(fmt.Errorf("sender - post metric by JSON to %q: %w", s.endpoint, err))
 		}
+	}
+}
+
+func (s *sender) sendMetricsByJSONBatch(metrics []entity.Metric) {
+	data, err := json.Marshal(metrics)
+	if err != nil {
+		s.logger.Error(fmt.Errorf("sender - read metrics: %w", err))
+	}
+
+	if err = s.client.PostByJSONBatch(s.endpoint, data); err != nil {
+		s.logger.Error(fmt.Errorf("sender - post batch of metrics by JSON to %q: %w", s.endpoint, err))
 	}
 }

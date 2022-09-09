@@ -63,3 +63,17 @@ func (c *Client) PostByJSON(route string, data []byte) error {
 
 	return err
 }
+
+func (c *Client) PostByJSONBatch(route string, data []byte) error {
+	ctx, cancel := context.WithTimeout(c.ctx, 1*time.Second)
+	defer cancel()
+
+	_, err := c.client.R().
+		SetContext(ctx).
+		SetHeader("Content-Type", "application/json").
+		SetHeader("Accept-Encoding", "gzip, deflate, br").
+		SetBody(data).
+		Post(route)
+
+	return err
+}

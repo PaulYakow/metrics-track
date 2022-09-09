@@ -35,7 +35,7 @@ func Run(cfg *config.ClientCfg) {
 	go collector.Run(wg, cfg.PollInterval)
 
 	c := httpclient.New(ctx)
-	endpoint := fmt.Sprintf("http://%s/update/", cfg.Address)
+	endpoint := fmt.Sprintf("http://%s/updates/", cfg.Address)
 	sender := client.NewSender(c, agentUseCase, endpoint, l)
 	wg.Add(1)
 	go sender.Run(wg, cfg.ReportInterval)

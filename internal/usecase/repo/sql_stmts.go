@@ -10,50 +10,14 @@ CREATE TABLE IF NOT EXISTS metrics(
     "hash" VARCHAR(255)
     );
 `
-	// Deprecated:
-	_upsertMetricOld = `
-INSERT INTO metrics (id, type, delta, value, hash)
-VALUES($1,$2,$3,$4,$5) 
-ON CONFLICT (id) DO UPDATE
-SET delta = EXCLUDED.delta, value = EXCLUDED.value, hash = EXCLUDED.hash;
+	_selectAllMetrics = `
+SELECT *
+FROM metrics;
 `
-	_readMetrics = `SELECT * FROM metrics;`
-	_readMetric  = `
+	_selectMetricByIdAndType = `
 SELECT *
 FROM metrics
 WHERE id = $1 AND type = $2;
-`
-	_createRow = `
-INSERT INTO metrics (id, type, delta, value, hash)
-SELECT $1,$2,$3,$4,$5
-WHERE NOT EXISTS (
-    SELECT 1 FROM metrics WHERE id = $1
-);
-`
-	_createNamedRow = `
-INSERT INTO metrics (id, type, delta, value, hash)
-SELECT :id,:type,:delta,:value,:hash
-WHERE NOT EXISTS (
-    SELECT 1 FROM metrics WHERE id = :id
-);
-`
-	_upsertNamed = `
-INSERT INTO metrics (id, type, delta, value, hash)
-VALUES(:id, :type, :delta, :value, :hash) 
-ON CONFLICT (id) DO UPDATE
-SET delta = EXCLUDED.delta, value = EXCLUDED.value, hash = EXCLUDED.hash;
-`
-	_upsertGauge = `
-INSERT INTO metrics (id, type, delta, value, hash)
-VALUES(:id, :type, null, :value, :hash) 
-ON CONFLICT (id) DO UPDATE
-SET value = EXCLUDED.value, hash = EXCLUDED.hash;
-`
-	_upsertCounter = `
-INSERT INTO metrics (id, type, delta, value, hash)
-VALUES(:id, :type, :delta, null, :hash) 
-ON CONFLICT (id) DO UPDATE
-SET delta = metrics.delta + EXCLUDED.delta, hash = EXCLUDED.hash;
 `
 	_upsertMetric = `
 INSERT INTO metrics (id, type, delta, value, hash)
@@ -67,9 +31,5 @@ ON CONFLICT (id)
                               WHEN metrics.type = 'gauge'
                                   THEN EXCLUDED.value
                               END;
-`
-	_selectIds = `
-SELECT id
-FROM metrics;
 `
 )

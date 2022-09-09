@@ -54,27 +54,27 @@ Content-Type: application/json
   {
     "id": "batchCounter1",
     "type": "counter",
-    "delta": 100
+    "delta": -1
   },
   {
     "id": "batchCounter2",
     "type": "counter",
-    "delta": 200
+    "delta": 1
   },
   {
     "id": "batchGauge1",
     "type": "gauge",
-    "value": 1000
+    "value": 3333
   },
   {
     "id": "batchGauge2",
     "type": "gauge",
-    "value": 2000
+    "value": 777
   },
   {
     "id": "testCounter",
     "type": "counter",
-    "delta": 123456
+    "delta": 777
   }
 ]
 
