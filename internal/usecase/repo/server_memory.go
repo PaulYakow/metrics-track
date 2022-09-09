@@ -34,6 +34,11 @@ func (repo *serverMemoryRepo) Store(metric *entity.Metric) error {
 }
 
 func (repo *serverMemoryRepo) StoreBatch(metrics []entity.Metric) error {
+	for _, metric := range metrics {
+		metric := metric
+		repo.Store(&metric)
+	}
+
 	return nil
 }
 

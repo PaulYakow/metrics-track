@@ -70,8 +70,8 @@ func (c *Client) PostByJSONBatch(route string, data []byte) error {
 
 	_, err := c.client.R().
 		SetContext(ctx).
-		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept-Encoding", "gzip, deflate, br").
+		SetHeader("Content-Type", "application/json").
 		SetBody(data).
 		Post(route)
 

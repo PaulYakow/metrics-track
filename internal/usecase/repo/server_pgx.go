@@ -47,7 +47,7 @@ func (repo *serverPgxImpl) Read(metric entity.Metric) (*entity.Metric, error) {
 
 	m := &entity.Metric{}
 	//var hash sql.NullString
-	err := repo.Pool.QueryRow(ctx, _selectMetricByIdAndType, metric.ID, metric.MType).
+	err := repo.Pool.QueryRow(ctx, _selectMetricByIDAndType, metric.ID, metric.MType).
 		Scan(&m.ID, &m.MType, &m.Delta, &m.Value, &m.Hash)
 	if err != nil {
 		return nil, fmt.Errorf("repo - Read - row.Scan: %w", err)

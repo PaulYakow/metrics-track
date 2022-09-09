@@ -4,7 +4,7 @@ Accept-Encoding: gzip, deflate, br
 Content-Type: application/json
 
 {
-  "id": "testGauge",
+  "id": "MCacheInuse",
   "type": "gauge"
 }
 

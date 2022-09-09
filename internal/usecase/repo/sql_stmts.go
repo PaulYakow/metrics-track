@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS metrics(
 SELECT *
 FROM metrics;
 `
-	_selectMetricByIdAndType = `
+	_selectMetricByIDAndType = `
 SELECT *
 FROM metrics
 WHERE id = $1 AND type = $2;

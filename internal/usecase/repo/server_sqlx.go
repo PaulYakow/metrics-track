@@ -69,7 +69,7 @@ func (repo *serverSqlxImpl) Read(metric entity.Metric) (*entity.Metric, error) {
 	defer cancel()
 
 	var result entity.Metric
-	if err := repo.GetContext(ctx, &result, _selectMetricByIdAndType, metric.ID, metric.MType); err != nil {
+	if err := repo.GetContext(ctx, &result, _selectMetricByIDAndType, metric.ID, metric.MType); err != nil {
 		return nil, fmt.Errorf("repo - Read: %w", err)
 	}
 
