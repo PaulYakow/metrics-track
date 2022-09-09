@@ -14,10 +14,13 @@ type Producer struct {
 
 func NewProducer(filename string) (*Producer, error) {
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		os.MkdirAll(filepath.Dir(filename), 0777)
+		err = os.MkdirAll(filepath.Dir(filename), 0644)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	file, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_SYNC, 0777)
+	file, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_SYNC, 0644)
 	if err != nil {
 		return nil, err
 	}

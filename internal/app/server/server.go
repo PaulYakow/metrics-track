@@ -19,6 +19,7 @@ import (
 func Run(cfg *config.ServerCfg) {
 	var err error
 	l := logger.New()
+	defer l.Exit()
 
 	// In-memory storage
 	var serverRepo usecase.IServerRepo = repo.NewServerMemory()
@@ -49,7 +50,7 @@ func Run(cfg *config.ServerCfg) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		scheduler, err := serverCtrl.NewScheduler(serverRepo, cfg.StoreFile)
+		scheduler, err := serverCtrl.NewScheduler(serverRepo, cfg.StoreFile, l)
 		if err != nil {
 			l.Error(fmt.Errorf("server - run scheduler: %w", err))
 		}

@@ -34,7 +34,7 @@ func Create(mType, name, value string) (*Metric, error) {
 	case "gauge":
 		v, err := strconv.ParseFloat(value, 64)
 		if err != nil {
-			return nil, valueErr{
+			return nil, &valueErr{
 				name:  name,
 				value: value,
 				err:   ErrParseValue,
@@ -49,7 +49,7 @@ func Create(mType, name, value string) (*Metric, error) {
 	case "counter":
 		v, err := strconv.ParseInt(value, 10, 64)
 		if err != nil {
-			return nil, valueErr{
+			return nil, &valueErr{
 				name:  name,
 				value: value,
 				err:   ErrParseValue,
@@ -62,7 +62,7 @@ func Create(mType, name, value string) (*Metric, error) {
 		}, nil
 
 	default:
-		return nil, typeErr{
+		return nil, &typeErr{
 			name:  name,
 			tName: mType,
 			err:   ErrUnknownType,
@@ -79,7 +79,7 @@ func (m *Metric) Update(metric *Metric) error {
 		*m.Delta += *metric.Delta
 
 	default:
-		return typeErr{
+		return &typeErr{
 			name:  m.ID,
 			tName: m.MType,
 			err:   ErrUnknownType,
@@ -147,7 +147,10 @@ func (m *Metric) SetHash(key string) {
 
 func (m *Metric) CheckHash(hash, key string) error {
 	if !bytes.Equal([]byte(hash), []byte(m.calcHash(key))) {
-		return ErrHashMismatch
+		return &hashErr{
+			name: m.ID,
+			err:  ErrHashMismatch,
+		}
 	}
 
 	return nil

@@ -30,6 +30,9 @@ todo*
 # txt files with some helpers
 *.txt
 
+# log files
+log*
+
 # env files
 *.env
 

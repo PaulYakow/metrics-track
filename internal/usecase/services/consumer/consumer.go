@@ -12,7 +12,7 @@ type Consumer struct {
 }
 
 func NewConsumer(filename string) (*Consumer, error) {
-	file, err := os.OpenFile(filename, os.O_RDONLY|os.O_CREATE, 0777)
+	file, err := os.OpenFile(filename, os.O_RDONLY|os.O_CREATE, 0644)
 	if err != nil {
 		return nil, err
 	}
