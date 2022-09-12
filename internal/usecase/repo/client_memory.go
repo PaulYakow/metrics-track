@@ -5,32 +5,38 @@ import (
 	"sync"
 )
 
-type clientRepo struct {
+type clientMemoryRepo struct {
 	sync.Mutex
 	metrics map[string]*entity.Metric
 }
 
-func NewClientRepo() *clientRepo {
-	return &clientRepo{
+func NewClientRepo() *clientMemoryRepo {
+	return &clientMemoryRepo{
 		metrics: make(map[string]*entity.Metric),
 	}
 }
 
-func (r *clientRepo) Store(metrics map[string]*entity.Metric) {
-	r.Lock()
-	defer r.Unlock()
+func (repo *clientMemoryRepo) Store(metrics map[string]*entity.Metric) {
+	repo.Lock()
+	defer repo.Unlock()
 
-	r.metrics = metrics
+	for name, metric := range metrics {
+		if _, ok := repo.metrics[name]; !ok {
+			repo.metrics[name] = metric
+			continue
+		}
+		repo.metrics[name].Update(metric)
+	}
 }
 
-func (r *clientRepo) ReadAll() []entity.Metric {
-	result := make([]entity.Metric, len(r.metrics))
+func (repo *clientMemoryRepo) ReadAll() []entity.Metric {
+	result := make([]entity.Metric, len(repo.metrics))
 
-	r.Lock()
-	defer r.Unlock()
+	repo.Lock()
+	defer repo.Unlock()
 
 	idx := 0
-	for _, metric := range r.metrics {
+	for _, metric := range repo.metrics {
 		result[idx] = *metric
 		idx++
 	}

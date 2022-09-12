@@ -8,21 +8,24 @@ import (
 // Реализация клиента
 
 type client struct {
-	repo   IClientMemory
-	gather IClientGather
-	hasher IHasher
+	repo     IClientMemory
+	hasher   IHasher
+	gatherRT IClientGather
+	gatherPS IClientGather
 }
 
 func NewClientUC(r IClientMemory, h IHasher) *client {
 	return &client{
-		repo:   r,
-		gather: gather.New(),
-		hasher: h,
+		repo:     r,
+		hasher:   h,
+		gatherRT: gather.NewGatherRuntime(),
+		gatherPS: gather.NewGatherPsutil(),
 	}
 }
 
 func (c *client) Poll() {
-	c.repo.Store(c.gather.Update())
+	c.repo.Store(c.gatherRT.Update())
+	c.repo.Store(c.gatherPS.Update())
 }
 
 func (c *client) GetAll() []entity.Metric {
