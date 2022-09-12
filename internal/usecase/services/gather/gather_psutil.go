@@ -33,7 +33,7 @@ func (g *gatherPsutil) Update() map[string]*entity.Metric {
 	memInfo, _ := mem.VirtualMemory()
 
 	g.metrics["TotalMemory"].UpdateValue(memInfo.Total)
-	g.metrics["FreeMemory"].UpdateDelta(memInfo.Available)
+	g.metrics["FreeMemory"].UpdateValue(memInfo.Free)
 	if len(percent) != 0 {
 		g.metrics["CPUutilization1"].UpdateValue(percent[0])
 	}
