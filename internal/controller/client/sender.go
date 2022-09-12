@@ -1,7 +1,9 @@
 package client
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/PaulYakow/metrics-track/internal/entity"
 	"github.com/PaulYakow/metrics-track/internal/pkg/httpclient"
 	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
@@ -13,7 +15,7 @@ type sender struct {
 	client   *httpclient.Client
 	uc       usecase.IClient
 	endpoint string
-	l        logger.ILogger
+	logger   logger.ILogger
 }
 
 func NewSender(client *httpclient.Client, uc usecase.IClient, endpoint string, l logger.ILogger) *sender {
@@ -21,7 +23,7 @@ func NewSender(client *httpclient.Client, uc usecase.IClient, endpoint string, l
 		client:   client,
 		uc:       uc,
 		endpoint: endpoint,
-		l:        l,
+		logger:   l,
 	}
 }
 
@@ -29,13 +31,13 @@ func (s *sender) Run(wg *sync.WaitGroup, interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	defer wg.Done()
 
-	s.l.Info("sender - run with interval %v", interval)
+	s.logger.Info("sender - run with params: a=%s | r=%v", s.endpoint, interval)
 	for {
 		select {
 		case <-ticker.C:
-			s.sendMetricsByJSON(s.uc.UpdateValues())
+			s.sendMetricsByJSONBatch(s.uc.GetAll())
 		case <-s.client.Done():
-			s.l.Info("sender - context canceled")
+			s.logger.Info("sender - context canceled")
 			ticker.Stop()
 			return
 		}
@@ -45,15 +47,30 @@ func (s *sender) Run(wg *sync.WaitGroup, interval time.Duration) {
 func (s *sender) sendMetricsByURL(routes []string) {
 	for _, route := range routes {
 		if err := s.client.PostByURL(s.endpoint + route); err != nil {
-			s.l.Error(fmt.Errorf("sender - post metric by URL to %q: %w", s.endpoint+route, err))
+			s.logger.Error(fmt.Errorf("sender - post metric by URL to %q: %w", s.endpoint+route, err))
 		}
 	}
 }
 
-func (s *sender) sendMetricsByJSON(data [][]byte) {
-	for _, rawMetric := range data {
-		if err := s.client.PostByJSON(s.endpoint, rawMetric); err != nil {
-			s.l.Error(fmt.Errorf("sender - post metric by JSON to %q: %w", s.endpoint, err))
+func (s *sender) sendMetricsByJSON(metrics []entity.Metric) {
+	for _, metric := range metrics {
+		data, err := json.Marshal(metric)
+		if err != nil {
+			s.logger.Error(fmt.Errorf("sender - read metric %q: %w", metric.ID, err))
 		}
+		if err = s.client.PostByJSON(s.endpoint, data); err != nil {
+			s.logger.Error(fmt.Errorf("sender - post metric by JSON to %q: %w", s.endpoint, err))
+		}
+	}
+}
+
+func (s *sender) sendMetricsByJSONBatch(metrics []entity.Metric) {
+	data, err := json.Marshal(metrics)
+	if err != nil {
+		s.logger.Error(fmt.Errorf("sender - read metrics: %w", err))
+	}
+
+	if err = s.client.PostByJSONBatch(s.endpoint, data); err != nil {
+		s.logger.Error(fmt.Errorf("sender - post batch of metrics by JSON to %q: %w", s.endpoint, err))
 	}
 }

@@ -1,28 +1,30 @@
 package usecase
 
 import (
+	"github.com/PaulYakow/metrics-track/internal/entity"
 	"github.com/PaulYakow/metrics-track/internal/usecase/services/gather"
 )
 
 // Реализация клиента
 
-type Client struct {
-	repo   IClientRepo
+type client struct {
+	repo   IClientMemory
 	gather IClientGather
+	hasher IHasher
 }
 
-func NewClientUC(r IClientRepo) *Client {
-	return &Client{repo: r, gather: gather.New()}
+func NewClientUC(r IClientMemory, h IHasher) *client {
+	return &client{
+		repo:   r,
+		gather: gather.New(),
+		hasher: h,
+	}
 }
 
-func (c *Client) Poll() {
+func (c *client) Poll() {
 	c.repo.Store(c.gather.Update())
 }
 
-func (c *Client) UpdateRoutes() []string {
-	return c.repo.ReadCurrentMetrics()
-}
-
-func (c *Client) UpdateValues() [][]byte {
-	return c.repo.ReadCurrentValues()
+func (c *client) GetAll() []entity.Metric {
+	return c.hasher.ProcessBatch(c.repo.ReadAll())
 }

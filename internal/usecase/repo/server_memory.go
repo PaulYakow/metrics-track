@@ -1,37 +1,24 @@
 package repo
 
 import (
-	"errors"
+	"context"
 	"fmt"
 	"github.com/PaulYakow/metrics-track/internal/entity"
-	"log"
 	"sync"
 )
 
-var (
-	errNotFound = errors.New("not found")
-)
-
-type ServerMemory struct {
+type serverMemoryRepo struct {
 	sync.Mutex
 	metrics map[string]*entity.Metric
 }
 
-func NewServerMemory() *ServerMemory {
-	return &ServerMemory{
+func NewServerMemory() *serverMemoryRepo {
+	return &serverMemoryRepo{
 		metrics: make(map[string]*entity.Metric),
 	}
 }
 
-func (repo *ServerMemory) InitializeMetrics(metrics []*entity.Metric) {
-	for _, metric := range metrics {
-		if err := repo.Store(metric); err != nil {
-			log.Printf("init metrics: %v", err)
-		}
-	}
-}
-
-func (repo *ServerMemory) Store(metric *entity.Metric) error {
+func (repo *serverMemoryRepo) Store(metric *entity.Metric) error {
 	repo.Lock()
 	defer repo.Unlock()
 
@@ -47,24 +34,47 @@ func (repo *ServerMemory) Store(metric *entity.Metric) error {
 	return nil
 }
 
-func (repo *ServerMemory) Read(metric entity.Metric) (*entity.Metric, error) {
+func (repo *serverMemoryRepo) StoreBatch(metrics []entity.Metric) error {
+	for _, metric := range metrics {
+		metric := metric
+		repo.Store(&metric)
+	}
+
+	return nil
+}
+
+func (repo *serverMemoryRepo) Read(ctx context.Context, metric entity.Metric) (*entity.Metric, error) {
 	repo.Lock()
 	defer repo.Unlock()
 
-	if _, ok := repo.metrics[metric.ID]; !ok {
-		return nil, fmt.Errorf("repo - unknown metric: %q", metric.ID)
+	select {
+	case <-ctx.Done():
+		return nil, nil
+	default:
+		if _, ok := repo.metrics[metric.ID]; !ok {
+			return nil, fmt.Errorf("repo - unknown metric: %q", metric.ID)
+		}
+		return repo.metrics[metric.ID], nil
 	}
-	return repo.metrics[metric.ID], nil
 }
 
-func (repo *ServerMemory) ReadAll() []entity.Metric {
+func (repo *serverMemoryRepo) ReadAll(ctx context.Context) ([]entity.Metric, error) {
 	result := make([]entity.Metric, 0)
 
 	repo.Lock()
 	defer repo.Unlock()
 
-	for _, metric := range repo.metrics {
-		result = append(result, *metric)
+	select {
+	case <-ctx.Done():
+		return nil, nil
+	default:
+		for _, metric := range repo.metrics {
+			result = append(result, *metric)
+		}
+		return result, nil
 	}
-	return result
+}
+
+func (repo *serverMemoryRepo) CheckConnection() error {
+	return fmt.Errorf("not implement to file storage")
 }

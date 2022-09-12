@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="run_all" type="CompoundRunConfigurationType">
+    <toRun name="run_postgres" type="docker-deploy" />
+    <toRun name="agent" type="GoApplicationRunConfiguration" />
+    <toRun name="server" type="GoApplicationRunConfiguration" />
+    <method v="2" />
+  </configuration>
+</component>

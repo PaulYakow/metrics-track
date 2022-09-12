@@ -9,16 +9,16 @@ import (
 )
 
 type collector struct {
-	ctx context.Context
-	uc  usecase.IClient
-	l   logger.ILogger
+	ctx    context.Context
+	uc     usecase.IClient
+	logger logger.ILogger
 }
 
 func NewCollector(ctx context.Context, uc usecase.IClient, l logger.ILogger) *collector {
 	return &collector{
-		ctx: ctx,
-		uc:  uc,
-		l:   l,
+		ctx:    ctx,
+		uc:     uc,
+		logger: l,
 	}
 }
 
@@ -26,14 +26,14 @@ func (c *collector) Run(wg *sync.WaitGroup, interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	defer wg.Done()
 
-	c.l.Info("collector - run with interval %v", interval)
+	c.logger.Info("collector - run with params: p=%v", interval)
 	for {
 		select {
 		case <-ticker.C:
 			c.uc.Poll()
 		case <-c.ctx.Done():
 			ticker.Stop()
-			c.l.Info("collector - context %v", c.ctx.Err())
+			c.logger.Info("collector - context %v", c.ctx.Err())
 			return
 		}
 	}

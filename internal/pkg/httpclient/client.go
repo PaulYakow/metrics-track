@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	_defaultAddr            = "http://localhost:8080/"
-	_defaultTimeout         = 1 * time.Second
-	_defaultShutdownTimeout = 3 * time.Second
+	defaultAddr            = "http://localhost:8080/"
+	defaultTimeout         = 1 * time.Second
+	defaultShutdownTimeout = 3 * time.Second
 )
 
 type Client struct {
@@ -20,12 +20,12 @@ type Client struct {
 
 func New(ctx context.Context, opts ...Option) *Client {
 	httpclient := req.C().
-		SetTimeout(_defaultTimeout)
+		SetTimeout(defaultTimeout)
 
 	c := &Client{
 		client:          httpclient,
 		ctx:             ctx,
-		shutdownTimeout: _defaultShutdownTimeout,
+		shutdownTimeout: defaultShutdownTimeout,
 	}
 
 	for _, opt := range opts {
@@ -57,6 +57,20 @@ func (c *Client) PostByJSON(route string, data []byte) error {
 
 	_, err := c.client.R().
 		SetContext(ctx).
+		SetHeader("Content-Type", "application/json").
+		SetBody(data).
+		Post(route)
+
+	return err
+}
+
+func (c *Client) PostByJSONBatch(route string, data []byte) error {
+	ctx, cancel := context.WithTimeout(c.ctx, 1*time.Second)
+	defer cancel()
+
+	_, err := c.client.R().
+		SetContext(ctx).
+		SetHeader("Accept-Encoding", "gzip, deflate, br").
 		SetHeader("Content-Type", "application/json").
 		SetBody(data).
 		Post(route)

@@ -1,83 +1,38 @@
 package repo
 
 import (
-	"encoding/json"
-	"fmt"
 	"github.com/PaulYakow/metrics-track/internal/entity"
-	"log"
 	"sync"
 )
 
-type ClientRepo struct {
+type clientRepo struct {
 	sync.Mutex
-	gauges   map[string]*entity.Gauge
-	counters map[string]*entity.Counter
+	metrics map[string]*entity.Metric
 }
 
-func NewClientRepo() *ClientRepo {
-	return &ClientRepo{
-		gauges:   make(map[string]*entity.Gauge),
-		counters: make(map[string]*entity.Counter),
+func NewClientRepo() *clientRepo {
+	return &clientRepo{
+		metrics: make(map[string]*entity.Metric),
 	}
 }
 
-func (r *ClientRepo) Store(g map[string]*entity.Gauge, c map[string]*entity.Counter) {
+func (r *clientRepo) Store(metrics map[string]*entity.Metric) {
 	r.Lock()
 	defer r.Unlock()
 
-	r.gauges = g
-	r.counters = c
+	r.metrics = metrics
 }
 
-func (r *ClientRepo) ReadCurrentMetrics() []string {
-	result := make([]string, 0)
-
-	r.Lock()
-	defer r.Unlock()
-
-	for name, gauge := range r.gauges {
-		result = append(result, fmt.Sprintf("/%s/%s/%v", gauge.GetType(), name, gauge.GetValue()))
-	}
-
-	for name, counter := range r.counters {
-		result = append(result, fmt.Sprintf("/%s/%s/%v", counter.GetType(), name, counter.GetValue()))
-	}
-
-	return result
-}
-
-func (r *ClientRepo) ReadCurrentValues() [][]byte {
-	result := make([][]byte, 0)
-	metric := entity.Metric{}
+func (r *clientRepo) ReadAll() []entity.Metric {
+	result := make([]entity.Metric, len(r.metrics))
 
 	r.Lock()
 	defer r.Unlock()
 
-	for name, gauge := range r.gauges {
-		metric.ID = name
-		metric.MType = "gauge"
-		metric.Value = gauge.GetPointer()
-
-		data, err := json.Marshal(metric)
-		if err != nil {
-			log.Printf("read gauge: %v", err)
-		}
-
-		result = append(result, data)
-	}
-
-	metric.Value = nil // clean before operate counters
-	for name, counter := range r.counters {
-		metric.ID = name
-		metric.MType = "counter"
-		metric.Delta = counter.GetPointer()
-
-		data, err := json.Marshal(metric)
-		if err != nil {
-			log.Printf("read counter: %v", err)
-		}
-
-		result = append(result, data)
+	idx := 0
+	for _, metric := range r.metrics {
+		result[idx] = *metric
+		idx++
 	}
 
 	return result
