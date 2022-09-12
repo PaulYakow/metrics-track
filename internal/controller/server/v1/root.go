@@ -12,12 +12,12 @@ import (
 )
 
 const (
-	_updateRoute  = "/update"
-	_updatesRoute = "/updates"
-	_valueRoute   = "/value"
-	_pingRoute    = "/ping"
+	updateRoute      = "/update"
+	batchUpdateRoute = "/updates"
+	valueRoute       = "/value"
+	pingRoute        = "/ping"
 
-	_templateName = "./web/templates/metrics_list.gohtml"
+	templateName = "./web/templates/metrics_list.gohtml"
 )
 
 type serverRoutes struct {
@@ -36,17 +36,17 @@ func NewRouter(uc usecase.IServer, l logger.ILogger) chi.Router {
 	mux.Use(middleware.Compress(flate.BestCompression))
 
 	mux.Get("/", s.listOfMetrics) // return HTML with all metrics
-	mux.Mount(_updateRoute, update{}.Routes(s))
-	mux.Mount(_updatesRoute, updates{}.Routes(s))
-	mux.Mount(_valueRoute, value{}.Routes(s))
-	mux.Mount(_pingRoute, ping{}.Routes(s))
+	mux.Mount(updateRoute, update{}.Routes(s))
+	mux.Mount(batchUpdateRoute, updates{}.Routes(s))
+	mux.Mount(valueRoute, value{}.Routes(s))
+	mux.Mount(pingRoute, ping{}.Routes(s))
 
 	return mux
 }
 
 func (s *serverRoutes) listOfMetrics(rw http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.ParseFiles(_templateName))
-	data, err := s.uc.GetAll()
+	tmpl := template.Must(template.ParseFiles(templateName))
+	data, err := s.uc.GetAll(r.Context())
 	if err != nil {
 		s.logger.Error(fmt.Errorf("router - GetAll metrics failed: %w", err))
 		rw.WriteHeader(http.StatusBadRequest)

@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	_defaultEntityCap = 30
+	defaultEntityCap = 30
 )
 
 type serverPgxImpl struct {
@@ -21,7 +21,7 @@ func NewPgxImpl(pg *v1.Postgre) (*serverPgxImpl, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	_, err := pg.Pool.Exec(ctx, _schema)
+	_, err := pg.Pool.Exec(ctx, schema)
 	if err != nil {
 		return nil, fmt.Errorf("repo - NewPgxImpl - create table failed: %w", err)
 	}
@@ -33,7 +33,7 @@ func (repo *serverPgxImpl) Store(metric *entity.Metric) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	_, err := repo.Pool.Exec(ctx, _upsertMetric, metric.ID, metric.MType, metric.Delta, metric.Value, metric.Hash)
+	_, err := repo.Pool.Exec(ctx, upsertMetric, metric.ID, metric.MType, metric.Delta, metric.Value, metric.Hash)
 	if err != nil {
 		return fmt.Errorf("repo - Store - update in DB: %w", err)
 	}
@@ -47,7 +47,7 @@ func (repo *serverPgxImpl) Read(metric entity.Metric) (*entity.Metric, error) {
 
 	m := &entity.Metric{}
 	//var hash sql.NullString
-	err := repo.Pool.QueryRow(ctx, _selectMetricByIDAndType, metric.ID, metric.MType).
+	err := repo.Pool.QueryRow(ctx, selectMetricByIDAndType, metric.ID, metric.MType).
 		Scan(&m.ID, &m.MType, &m.Delta, &m.Value, &m.Hash)
 	if err != nil {
 		return nil, fmt.Errorf("repo - Read - row.Scan: %w", err)
@@ -61,13 +61,13 @@ func (repo *serverPgxImpl) ReadAll() ([]entity.Metric, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := repo.Pool.Query(ctx, _selectAllMetrics)
+	rows, err := repo.Pool.Query(ctx, selectAllMetrics)
 	if err != nil {
 		return nil, fmt.Errorf("repo - ReadAll - Pool.Query: %w", err)
 	}
 	defer rows.Close()
 
-	metrics := make([]entity.Metric, 0, _defaultEntityCap)
+	metrics := make([]entity.Metric, 0, defaultEntityCap)
 	for rows.Next() {
 		m := entity.Metric{}
 		err = rows.Scan(&m.ID, &m.MType, &m.Delta, &m.Value, &m.Hash)

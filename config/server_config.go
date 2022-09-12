@@ -97,29 +97,12 @@ func (cfg *ServerCfg) updateCfgFromFlags() {
 
 	pflag.Parse()
 
-	if isFlagPassed(serverAddress.name) {
-		cfg.Address = *serverAddress.value
-	}
-
-	if isFlagPassed(storeInterval.name) {
-		cfg.StoreInterval = *storeInterval.value
-	}
-
-	if isFlagPassed(storeFile.name) {
-		cfg.StoreFile = *storeFile.value
-	}
-
-	if isFlagPassed(restore.name) {
-		cfg.Restore = *restore.value
-	}
-
-	if isFlagPassed(serverKey.name) {
-		cfg.Key = *serverKey.value
-	}
-
-	if isFlagPassed(dsn.name) {
-		cfg.Dsn = *dsn.value
-	}
+	cfg.Address = *serverAddress.value
+	cfg.StoreInterval = *storeInterval.value
+	cfg.StoreFile = *storeFile.value
+	cfg.Restore = *restore.value
+	cfg.Key = *serverKey.value
+	cfg.Dsn = *dsn.value
 }
 
 func NewServerConfig() (*ServerCfg, error) {

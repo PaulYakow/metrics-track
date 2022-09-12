@@ -53,7 +53,7 @@ func (s *scheduler) Run(ctx context.Context, restore bool, interval time.Duratio
 			for {
 				select {
 				case <-storeTicker.C:
-					s.storing()
+					s.storing(ctx)
 				case <-ctx.Done():
 					storeTicker.Stop()
 					return
@@ -63,8 +63,8 @@ func (s *scheduler) Run(ctx context.Context, restore bool, interval time.Duratio
 	}
 }
 
-func (s *scheduler) storing() {
-	metrics, err := s.repo.ReadAll()
+func (s *scheduler) storing(ctx context.Context) {
+	metrics, err := s.repo.ReadAll(ctx)
 	if err != nil {
 		s.logger.Error(fmt.Errorf("scheduler - read all metrics: %w", err))
 	}

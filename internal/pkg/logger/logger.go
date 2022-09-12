@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	_defaultLogLevel  = zapcore.DebugLevel
-	_defaultLogFile   = "log.json"
-	_defaultFileFlags = os.O_APPEND | os.O_CREATE | os.O_WRONLY
+	defaultLogLevel  = zapcore.DebugLevel
+	defaultLogFile   = "log.json"
+	defaultFileFlags = os.O_APPEND | os.O_CREATE | os.O_WRONLY
 )
 
 type ILogger interface {
@@ -29,12 +29,12 @@ func New() *Logger {
 	config := newEncoderConfig()
 	consoleEncoder := zapcore.NewConsoleEncoder(config)
 	fileEncoder := zapcore.NewJSONEncoder(config)
-	logFile, _ := os.OpenFile(_defaultLogFile, _defaultFileFlags, 0644)
+	logFile, _ := os.OpenFile(defaultLogFile, defaultFileFlags, 0644)
 	writer := zapcore.AddSync(logFile)
 
 	core := zapcore.NewTee(
-		zapcore.NewCore(consoleEncoder, zapcore.AddSync(os.Stdout), _defaultLogLevel),
-		zapcore.NewCore(fileEncoder, writer, _defaultLogLevel),
+		zapcore.NewCore(consoleEncoder, zapcore.AddSync(os.Stdout), defaultLogLevel),
+		zapcore.NewCore(fileEncoder, writer, defaultLogLevel),
 	)
 
 	logger := zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel))

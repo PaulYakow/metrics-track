@@ -1,7 +1,7 @@
 package repo
 
 const (
-	_schema = `
+	schema = `
 CREATE TABLE IF NOT EXISTS metrics(
     "id" VARCHAR(255) UNIQUE NOT NULL,
     "type" VARCHAR(50) NOT NULL,
@@ -10,16 +10,16 @@ CREATE TABLE IF NOT EXISTS metrics(
     "hash" VARCHAR(255)
     );
 `
-	_selectAllMetrics = `
+	selectAllMetrics = `
 SELECT *
 FROM metrics;
 `
-	_selectMetricByIDAndType = `
+	selectMetricByIDAndType = `
 SELECT *
 FROM metrics
 WHERE id = $1 AND type = $2;
 `
-	_upsertMetric = `
+	upsertMetric = `
 INSERT INTO metrics (id, type, delta, value, hash)
 VALUES (:id, :type, :delta, :value, :hash)
 ON CONFLICT (id)

@@ -10,7 +10,7 @@ import (
 	"net/http"
 )
 
-const _defaultBatchCap = 20
+const defaultBatchCap = 20
 
 type updates struct{}
 
@@ -28,6 +28,7 @@ func (s *serverRoutes) updateByJSONBatch(rw http.ResponseWriter, r *http.Request
 		return
 	}
 
+	// todo: повторяется (в /value, /update) - вынести в отдельную функцию (возможно убрать в метод самой метрики)
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.logger.Error(fmt.Errorf("router - batch update read body %q: %w", r.URL.Path, err))
@@ -35,15 +36,14 @@ func (s *serverRoutes) updateByJSONBatch(rw http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// todo: повторяется (в values) - вынести в отдельную функцию (возможно убрать в метод самой метрики)
-	var reqMetrics = make([]entity.Metric, 0, _defaultBatchCap)
+	reqMetrics := make([]entity.Metric, 0, defaultBatchCap)
 	if err = json.Unmarshal(body, &reqMetrics); err != nil {
 		s.logger.Error(fmt.Errorf("router - batch update unmarshal: %w", err))
 		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	s.logger.Info("router - request batch update: %v", reqMetrics)
+	s.logger.Info("router - POST /updates: %v", reqMetrics)
 
 	if err = s.uc.SaveBatch(reqMetrics); err != nil {
 		s.logger.Error(fmt.Errorf("router - batch update save to storage: %w", err))

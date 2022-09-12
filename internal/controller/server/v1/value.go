@@ -24,10 +24,11 @@ func (s *serverRoutes) valueByURL(rw http.ResponseWriter, r *http.Request) {
 	mType := chi.URLParam(r, "type")
 	name := chi.URLParam(r, "name")
 
-	metric, err := s.uc.Get(entity.Metric{
-		ID:    name,
-		MType: mType,
-	})
+	metric, err := s.uc.Get(r.Context(),
+		entity.Metric{
+			ID:    name,
+			MType: mType,
+		})
 	if err != nil {
 		s.logger.Error(err)
 		rw.WriteHeader(http.StatusNotFound)
@@ -48,30 +49,30 @@ func (s *serverRoutes) valueByJSON(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	reqBody, err := io.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.logger.Error(fmt.Errorf("router - read request body %q: %v", r.URL.Path, err))
 		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	metric := entity.Metric{}
-	if err = json.Unmarshal(reqBody, &metric); err != nil {
+	reqMetric := entity.Metric{}
+	if err = json.Unmarshal(body, &reqMetric); err != nil {
 		s.logger.Error(fmt.Errorf("router - read value by json (unmarshal): %v", err))
 		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	s.logger.Info("router - request get metric: %v", metric)
+	s.logger.Info("router - POST /value: %v", reqMetric)
 
-	value, err := s.uc.Get(metric)
+	metric, err := s.uc.Get(r.Context(), reqMetric)
 	if err != nil {
 		s.logger.Error(fmt.Errorf("router - get value: %v", err))
 		rw.WriteHeader(http.StatusNotFound)
 		return
 	}
 
-	respBody, err := json.Marshal(&value)
+	respBody, err := json.Marshal(&metric)
 	if err != nil {
 		s.logger.Error(fmt.Errorf("router - marshal to json: %v", err))
 		rw.WriteHeader(http.StatusNotFound)

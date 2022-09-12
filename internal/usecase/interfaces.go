@@ -1,10 +1,13 @@
 package usecase
 
-import "github.com/PaulYakow/metrics-track/internal/entity"
+import (
+	"context"
+	"github.com/PaulYakow/metrics-track/internal/entity"
+)
 
 // Адаптеры для клиента
 type (
-	// todo: возвращать error во всех функциях (для обработки в контроллере)
+	// todo: возвращать error во всех функциях (где необходимо, для обработки в контроллере)
 
 	IClient interface {
 		Poll()
@@ -25,17 +28,17 @@ type (
 type (
 	IServer interface {
 		Save(metric *entity.Metric) error
-		Get(metric entity.Metric) (*entity.Metric, error)
+		Get(ctx context.Context, metric entity.Metric) (*entity.Metric, error)
 		SaveBatch(metrics []entity.Metric) error
-		GetAll() ([]entity.Metric, error)
+		GetAll(ctx context.Context) ([]entity.Metric, error)
 		CheckRepo() error
 	}
 
 	IServerRepo interface {
 		Store(metric *entity.Metric) error
 		StoreBatch(metrics []entity.Metric) error
-		Read(metric entity.Metric) (*entity.Metric, error)
-		ReadAll() ([]entity.Metric, error)
+		Read(ctx context.Context, metric entity.Metric) (*entity.Metric, error)
+		ReadAll(ctx context.Context) ([]entity.Metric, error)
 
 		CheckConnection() error
 	}

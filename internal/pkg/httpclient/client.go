@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	_defaultAddr            = "http://localhost:8080/"
-	_defaultTimeout         = 1 * time.Second
-	_defaultShutdownTimeout = 3 * time.Second
+	defaultAddr            = "http://localhost:8080/"
+	defaultTimeout         = 1 * time.Second
+	defaultShutdownTimeout = 3 * time.Second
 )
 
 type Client struct {
@@ -20,12 +20,12 @@ type Client struct {
 
 func New(ctx context.Context, opts ...Option) *Client {
 	httpclient := req.C().
-		SetTimeout(_defaultTimeout)
+		SetTimeout(defaultTimeout)
 
 	c := &Client{
 		client:          httpclient,
 		ctx:             ctx,
-		shutdownTimeout: _defaultShutdownTimeout,
+		shutdownTimeout: defaultShutdownTimeout,
 	}
 
 	for _, opt := range opts {

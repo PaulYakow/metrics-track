@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"github.com/PaulYakow/metrics-track/internal/entity"
 )
 
@@ -30,8 +31,8 @@ func (s *Server) SaveBatch(metrics []entity.Metric) error {
 	return s.repo.StoreBatch(s.hasher.ProcessBatch(metrics))
 }
 
-func (s *Server) Get(metric entity.Metric) (*entity.Metric, error) {
-	auxMetric, err := s.repo.Read(metric)
+func (s *Server) Get(ctx context.Context, metric entity.Metric) (*entity.Metric, error) {
+	auxMetric, err := s.repo.Read(ctx, metric)
 	if err != nil {
 		return nil, err
 	}
@@ -40,8 +41,8 @@ func (s *Server) Get(metric entity.Metric) (*entity.Metric, error) {
 	return auxMetric, nil
 }
 
-func (s *Server) GetAll() ([]entity.Metric, error) {
-	return s.repo.ReadAll()
+func (s *Server) GetAll(ctx context.Context) ([]entity.Metric, error) {
+	return s.repo.ReadAll(ctx)
 }
 
 func (s *Server) CheckRepo() error {

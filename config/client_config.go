@@ -69,21 +69,10 @@ func (cfg *ClientCfg) updateCfgFromFlags() {
 
 	pflag.Parse()
 
-	if isFlagPassed(clientAddress.name) {
-		cfg.Address = *clientAddress.value
-	}
-
-	if isFlagPassed(reportInterval.name) {
-		cfg.ReportInterval = *reportInterval.value
-	}
-
-	if isFlagPassed(pollInterval.name) {
-		cfg.PollInterval = *pollInterval.value
-	}
-
-	if isFlagPassed(clientKey.name) {
-		cfg.Key = *clientKey.value
-	}
+	cfg.Address = *clientAddress.value
+	cfg.ReportInterval = *reportInterval.value
+	cfg.PollInterval = *pollInterval.value
+	cfg.Key = *clientKey.value
 }
 
 func NewClientConfig() (*ClientCfg, error) {

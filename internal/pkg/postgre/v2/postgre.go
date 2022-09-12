@@ -9,13 +9,13 @@ import (
 )
 
 const (
-	_defaultMaxOpenConn     = 4
-	_defaultMaxIdleConn     = 4
-	_defaultMaxConnIdleTime = time.Second * 30
-	_defaultMaxConnLifetime = time.Minute * 2
+	defaultMaxOpenConn     = 4
+	defaultMaxIdleConn     = 4
+	defaultMaxConnIdleTime = time.Second * 30
+	defaultMaxConnLifetime = time.Minute * 2
 
-	_defaultConnAttempts = 10
-	_defaultConnTimeout  = time.Second
+	defaultConnAttempts = 10
+	defaultConnTimeout  = time.Second
 )
 
 //goland:noinspection SpellCheckingInspection
@@ -32,12 +32,12 @@ type Postgre struct {
 
 func New(dsn string, opts ...Option) (*Postgre, error) {
 	pg := &Postgre{
-		maxOpenConn:     _defaultMaxOpenConn,
-		maxIdleConn:     _defaultMaxIdleConn,
-		maxConnIdleTime: _defaultMaxConnIdleTime,
-		maxConnLifetime: _defaultMaxConnLifetime,
-		connAttempts:    _defaultConnAttempts,
-		connTimeout:     _defaultConnTimeout,
+		maxOpenConn:     defaultMaxOpenConn,
+		maxIdleConn:     defaultMaxIdleConn,
+		maxConnIdleTime: defaultMaxConnIdleTime,
+		maxConnLifetime: defaultMaxConnLifetime,
+		connAttempts:    defaultConnAttempts,
+		connTimeout:     defaultConnTimeout,
 	}
 
 	for _, opt := range opts {

@@ -68,6 +68,7 @@ func (s *serverRoutes) updateByJSON(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// todo: повторяется (в /value, /updates) - вынести в отдельную функцию (возможно убрать в метод самой метрики)
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.logger.Error(fmt.Errorf("read request body %q: %w", r.URL.Path, err))
@@ -75,7 +76,6 @@ func (s *serverRoutes) updateByJSON(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// todo: повторяется дважды (в values) - вынести в отдельную функцию (возможно убрать в метод самой метрики)
 	reqMetric := entity.Metric{}
 	if err = json.Unmarshal(body, &reqMetric); err != nil {
 		s.logger.Error(fmt.Errorf("router - update metric: %q", err))
@@ -83,7 +83,7 @@ func (s *serverRoutes) updateByJSON(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.logger.Info("router - request update metric: %v", reqMetric)
+	s.logger.Info("router - POST /update: %v", reqMetric)
 
 	if err = s.uc.Save(&reqMetric); err != nil {
 		s.logger.Error(fmt.Errorf("router - save value to storage: %q", err))

@@ -8,8 +8,6 @@ import (
 	"strconv"
 )
 
-// todo: убрать типы counter и gauge (оставить их "под капотом" либо вообще переделать функции обработки)
-
 type Metric struct {
 	ID    string     `json:"id" db:"id"`                 // имя метрики
 	MType string     `json:"type" db:"type"`             // параметр, принимающий значение gauge или counter

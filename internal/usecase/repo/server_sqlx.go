@@ -19,12 +19,12 @@ func NewSqlxImpl(pg *v2.Postgre) (*serverSqlxImpl, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	_, err := pg.ExecContext(ctx, _schema)
+	_, err := pg.ExecContext(ctx, schema)
 	if err != nil {
 		return nil, fmt.Errorf("repo - NewSqlxImpl - create table failed: %w", err)
 	}
 
-	stmtUpsertMetric, err = pg.PrepareNamed(_upsertMetric)
+	stmtUpsertMetric, err = pg.PrepareNamed(upsertMetric)
 	if err != nil {
 		return nil, fmt.Errorf("new db - stmt prepare: %w", err)
 	}
@@ -64,24 +64,24 @@ func (repo *serverSqlxImpl) StoreBatch(metrics []entity.Metric) error {
 	return tx.Commit()
 }
 
-func (repo *serverSqlxImpl) Read(metric entity.Metric) (*entity.Metric, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+func (repo *serverSqlxImpl) Read(ctx context.Context, metric entity.Metric) (*entity.Metric, error) {
+	ctxInner, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
 	var result entity.Metric
-	if err := repo.GetContext(ctx, &result, _selectMetricByIDAndType, metric.ID, metric.MType); err != nil {
+	if err := repo.GetContext(ctxInner, &result, selectMetricByIDAndType, metric.ID, metric.MType); err != nil {
 		return nil, fmt.Errorf("repo - Read: %w", err)
 	}
 
 	return &result, nil
 }
 
-func (repo *serverSqlxImpl) ReadAll() ([]entity.Metric, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+func (repo *serverSqlxImpl) ReadAll(ctx context.Context) ([]entity.Metric, error) {
+	ctxInner, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
 	var result []entity.Metric
-	if err := repo.SelectContext(ctx, &result, _selectAllMetrics); err != nil {
+	if err := repo.SelectContext(ctxInner, &result, selectAllMetrics); err != nil {
 		return nil, fmt.Errorf("repo - Read [%v]: %w", result, err)
 	}
 

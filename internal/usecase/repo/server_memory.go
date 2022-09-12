@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"context"
 	"fmt"
 	"github.com/PaulYakow/metrics-track/internal/entity"
 	"sync"
@@ -42,26 +43,36 @@ func (repo *serverMemoryRepo) StoreBatch(metrics []entity.Metric) error {
 	return nil
 }
 
-func (repo *serverMemoryRepo) Read(metric entity.Metric) (*entity.Metric, error) {
+func (repo *serverMemoryRepo) Read(ctx context.Context, metric entity.Metric) (*entity.Metric, error) {
 	repo.Lock()
 	defer repo.Unlock()
 
-	if _, ok := repo.metrics[metric.ID]; !ok {
-		return nil, fmt.Errorf("repo - unknown metric: %q", metric.ID)
+	select {
+	case <-ctx.Done():
+		return nil, nil
+	default:
+		if _, ok := repo.metrics[metric.ID]; !ok {
+			return nil, fmt.Errorf("repo - unknown metric: %q", metric.ID)
+		}
+		return repo.metrics[metric.ID], nil
 	}
-	return repo.metrics[metric.ID], nil
 }
 
-func (repo *serverMemoryRepo) ReadAll() ([]entity.Metric, error) {
+func (repo *serverMemoryRepo) ReadAll(ctx context.Context) ([]entity.Metric, error) {
 	result := make([]entity.Metric, 0)
 
 	repo.Lock()
 	defer repo.Unlock()
 
-	for _, metric := range repo.metrics {
-		result = append(result, *metric)
+	select {
+	case <-ctx.Done():
+		return nil, nil
+	default:
+		for _, metric := range repo.metrics {
+			result = append(result, *metric)
+		}
+		return result, nil
 	}
-	return result, nil
 }
 
 func (repo *serverMemoryRepo) CheckConnection() error {
