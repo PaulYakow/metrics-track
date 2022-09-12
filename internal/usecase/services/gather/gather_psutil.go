@@ -17,7 +17,7 @@ type gatherPsutil struct {
 func NewGatherPsutil() *gatherPsutil {
 	gather := new(gatherPsutil)
 	gather.initMetrics()
-	go gather.getCpuInfo(context.Background())
+	go gather.getCPUInfo(context.Background())
 
 	return gather
 }
@@ -33,7 +33,7 @@ func (g *gatherPsutil) Update() map[string]*entity.Metric {
 	memInfo, _ := mem.VirtualMemory()
 
 	g.metrics["TotalMemory"].UpdateValue(memInfo.Total)
-	g.metrics["FreeMemory"].UpdateDelta(memInfo.Free)
+	g.metrics["FreeMemory"].UpdateDelta(memInfo.Available)
 	if len(percent) != 0 {
 		g.metrics["CPUutilization1"].UpdateValue(percent[0])
 	}
@@ -41,7 +41,7 @@ func (g *gatherPsutil) Update() map[string]*entity.Metric {
 	return g.metrics
 }
 
-func (g *gatherPsutil) getCpuInfo(ctx context.Context) {
+func (g *gatherPsutil) getCPUInfo(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
