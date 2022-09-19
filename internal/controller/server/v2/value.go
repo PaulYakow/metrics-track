@@ -40,6 +40,7 @@ func newValueRoutes(handler *gin.RouterGroup, uc usecase.IServer, l logger.ILogg
 			checkContentType,
 			readRequestBody(v.logger),
 			unmarshalJSONRequest(v.logger),
+			v.readMetricByJSON,
 		}...,
 	)
 }
