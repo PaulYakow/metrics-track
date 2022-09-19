@@ -5,9 +5,7 @@ import (
 	"net/http"
 )
 
-type ping struct{}
-
-func (rs ping) Routes(s *serverRoutes) *chi.Mux {
+func (s *serverRoutes) createPingRoutes() *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Get("/", s.pingDB)

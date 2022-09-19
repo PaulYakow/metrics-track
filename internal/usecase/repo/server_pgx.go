@@ -1,6 +1,5 @@
 package repo
 
-// todo: необходимо убрать лишние зависимости
 import (
 	"context"
 	"fmt"

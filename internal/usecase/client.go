@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"github.com/PaulYakow/metrics-track/internal/entity"
 	"github.com/PaulYakow/metrics-track/internal/usecase/services/gather"
 )
@@ -14,12 +15,12 @@ type client struct {
 	gatherPS IClientGather
 }
 
-func NewClientUC(r IClientMemory, h IHasher) *client {
+func NewClientUC(ctx context.Context, r IClientMemory, h IHasher) *client {
 	return &client{
 		repo:     r,
 		hasher:   h,
 		gatherRT: gather.NewGatherRuntime(),
-		gatherPS: gather.NewGatherPsutil(),
+		gatherPS: gather.NewGatherPsutil(ctx),
 	}
 }
 

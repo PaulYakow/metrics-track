@@ -1,3 +1,49 @@
+### check DB connection
+GET http://localhost:8080/ping
+
+### get all metrics
+GET http://localhost:8080/
+Accept-Encoding: gzip, deflate, br
+Content-Type: text/html
+
+### update gauge by URL [200]
+POST http://localhost:8080/update/gauge/urlGauge/13
+
+### update gauge by URL (invalid - no value [400])
+POST http://localhost:8080/update/gauge/urlGauge
+
+### update gauge by URL (invalid - no name [404])
+POST http://localhost:8080/update/gauge/
+
+### read gauge by URL
+GET http://localhost:8080/value/gauge/urlGauge
+
+### update counter by URL
+POST http://localhost:8080/update/counter/urlCounter/7
+
+### update counter by URL (invalid - no value [400])
+POST http://localhost:8080/update/counter/urlCounter
+
+### update counter by URL (invalid - no name [404])
+POST http://localhost:8080/update/counter
+
+### read counter by URL
+GET http://localhost:8080/value/counter/urlCounter
+
+### update by URL (invalid - unknown type)
+POST http://localhost:8080/update/unknown/urlUnknown/999
+
+### update gauge by JSON
+POST http://localhost:8080/update
+Accept-Encoding: gzip, deflate, br
+Content-Type: application/json
+
+{
+  "id": "jsonGauge",
+  "type": "gauge",
+  "value": 13579
+}
+
 ### read gauge by JSON
 POST http://localhost:8080/value
 Accept-Encoding: gzip, deflate, br
@@ -8,15 +54,15 @@ Content-Type: application/json
   "type": "gauge"
 }
 
-### update gauge by JSON
+### update counter by JSON
 POST http://localhost:8080/update
 Accept-Encoding: gzip, deflate, br
 Content-Type: application/json
 
 {
-  "id": "testGauge",
-  "type": "gauge",
-  "value": 12345
+  "id": "jsonCounter",
+  "type": "counter",
+  "delta": 777
 }
 
 ### read counter by JSON
@@ -28,22 +74,6 @@ Content-Type: application/json
   "id": "testCounter",
   "type": "counter"
 }
-
-### update counter by JSON
-POST http://localhost:8080/update
-Accept-Encoding: gzip, deflate, br
-Content-Type: application/json
-
-{
-  "id": "testCounter",
-  "type": "counter",
-  "delta": 123456
-}
-
-### get all metrics
-GET http://localhost:8080/
-Accept-Encoding: gzip, deflate, br
-Content-Type: text/html
 
 ### update batch
 POST http://localhost:8080/updates
@@ -64,20 +94,16 @@ Content-Type: application/json
   {
     "id": "batchGauge1",
     "type": "gauge",
-    "value": 3333
+    "value": 1407
   },
   {
     "id": "batchGauge2",
     "type": "gauge",
-    "value": 777
+    "value": 999
   },
   {
     "id": "testCounter",
     "type": "counter",
-    "delta": 777
+    "delta": 617281
   }
 ]
-
-### ping
-GET http://localhost:8080/ping
-

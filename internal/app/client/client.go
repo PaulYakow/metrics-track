@@ -28,11 +28,11 @@ func Run(cfg *config.ClientCfg) {
 	agentRepo := repo.NewClientRepo()
 	agentHasher := hasher.New(cfg.Key)
 
-	agentUseCase := usecase.NewClientUC(agentRepo, agentHasher)
+	agentUseCase := usecase.NewClientUC(ctx, agentRepo, agentHasher)
 
-	collector := client.NewCollector(ctx, agentUseCase, l)
+	collector := client.NewCollector(agentUseCase, l)
 	wg.Add(1)
-	go collector.Run(wg, cfg.PollInterval)
+	go collector.Run(ctx, wg, cfg.PollInterval)
 
 	c := httpclient.New(ctx)
 	endpoint := fmt.Sprintf("http://%s/updates/", cfg.Address)

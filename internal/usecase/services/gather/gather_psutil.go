@@ -5,6 +5,7 @@ import (
 	"github.com/PaulYakow/metrics-track/internal/entity"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/mem"
+	"log"
 	"time"
 )
 
@@ -14,10 +15,10 @@ type gatherPsutil struct {
 	metrics map[string]*entity.Metric
 }
 
-func NewGatherPsutil() *gatherPsutil {
+func NewGatherPsutil(ctx context.Context) *gatherPsutil {
 	gather := new(gatherPsutil)
 	gather.initMetrics()
-	go gather.getCPUInfo(context.Background())
+	go gather.getCPUInfo(ctx)
 
 	return gather
 }
@@ -45,6 +46,7 @@ func (g *gatherPsutil) getCPUInfo(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
+			log.Printf("cpu info - %v", ctx.Err())
 			return
 		default:
 			percent, _ = cpu.Percent(10*time.Second, false)

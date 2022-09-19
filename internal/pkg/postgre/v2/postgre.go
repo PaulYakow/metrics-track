@@ -20,14 +20,14 @@ const (
 
 //goland:noinspection SpellCheckingInspection
 type Postgre struct {
+	*sqlx.DB
+
 	maxOpenConn     int
 	maxIdleConn     int
 	maxConnIdleTime time.Duration
 	maxConnLifetime time.Duration
 	connAttempts    int
 	connTimeout     time.Duration
-
-	*sqlx.DB
 }
 
 func New(dsn string, opts ...Option) (*Postgre, error) {

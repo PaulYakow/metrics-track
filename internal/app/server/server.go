@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/PaulYakow/metrics-track/config"
-	serverCtrl "github.com/PaulYakow/metrics-track/internal/controller/server/v1"
+	"github.com/PaulYakow/metrics-track/internal/controller/server"
+	serverCtrl "github.com/PaulYakow/metrics-track/internal/controller/server/v2"
 	"github.com/PaulYakow/metrics-track/internal/pkg/httpserver"
 	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
 	postgre "github.com/PaulYakow/metrics-track/internal/pkg/postgre/v2"
@@ -50,7 +51,7 @@ func Run(cfg *config.ServerCfg) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		scheduler, err := serverCtrl.NewScheduler(serverRepo, cfg.StoreFile, l)
+		scheduler, err := server.NewScheduler(serverRepo, cfg.StoreFile, l)
 		if err != nil {
 			l.Error(fmt.Errorf("server - run scheduler: %w", err))
 		}
@@ -62,7 +63,7 @@ func Run(cfg *config.ServerCfg) {
 
 	// HTTP server
 	handler := serverCtrl.NewRouter(serverUseCase, l)
-	server := httpserver.New(handler, httpserver.Address(cfg.Address))
+	srv := httpserver.New(handler, httpserver.Address(cfg.Address))
 
 	l.Info("server - run with params: a=%s | i=%v | f=%s | r=%v | k=%v | d=%s",
 		cfg.Address, cfg.StoreInterval, cfg.StoreFile, cfg.Restore, cfg.Key, cfg.Dsn)
@@ -74,12 +75,12 @@ func Run(cfg *config.ServerCfg) {
 	select {
 	case s := <-interrupt:
 		l.Info("server - Run - signal: %v", s.String())
-	case err := <-server.Notify():
+	case err := <-srv.Notify():
 		l.Error(fmt.Errorf("server - Run - Notify: %w", err))
 	}
 
 	// Shutdown
-	err = server.Shutdown()
+	err = srv.Shutdown()
 	if err != nil {
 		l.Error(fmt.Errorf("server - Run - Shutdown: %w", err))
 	}

@@ -9,9 +9,7 @@ import (
 	"net/http"
 )
 
-type value struct{}
-
-func (rs value) Routes(s *serverRoutes) *chi.Mux {
+func (s *serverRoutes) createValueRoutes() *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Post("/", s.valueByJSON)
@@ -44,7 +42,7 @@ func (s *serverRoutes) valueByJSON(rw http.ResponseWriter, r *http.Request) {
 	// 1. В теле запроса JSON с ID и MType
 	// 2. Заполнить значение метрики
 	// 3. Отправить ответный JSON
-	if r.Header.Get("Content-Type") != "application/json" {
+	if !isContentTypeMatch(r, "application/json") {
 		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}

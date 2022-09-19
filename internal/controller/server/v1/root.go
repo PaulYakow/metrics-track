@@ -36,10 +36,10 @@ func NewRouter(uc usecase.IServer, l logger.ILogger) chi.Router {
 	mux.Use(middleware.Compress(flate.BestCompression))
 
 	mux.Get("/", s.listOfMetrics) // return HTML with all metrics
-	mux.Mount(updateRoute, update{}.Routes(s))
-	mux.Mount(batchUpdateRoute, updates{}.Routes(s))
-	mux.Mount(valueRoute, value{}.Routes(s))
-	mux.Mount(pingRoute, ping{}.Routes(s))
+	mux.Mount(updateRoute, s.createUpdateRoutes())
+	mux.Mount(batchUpdateRoute, s.createBatchUpdateRoutes())
+	mux.Mount(valueRoute, s.createValueRoutes())
+	mux.Mount(pingRoute, s.createPingRoutes())
 
 	return mux
 }
