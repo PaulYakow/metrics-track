@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	valueRoute = "/value"
+	valueRoute = "/value/"
 )
 
 type valueRoutes struct {
@@ -26,11 +26,11 @@ func newValueRoutes(handler *gin.RouterGroup, uc usecase.IServer, l logger.ILogg
 	}
 
 	// get value by URL
-	handler.GET(valueRoute+"/:type/:name",
+	handler.GET(valueRoute+":type/:name",
 		[]gin.HandlerFunc{
 			checkContentType,
-			v.bindUri,
-			v.readMetricByURL,
+			v.bindURI,
+			v.readMetricByURI,
 		}...,
 	)
 
@@ -44,25 +44,25 @@ func newValueRoutes(handler *gin.RouterGroup, uc usecase.IServer, l logger.ILogg
 	)
 }
 
-func (v *valueRoutes) bindUri(c *gin.Context) {
+func (v *valueRoutes) bindURI(c *gin.Context) {
 	if c.Value(keyContentType) != valContentIsText {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	var req readByUriRequest
+	var req readByURIRequest
 
 	if err := c.ShouldBindUri(&req); err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	c.Set(keyGetUriReq, req)
+	c.Set(keyGetURIReq, req)
 	c.Next() // read metric
 }
 
-func (v *valueRoutes) readMetricByURL(c *gin.Context) {
-	req, ok := c.Value(keyGetUriReq).(readByUriRequest)
+func (v *valueRoutes) readMetricByURI(c *gin.Context) {
+	req, ok := c.Value(keyGetURIReq).(readByURIRequest)
 	if !ok {
 		v.logger.Error(fmt.Errorf("router - bad request (create): %v", req))
 		c.AbortWithStatus(http.StatusBadRequest)

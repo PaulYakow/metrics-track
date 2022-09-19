@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	updateRoute      = "/update"
-	batchUpdateRoute = "/updates"
+	updateRoute      = "/update/"
+	batchUpdateRoute = "/updates/"
 )
 
 type updateRoutes struct {
@@ -29,20 +29,20 @@ func newUpdateRoutes(handler *gin.RouterGroup, uc usecase.IServer, l logger.ILog
 	// update by URL
 	h := handler.Group(updateRoute)
 	{
-		h.POST("/:type", func(c *gin.Context) {
+		h.POST(":type/", func(c *gin.Context) {
 			c.AbortWithStatus(http.StatusNotFound)
 		})
 
-		h.POST("/:type/:name", func(c *gin.Context) {
+		h.POST(":type/:name/", func(c *gin.Context) {
 			c.AbortWithStatus(http.StatusBadRequest)
 		})
 
-		h.POST("/:type/:name/:value",
+		h.POST(":type/:name/:value",
 			[]gin.HandlerFunc{
 				checkContentType,
-				u.bindUri,
+				u.bindURI,
 				u.createMetric,
-				u.processUriRequest,
+				u.processURIRequest,
 			}...,
 		)
 	}
@@ -68,25 +68,25 @@ func newUpdateRoutes(handler *gin.RouterGroup, uc usecase.IServer, l logger.ILog
 	)
 }
 
-func (u *updateRoutes) bindUri(c *gin.Context) {
+func (u *updateRoutes) bindURI(c *gin.Context) {
 	if c.Value(keyContentType) != valContentIsText {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	var req updateByUriRequest
+	var req updateByURIRequest
 
 	if err := c.ShouldBindUri(&req); err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	c.Set(keyUpdUriReq, req)
+	c.Set(keyUpdURIReq, req)
 	c.Next() // create metric
 }
 
 func (u *updateRoutes) createMetric(c *gin.Context) {
-	req, ok := c.Value(keyUpdUriReq).(updateByUriRequest)
+	req, ok := c.Value(keyUpdURIReq).(updateByURIRequest)
 	if !ok {
 		u.logger.Error(fmt.Errorf("router - bad request (create): %v", req))
 		c.AbortWithStatus(http.StatusBadRequest)
@@ -110,12 +110,12 @@ func (u *updateRoutes) createMetric(c *gin.Context) {
 		return
 	}
 
-	c.Set(keyUpdUriReq, metric)
+	c.Set(keyUpdURIReq, metric)
 	c.Next() // save metric
 }
 
-func (u *updateRoutes) processUriRequest(c *gin.Context) {
-	metric, ok := c.Value(keyUpdUriReq).(*entity.Metric)
+func (u *updateRoutes) processURIRequest(c *gin.Context) {
+	metric, ok := c.Value(keyUpdURIReq).(*entity.Metric)
 	if !ok {
 		u.logger.Error(fmt.Errorf("router - bad request (process URL): %v", metric))
 		c.AbortWithStatus(http.StatusBadRequest)

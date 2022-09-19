@@ -12,22 +12,22 @@ import (
 
 const (
 	keyContentType = "ContentType"    // "uri" or "json" (const values below)
-	keyUpdUriReq   = "UpdUriRequest"  // update request when content is URL
+	keyUpdURIReq   = "UpdUriRequest"  // update request when content is URL
 	keyUpdJSONReq  = "UpdJSONRequest" // update request when content is JSON
-	keyGetUriReq   = "GetUriRequest"  // get value request when content is URL
+	keyGetURIReq   = "GetUriRequest"  // get value request when content is URL
 	keyGetJSONReq  = "GetJSONRequest" // get value request when content is JSON
 
 	valContentIsText = "uri"
 	valContentIsJSON = "json"
 )
 
-type updateByUriRequest struct {
+type updateByURIRequest struct {
 	Type  string `uri:"type" binding:"required"`
 	Name  string `uri:"name" binding:"required"`
 	Value string `uri:"value" binding:"required"`
 }
 
-type readByUriRequest struct {
+type readByURIRequest struct {
 	Type string `uri:"type" binding:"required"`
 	Name string `uri:"name" binding:"required"`
 }
