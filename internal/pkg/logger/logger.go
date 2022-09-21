@@ -52,7 +52,7 @@ func newEncoderConfig() zapcore.EncoderConfig {
 		StacktraceKey:  "stacktrace",
 		LineEnding:     zapcore.DefaultLineEnding,
 		EncodeLevel:    zapcore.CapitalLevelEncoder,
-		EncodeTime:     zapcore.TimeEncoderOfLayout("2006-01-02 | 15:04:05"),
+		EncodeTime:     zapcore.TimeEncoderOfLayout("2006-01-02 | 15:04:05.9999"),
 		EncodeDuration: zapcore.SecondsDurationEncoder,
 	}
 }

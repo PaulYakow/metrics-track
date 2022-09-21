@@ -10,9 +10,7 @@ import (
 	"net/http"
 )
 
-type update struct{}
-
-func (rs update) Routes(s *serverRoutes) *chi.Mux {
+func (s *serverRoutes) createUpdateRoutes() *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Post("/", s.updateByJSON)
@@ -63,12 +61,12 @@ func (s *serverRoutes) updateByURL(rw http.ResponseWriter, r *http.Request) {
 
 func (s *serverRoutes) updateByJSON(rw http.ResponseWriter, r *http.Request) {
 	// Обработать JSON из тела запроса - сохранить в соответствующую метрику переданное значение
-	if r.Header.Get("Content-Type") != "application/json" {
+	if !isContentTypeMatch(r, "application/json") {
 		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	// todo: повторяется (в /value, /updates) - вынести в отдельную функцию (возможно убрать в метод самой метрики)
+	// todo: повторяется (в /value, /updates) - вынести в отдельную функцию (реализовано в v2)
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.logger.Error(fmt.Errorf("read request body %q: %w", r.URL.Path, err))

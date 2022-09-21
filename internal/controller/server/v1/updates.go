@@ -12,9 +12,7 @@ import (
 
 const defaultBatchCap = 20
 
-type updates struct{}
-
-func (rs updates) Routes(s *serverRoutes) *chi.Mux {
+func (s *serverRoutes) createBatchUpdateRoutes() *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Post("/", s.updateByJSONBatch)
@@ -23,12 +21,12 @@ func (rs updates) Routes(s *serverRoutes) *chi.Mux {
 }
 
 func (s *serverRoutes) updateByJSONBatch(rw http.ResponseWriter, r *http.Request) {
-	if r.Header.Get("Content-Type") != "application/json" {
+	if !isContentTypeMatch(r, "application/json") {
 		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	// todo: повторяется (в /value, /update) - вынести в отдельную функцию (возможно убрать в метод самой метрики)
+	// todo: повторяется (в /value, /update) - вынести в отдельную функцию
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.logger.Error(fmt.Errorf("router - batch update read body %q: %w", r.URL.Path, err))
