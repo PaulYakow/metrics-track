@@ -45,12 +45,12 @@ Content-Type: application/json
 }
 
 ### read gauge by JSON
-POST http://localhost:8080/value
+POST http://localhost:8080/value/
 Accept-Encoding: gzip, deflate, br
 Content-Type: application/json
 
 {
-  "id": "MCacheInuse",
+  "id": "testGauge",
   "type": "gauge"
 }
 

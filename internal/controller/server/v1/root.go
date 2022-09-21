@@ -23,12 +23,14 @@ const (
 type serverRoutes struct {
 	uc     usecase.IServer
 	logger logger.ILogger
+	tmpl   *template.Template
 }
 
 func NewRouter(uc usecase.IServer, l logger.ILogger) chi.Router {
 	s := &serverRoutes{
 		uc:     uc,
 		logger: l,
+		tmpl:   template.Must(template.ParseFiles(templateName)),
 	}
 
 	mux := chi.NewRouter()
@@ -45,7 +47,6 @@ func NewRouter(uc usecase.IServer, l logger.ILogger) chi.Router {
 }
 
 func (s *serverRoutes) listOfMetrics(rw http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.ParseFiles(templateName))
 	data, err := s.uc.GetAll(r.Context())
 	if err != nil {
 		s.logger.Error(fmt.Errorf("router - GetAll metrics failed: %w", err))
@@ -54,7 +55,7 @@ func (s *serverRoutes) listOfMetrics(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	rw.Header().Set("Content-Type", "text/html")
-	err = tmpl.Execute(rw, data)
+	err = s.tmpl.Execute(rw, data)
 	if err != nil {
 		s.logger.Error(fmt.Errorf("router - apply template failed: %w", err))
 	}

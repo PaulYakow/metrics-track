@@ -18,12 +18,14 @@ const (
 type rootRoutes struct {
 	uc     usecase.IServer
 	logger logger.ILogger
+	tmpl   *template.Template
 }
 
 func newRootRoutes(handler *gin.RouterGroup, uc usecase.IServer, l logger.ILogger) {
 	r := &rootRoutes{
 		uc:     uc,
 		logger: l,
+		tmpl:   template.Must(template.ParseFiles(templateName)),
 	}
 
 	handler.GET(rootRoute, r.listOfMetrics)
@@ -31,7 +33,6 @@ func newRootRoutes(handler *gin.RouterGroup, uc usecase.IServer, l logger.ILogge
 }
 
 func (r *rootRoutes) listOfMetrics(c *gin.Context) {
-	tmpl := template.Must(template.ParseFiles(templateName))
 	data, err := r.uc.GetAll(c.Request.Context())
 	if err != nil {
 		r.logger.Error(fmt.Errorf("router - GetAll metrics failed: %w", err))
@@ -40,7 +41,7 @@ func (r *rootRoutes) listOfMetrics(c *gin.Context) {
 	}
 
 	c.Header("Content-Type", "text/html")
-	err = tmpl.Execute(c.Writer, data)
+	err = r.tmpl.Execute(c.Writer, data)
 	if err != nil {
 		r.logger.Error(fmt.Errorf("router - apply template failed: %w", err))
 	}
