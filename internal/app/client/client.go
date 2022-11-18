@@ -5,6 +5,11 @@ package client
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
+
 	"github.com/PaulYakow/metrics-track/config"
 	"github.com/PaulYakow/metrics-track/internal/controller/client"
 	"github.com/PaulYakow/metrics-track/internal/pkg/httpclient"
@@ -12,16 +17,10 @@ import (
 	"github.com/PaulYakow/metrics-track/internal/usecase"
 	"github.com/PaulYakow/metrics-track/internal/usecase/repo"
 	"github.com/PaulYakow/metrics-track/internal/usecase/services/hasher"
-	"os"
-	"os/signal"
-	"sync"
-	"syscall"
 )
 
 func Run(cfg *config.ClientCfg) {
 	ctx, cancel := context.WithCancel(context.Background())
-
-	wg := new(sync.WaitGroup)
 
 	l := logger.New()
 
@@ -31,14 +30,15 @@ func Run(cfg *config.ClientCfg) {
 	agentUseCase := usecase.NewClientUC(ctx, agentRepo, agentHasher)
 
 	collector := client.NewCollector(agentUseCase, l)
-	wg.Add(1)
-	go collector.Run(ctx, wg, cfg.PollInterval)
 
-	c := httpclient.New(ctx)
+	c := httpclient.New()
 	endpoint := fmt.Sprintf("http://%s/updates/", cfg.Address)
 	sender := client.NewSender(c, agentUseCase, endpoint, l)
-	wg.Add(1)
-	go sender.Run(wg, cfg.ReportInterval)
+
+	wg := new(sync.WaitGroup)
+	wg.Add(2)
+	go collector.Run(ctx, wg, cfg.PollInterval)
+	go sender.Run(ctx, wg, cfg.ReportInterval)
 
 	// Waiting signal
 	interrupt := make(chan os.Signal, 1)

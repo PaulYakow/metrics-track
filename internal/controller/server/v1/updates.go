@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/PaulYakow/metrics-track/internal/entity"
-	"github.com/go-chi/chi/v5"
 	"io"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
+
+	"github.com/PaulYakow/metrics-track/internal/entity"
 )
 
 const defaultBatchCap = 20
@@ -26,7 +28,6 @@ func (s *serverRoutes) updateByJSONBatch(rw http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// todo: повторяется (в /value, /update) - вынести в отдельную функцию
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.logger.Error(fmt.Errorf("router - batch update read body %q: %w", r.URL.Path, err))

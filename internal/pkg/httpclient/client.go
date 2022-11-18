@@ -2,8 +2,9 @@ package httpclient
 
 import (
 	"context"
-	"github.com/imroc/req/v3"
 	"time"
+
+	"github.com/imroc/req/v3"
 )
 
 const (
@@ -14,17 +15,15 @@ const (
 
 type Client struct {
 	client          *req.Client
-	ctx             context.Context
 	shutdownTimeout time.Duration
 }
 
-func New(ctx context.Context, opts ...Option) *Client {
+func New(opts ...Option) *Client {
 	httpclient := req.C().
 		SetTimeout(defaultTimeout)
 
 	c := &Client{
 		client:          httpclient,
-		ctx:             ctx,
 		shutdownTimeout: defaultShutdownTimeout,
 	}
 
@@ -35,12 +34,8 @@ func New(ctx context.Context, opts ...Option) *Client {
 	return c
 }
 
-func (c *Client) Done() <-chan struct{} {
-	return c.ctx.Done()
-}
-
 func (c *Client) PostByURL(route string) error {
-	ctx, cancel := context.WithTimeout(c.ctx, 1*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
 	_, err := c.client.R().
@@ -52,7 +47,7 @@ func (c *Client) PostByURL(route string) error {
 }
 
 func (c *Client) PostByJSON(route string, data []byte) error {
-	ctx, cancel := context.WithTimeout(c.ctx, 1*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
 	_, err := c.client.R().
@@ -65,7 +60,7 @@ func (c *Client) PostByJSON(route string, data []byte) error {
 }
 
 func (c *Client) PostByJSONBatch(route string, data []byte) error {
-	ctx, cancel := context.WithTimeout(c.ctx, 1*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
 	_, err := c.client.R().

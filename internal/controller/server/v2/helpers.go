@@ -3,11 +3,13 @@ package v2
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/PaulYakow/metrics-track/internal/entity"
-	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
-	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+
+	"github.com/PaulYakow/metrics-track/internal/entity"
+	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
 )
 
 const (
@@ -39,8 +41,7 @@ func checkContentType(c *gin.Context) {
 	case "application/json":
 		c.Set(keyContentType, valContentIsJSON)
 	default:
-		c.AbortWithStatus(http.StatusNotImplemented)
-		return
+		c.Set(keyContentType, "unknown")
 	}
 
 	c.Next()
@@ -57,7 +58,7 @@ func readRequestBody(logger logger.ILogger) gin.HandlerFunc {
 		body, err := io.ReadAll(c.Request.Body)
 		if err != nil {
 			logger.Error(fmt.Errorf("router - read request body %q: %w", c.Request.URL.Path, err))
-			c.AbortWithStatus(http.StatusInternalServerError)
+			c.AbortWithStatus(http.StatusBadRequest)
 			return
 		}
 
@@ -71,8 +72,13 @@ func unmarshalJSONRequest(logger logger.ILogger) gin.HandlerFunc {
 		var rawData entity.Metric
 
 		if err := json.Unmarshal(c.Value(keyUpdJSONReq).([]byte), &rawData); err != nil {
-			logger.Error(fmt.Errorf("router - update metric: %q", err))
-			c.AbortWithStatus(http.StatusInternalServerError)
+			logger.Error(fmt.Errorf("router - update metric: %q (%v)", err, c.Request))
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+
+		if rawData.ID == "" {
+			c.AbortWithStatus(http.StatusNotFound)
 			return
 		}
 
@@ -87,7 +93,7 @@ func unmarshalBatchRequest(logger logger.ILogger) gin.HandlerFunc {
 
 		if err := json.Unmarshal(c.Value(keyUpdJSONReq).([]byte), &rawData); err != nil {
 			logger.Error(fmt.Errorf("router - update metric: %q", err))
-			c.AbortWithStatus(http.StatusInternalServerError)
+			c.AbortWithStatus(http.StatusBadRequest)
 			return
 		}
 

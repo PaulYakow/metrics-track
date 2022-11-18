@@ -3,10 +3,12 @@ package v1
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/PaulYakow/metrics-track/internal/entity"
-	"github.com/go-chi/chi/v5"
 	"io"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
+
+	"github.com/PaulYakow/metrics-track/internal/entity"
 )
 
 func (s *serverRoutes) createValueRoutes() *chi.Mux {
@@ -19,6 +21,11 @@ func (s *serverRoutes) createValueRoutes() *chi.Mux {
 }
 
 func (s *serverRoutes) valueByURL(rw http.ResponseWriter, r *http.Request) {
+	if !isContentTypeMatch(r, "text/plain") {
+		rw.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	mType := chi.URLParam(r, "type")
 	name := chi.URLParam(r, "name")
 
@@ -58,6 +65,11 @@ func (s *serverRoutes) valueByJSON(rw http.ResponseWriter, r *http.Request) {
 	if err = json.Unmarshal(body, &reqMetric); err != nil {
 		s.logger.Error(fmt.Errorf("router - read value by json (unmarshal): %v", err))
 		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if reqMetric.ID == "" {
+		rw.WriteHeader(http.StatusNotFound)
 		return
 	}
 

@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/PaulYakow/metrics-track/internal/entity"
@@ -27,7 +28,7 @@ func NewSender(client *httpclient.Client, uc usecase.IClient, endpoint string, l
 	}
 }
 
-func (s *sender) Run(wg *sync.WaitGroup, interval time.Duration) {
+func (s *sender) Run(ctx context.Context, wg *sync.WaitGroup, interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	defer wg.Done()
 
@@ -36,9 +37,9 @@ func (s *sender) Run(wg *sync.WaitGroup, interval time.Duration) {
 		select {
 		case <-ticker.C:
 			s.sendMetricsByJSONBatch(s.uc.GetAll())
-		case <-s.client.Done():
-			s.logger.Info("sender - context canceled")
+		case <-ctx.Done():
 			ticker.Stop()
+			s.logger.Info("sender - context canceled")
 			return
 		}
 	}

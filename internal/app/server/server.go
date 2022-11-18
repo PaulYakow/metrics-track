@@ -3,6 +3,10 @@ package server
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/PaulYakow/metrics-track/config"
 	"github.com/PaulYakow/metrics-track/internal/controller/server"
 	serverCtrl "github.com/PaulYakow/metrics-track/internal/controller/server/v2"
@@ -12,9 +16,6 @@ import (
 	"github.com/PaulYakow/metrics-track/internal/usecase"
 	"github.com/PaulYakow/metrics-track/internal/usecase/repo"
 	"github.com/PaulYakow/metrics-track/internal/usecase/services/hasher"
-	"os"
-	"os/signal"
-	"syscall"
 )
 
 func Run(cfg *config.ServerCfg) {

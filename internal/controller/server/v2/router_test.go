@@ -1,4 +1,4 @@
-package v1
+package v2
 
 import (
 	"bytes"
@@ -24,7 +24,7 @@ func init() {
 }
 
 func testRequest(t *testing.T, ts *httptest.Server, content, method, path, body string) (*http.Response, string) {
-	req, err := http.NewRequest(method, ts.URL+path, bytes.NewBufferString(body))
+	req, err := http.NewRequest(method, ts.URL+path, bytes.NewBuffer([]byte(body)))
 	require.NoError(t, err)
 
 	req.Header.Set("Content-Type", content)

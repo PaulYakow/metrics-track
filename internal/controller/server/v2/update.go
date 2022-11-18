@@ -3,11 +3,13 @@ package v2
 import (
 	"errors"
 	"fmt"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+
 	"github.com/PaulYakow/metrics-track/internal/entity"
 	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
-	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 const (
@@ -133,6 +135,11 @@ func (u *updateRoutes) processSingleJSONRequest(c *gin.Context) {
 	metric, ok := c.Value(keyUpdJSONReq).(*entity.Metric)
 	if !ok {
 		u.logger.Info("process single - (no) data in context key: %s", keyUpdJSONReq)
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	if metric.Value == nil && metric.Delta == nil {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}

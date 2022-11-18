@@ -3,11 +3,13 @@ package v2
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+
 	"github.com/PaulYakow/metrics-track/internal/entity"
 	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
-	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 const (
@@ -52,11 +54,7 @@ func (v *valueRoutes) bindURI(c *gin.Context) {
 	}
 
 	var req readByURIRequest
-
-	if err := c.ShouldBindUri(&req); err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
+	_ = c.BindUri(&req)
 
 	c.Set(keyGetURIReq, req)
 	c.Next() // read metric
