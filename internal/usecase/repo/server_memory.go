@@ -2,9 +2,11 @@ package repo
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"github.com/PaulYakow/metrics-track/internal/entity"
 	"sync"
+
+	"github.com/PaulYakow/metrics-track/internal/entity"
 )
 
 type serverMemoryRepo struct {
@@ -59,7 +61,7 @@ func (repo *serverMemoryRepo) Read(ctx context.Context, metric entity.Metric) (*
 }
 
 func (repo *serverMemoryRepo) ReadAll(ctx context.Context) ([]entity.Metric, error) {
-	result := make([]entity.Metric, 0)
+	result := make([]entity.Metric, 0, len(repo.metrics))
 
 	repo.Lock()
 	defer repo.Unlock()
@@ -75,6 +77,8 @@ func (repo *serverMemoryRepo) ReadAll(ctx context.Context) ([]entity.Metric, err
 	}
 }
 
+var errNoConnection = errors.New("not implement to file storage")
+
 func (repo *serverMemoryRepo) CheckConnection() error {
-	return fmt.Errorf("not implement to file storage")
+	return errNoConnection
 }
