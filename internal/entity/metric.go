@@ -16,14 +16,14 @@ type Metric struct {
 	Hash  NullString `json:"hash,omitempty" db:"hash"`   // значение хеш-функции
 }
 
-func (m *Metric) GetValue() string {
+func (m *Metric) GetValue() []byte {
 	switch m.MType {
 	case "gauge":
-		return strconv.FormatFloat(*m.Value, 'f', -1, 64)
+		return strconv.AppendFloat(make([]byte, 0, 24), *m.Value, 'f', -1, 64)
 	case "counter":
-		return strconv.Itoa(int(*m.Delta))
+		return strconv.AppendInt(make([]byte, 0, 24), *m.Delta, 10)
 	default:
-		return ""
+		return []byte("")
 	}
 }
 

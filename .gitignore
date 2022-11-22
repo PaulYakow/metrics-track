@@ -38,6 +38,3 @@ log*
 
 # docker files
 pg_data
-
-# profiling
-*.pprof

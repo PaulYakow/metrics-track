@@ -16,7 +16,7 @@ type serverMemoryRepo struct {
 
 func NewServerMemory() *serverMemoryRepo {
 	return &serverMemoryRepo{
-		metrics: make(map[string]*entity.Metric),
+		metrics: make(map[string]*entity.Metric, 30),
 	}
 }
 
@@ -47,30 +47,32 @@ func (repo *serverMemoryRepo) StoreBatch(metrics []entity.Metric) error {
 
 func (repo *serverMemoryRepo) Read(ctx context.Context, metric entity.Metric) (*entity.Metric, error) {
 	repo.Lock()
-	defer repo.Unlock()
+	local := repo.metrics
+	repo.Unlock()
 
 	select {
 	case <-ctx.Done():
 		return nil, nil
 	default:
-		if _, ok := repo.metrics[metric.ID]; !ok {
+		if _, ok := local[metric.ID]; !ok {
 			return nil, fmt.Errorf("repo - unknown metric: %q", metric.ID)
 		}
-		return repo.metrics[metric.ID], nil
+		return local[metric.ID], nil
 	}
 }
 
 func (repo *serverMemoryRepo) ReadAll(ctx context.Context) ([]entity.Metric, error) {
-	result := make([]entity.Metric, 0, len(repo.metrics))
-
 	repo.Lock()
-	defer repo.Unlock()
+	local := repo.metrics
+	repo.Unlock()
+
+	result := make([]entity.Metric, 0, len(local))
 
 	select {
 	case <-ctx.Done():
 		return nil, nil
 	default:
-		for _, metric := range repo.metrics {
+		for _, metric := range local {
 			result = append(result, *metric)
 		}
 		return result, nil

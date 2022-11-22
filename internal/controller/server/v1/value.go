@@ -40,7 +40,7 @@ func (s *serverRoutes) valueByURL(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respBody := []byte(metric.GetValue())
+	respBody := metric.GetValue()
 	rw.Header().Set("Content-Type", "application/json")
 	rw.Write(respBody)
 }

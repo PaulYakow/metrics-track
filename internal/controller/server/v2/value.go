@@ -79,7 +79,7 @@ func (v *valueRoutes) readMetricByURI(c *gin.Context) {
 		return
 	}
 
-	respBody := []byte(metric.GetValue())
+	respBody := metric.GetValue()
 	c.Header("Content-Type", "application/json")
 	c.Writer.Write(respBody)
 }

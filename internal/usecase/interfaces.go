@@ -2,13 +2,12 @@ package usecase
 
 import (
 	"context"
+
 	"github.com/PaulYakow/metrics-track/internal/entity"
 )
 
 // Адаптеры для клиента
 type (
-	// todo: возвращать error во всех функциях (где необходимо, для обработки в контроллере)
-
 	IClient interface {
 		Poll()
 		GetAll() []entity.Metric
@@ -24,7 +23,7 @@ type (
 	}
 )
 
-//Адаптеры для сервера
+// Адаптеры для сервера
 type (
 	IServer interface {
 		Save(metric *entity.Metric) error

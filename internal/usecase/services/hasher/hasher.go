@@ -14,10 +14,10 @@ func New(key string) *hasherImpl {
 
 func (h *hasherImpl) ProcessBatch(metrics []entity.Metric) []entity.Metric {
 	if h.key != "" {
-		result := make([]entity.Metric, 0, len(metrics))
-		for _, metric := range metrics {
+		result := make([]entity.Metric, len(metrics))
+		for idx, metric := range metrics {
 			metric.SetHash(h.key)
-			result = append(result, metric)
+			result[idx] = metric
 		}
 		return result
 	}
