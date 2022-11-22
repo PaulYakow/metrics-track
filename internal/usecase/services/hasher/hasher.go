@@ -4,15 +4,17 @@ import (
 	"github.com/PaulYakow/metrics-track/internal/entity"
 )
 
-type hasherImpl struct {
+// HasherImpl реализация сервиса обработки хэша (IHasher).
+type HasherImpl struct {
 	key string
 }
 
-func New(key string) *hasherImpl {
-	return &hasherImpl{key: key}
+// New создаёт объект HasherImpl
+func New(key string) *HasherImpl {
+	return &HasherImpl{key: key}
 }
 
-func (h *hasherImpl) ProcessBatch(metrics []entity.Metric) []entity.Metric {
+func (h *HasherImpl) ProcessBatch(metrics []entity.Metric) []entity.Metric {
 	if h.key != "" {
 		result := make([]entity.Metric, len(metrics))
 		for idx, metric := range metrics {
@@ -24,7 +26,7 @@ func (h *hasherImpl) ProcessBatch(metrics []entity.Metric) []entity.Metric {
 	return metrics
 }
 
-func (h *hasherImpl) ProcessSingle(metric entity.Metric) entity.Metric {
+func (h *HasherImpl) ProcessSingle(metric entity.Metric) entity.Metric {
 	if h.key != "" {
 		metric.SetHash(h.key)
 	}
@@ -32,13 +34,13 @@ func (h *hasherImpl) ProcessSingle(metric entity.Metric) entity.Metric {
 	return metric
 }
 
-func (h *hasherImpl) ProcessPointer(ptr *entity.Metric) {
+func (h *HasherImpl) ProcessPointer(ptr *entity.Metric) {
 	if h.key != "" {
 		ptr.SetHash(h.key)
 	}
 }
 
-func (h *hasherImpl) Check(ptr *entity.Metric) error {
+func (h *HasherImpl) Check(ptr *entity.Metric) error {
 	if h.key != "" {
 		return ptr.CheckHash(ptr.GetHash(), h.key)
 	}

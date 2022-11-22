@@ -1,5 +1,6 @@
 package repo
 
+// Запросы к БД
 const (
 	schema = `
 CREATE TABLE IF NOT EXISTS metrics(

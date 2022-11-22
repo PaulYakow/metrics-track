@@ -9,18 +9,20 @@ import (
 	"github.com/PaulYakow/metrics-track/internal/entity"
 )
 
-type serverMemoryRepo struct {
+// ServerMemoryRepo реализация репозитория сервера (usecase.IServerRepo). Хранение в памяти.
+type ServerMemoryRepo struct {
 	sync.Mutex
 	metrics map[string]*entity.Metric
 }
 
-func NewServerMemory() *serverMemoryRepo {
-	return &serverMemoryRepo{
+// NewServerMemory создаёт объект ServerMemoryRepo.
+func NewServerMemory() *ServerMemoryRepo {
+	return &ServerMemoryRepo{
 		metrics: make(map[string]*entity.Metric, 30),
 	}
 }
 
-func (repo *serverMemoryRepo) Store(metric *entity.Metric) error {
+func (repo *ServerMemoryRepo) Store(metric *entity.Metric) error {
 	repo.Lock()
 	defer repo.Unlock()
 
@@ -36,7 +38,7 @@ func (repo *serverMemoryRepo) Store(metric *entity.Metric) error {
 	return nil
 }
 
-func (repo *serverMemoryRepo) StoreBatch(metrics []entity.Metric) error {
+func (repo *ServerMemoryRepo) StoreBatch(metrics []entity.Metric) error {
 	for _, metric := range metrics {
 		metric := metric
 		repo.Store(&metric)
@@ -45,7 +47,7 @@ func (repo *serverMemoryRepo) StoreBatch(metrics []entity.Metric) error {
 	return nil
 }
 
-func (repo *serverMemoryRepo) Read(ctx context.Context, metric entity.Metric) (*entity.Metric, error) {
+func (repo *ServerMemoryRepo) Read(ctx context.Context, metric entity.Metric) (*entity.Metric, error) {
 	repo.Lock()
 	local := repo.metrics
 	repo.Unlock()
@@ -61,7 +63,7 @@ func (repo *serverMemoryRepo) Read(ctx context.Context, metric entity.Metric) (*
 	}
 }
 
-func (repo *serverMemoryRepo) ReadAll(ctx context.Context) ([]entity.Metric, error) {
+func (repo *ServerMemoryRepo) ReadAll(ctx context.Context) ([]entity.Metric, error) {
 	repo.Lock()
 	local := repo.metrics
 	repo.Unlock()
@@ -81,6 +83,6 @@ func (repo *serverMemoryRepo) ReadAll(ctx context.Context) ([]entity.Metric, err
 
 var errNoConnection = errors.New("not implement to file storage")
 
-func (repo *serverMemoryRepo) CheckConnection() error {
+func (repo *ServerMemoryRepo) CheckConnection() error {
 	return errNoConnection
 }

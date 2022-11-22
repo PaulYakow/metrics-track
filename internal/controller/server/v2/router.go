@@ -12,6 +12,7 @@ const (
 	rootRoute = "/"
 )
 
+// NewRouter формирует основной роутер для обработки запросов (на основе gin).
 func NewRouter(uc usecase.IServer, l logger.ILogger) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 

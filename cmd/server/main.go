@@ -1,9 +1,10 @@
 package main
 
 import (
+	"log"
+
 	"github.com/PaulYakow/metrics-track/config"
 	"github.com/PaulYakow/metrics-track/internal/app/server"
-	"log"
 )
 
 func main() {

@@ -13,11 +13,13 @@ const (
 	defaultShutdownTimeout = 3 * time.Second
 )
 
+// Client клиент http для отправки запросов посредством URL и JSON.
 type Client struct {
 	client          *req.Client
 	shutdownTimeout time.Duration
 }
 
+// New создаёт объект Client
 func New(opts ...Option) *Client {
 	httpclient := req.C().
 		SetTimeout(defaultTimeout)
@@ -34,6 +36,7 @@ func New(opts ...Option) *Client {
 	return c
 }
 
+// PostByURL - отправка POST-запроса (Content-Type=plain/text) на заданный адрес.
 func (c *Client) PostByURL(route string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
@@ -46,6 +49,8 @@ func (c *Client) PostByURL(route string) error {
 	return err
 }
 
+// PostByJSON - отправка POST-запроса (Content-Type=application/json) на заданный адрес.
+// data представляет собой одинарный JSON.
 func (c *Client) PostByJSON(route string, data []byte) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
@@ -59,6 +64,8 @@ func (c *Client) PostByJSON(route string, data []byte) error {
 	return err
 }
 
+// PostByJSONBatch - отправка POST-запроса (Content-Type=application/json) на заданный адрес.
+// data представляет собой пакет (массив) JSON.
 func (c *Client) PostByJSONBatch(route string, data []byte) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()

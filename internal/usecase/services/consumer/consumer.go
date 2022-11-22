@@ -2,15 +2,19 @@ package consumer
 
 import (
 	"encoding/json"
-	"github.com/PaulYakow/metrics-track/internal/entity"
 	"os"
+
+	"github.com/PaulYakow/metrics-track/internal/entity"
 )
 
+// Consumer читатель данных (JSON).
 type Consumer struct {
 	file    *os.File
 	decoder *json.Decoder
 }
 
+// NewConsumer создаёт объект Consumer.
+// В качестве параметра принимает путь к файлу.
 func NewConsumer(filename string) (*Consumer, error) {
 	file, err := os.OpenFile(filename, os.O_RDONLY|os.O_CREATE, 0644)
 	if err != nil {
@@ -22,6 +26,7 @@ func NewConsumer(filename string) (*Consumer, error) {
 	}, nil
 }
 
+// Read - возвращает считанный из файла массив.
 func (c *Consumer) Read() ([]*entity.Metric, error) {
 	defer c.file.Close()
 

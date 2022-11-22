@@ -2,10 +2,11 @@ package v2
 
 import (
 	"fmt"
-	_ "github.com/jackc/pgx/stdlib"
-	"github.com/jmoiron/sqlx"
 	"log"
 	"time"
+
+	_ "github.com/jackc/pgx/stdlib"
+	"github.com/jmoiron/sqlx"
 )
 
 const (
@@ -18,7 +19,7 @@ const (
 	defaultConnTimeout  = time.Second
 )
 
-//goland:noinspection SpellCheckingInspection
+// Postgre реализация подключения к БД Postgres (на основе sqlx).
 type Postgre struct {
 	*sqlx.DB
 
@@ -30,6 +31,7 @@ type Postgre struct {
 	connTimeout     time.Duration
 }
 
+// New создаёт объект Postgre с заданными параметрами и подключается к БД.
 func New(dsn string, opts ...Option) (*Postgre, error) {
 	pg := &Postgre{
 		maxOpenConn:     defaultMaxOpenConn,

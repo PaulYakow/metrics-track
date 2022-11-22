@@ -2,16 +2,20 @@ package producer
 
 import (
 	"encoding/json"
-	"github.com/PaulYakow/metrics-track/internal/entity"
 	"os"
 	"path/filepath"
+
+	"github.com/PaulYakow/metrics-track/internal/entity"
 )
 
+// Producer писатель данных (JSON).
 type Producer struct {
 	file    *os.File
 	encoder *json.Encoder
 }
 
+// NewProducer создаёт объект Producer.
+// В качестве параметра принимает путь к файлу.
 func NewProducer(filename string) (*Producer, error) {
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
 		err = os.MkdirAll(filepath.Dir(filename), 0644)
@@ -30,6 +34,7 @@ func NewProducer(filename string) (*Producer, error) {
 	}, nil
 }
 
+// Write - записывает переданный массив в файл.
 func (p *Producer) Write(metrics *[]entity.Metric) error {
 	defer p.file.Close()
 

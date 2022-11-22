@@ -4,22 +4,25 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"time"
+
 	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
 	"github.com/PaulYakow/metrics-track/internal/usecase/services/consumer"
 	"github.com/PaulYakow/metrics-track/internal/usecase/services/producer"
-	"io"
-	"time"
 )
 
-type scheduler struct {
+// Scheduler управляет периодическим сохранением метрик в файл.
+type Scheduler struct {
 	repo     usecase.IServerRepo
 	producer *producer.Producer
 	consumer *consumer.Consumer
 	logger   logger.ILogger
 }
 
-func NewScheduler(repo usecase.IServerRepo, filename string, l logger.ILogger) (*scheduler, error) {
+// NewScheduler создаёт объект Scheduler.
+func NewScheduler(repo usecase.IServerRepo, filename string, l logger.ILogger) (*Scheduler, error) {
 	if filename != "" {
 		p, err := producer.NewProducer(filename)
 		if err != nil {
@@ -31,7 +34,7 @@ func NewScheduler(repo usecase.IServerRepo, filename string, l logger.ILogger) (
 			return nil, err
 		}
 
-		return &scheduler{
+		return &Scheduler{
 			repo:     repo,
 			producer: p,
 			consumer: c,
@@ -42,7 +45,8 @@ func NewScheduler(repo usecase.IServerRepo, filename string, l logger.ILogger) (
 	return nil, nil
 }
 
-func (s *scheduler) Run(ctx context.Context, restore bool, interval time.Duration) {
+// Run - загружает начальные значения метрик при старте и запускает периодическое сохранение в файл.
+func (s *Scheduler) Run(ctx context.Context, restore bool, interval time.Duration) {
 	if restore {
 		s.initMemory()
 	}
@@ -63,7 +67,7 @@ func (s *scheduler) Run(ctx context.Context, restore bool, interval time.Duratio
 	}
 }
 
-func (s *scheduler) storing(ctx context.Context) {
+func (s *Scheduler) storing(ctx context.Context) {
 	metrics, err := s.repo.ReadAll(ctx)
 	if err != nil {
 		s.logger.Error(fmt.Errorf("scheduler - read all metrics: %w", err))
@@ -75,7 +79,7 @@ func (s *scheduler) storing(ctx context.Context) {
 	}
 }
 
-func (s *scheduler) initMemory() {
+func (s *Scheduler) initMemory() {
 	metrics, err := s.consumer.Read()
 	if err != nil {
 		if errors.Is(err, io.EOF) {

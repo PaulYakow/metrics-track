@@ -3,19 +3,23 @@ package repo
 import (
 	"context"
 	"fmt"
+	"time"
+
+	"github.com/jmoiron/sqlx"
+
 	"github.com/PaulYakow/metrics-track/internal/entity"
 	"github.com/PaulYakow/metrics-track/internal/pkg/postgre/v2"
-	"github.com/jmoiron/sqlx"
-	"time"
 )
 
-type serverSqlxImpl struct {
+// ServerSqlxImpl реализация репозитория сервера (usecase.IServerRepo). Хранение в БД Postgres (драйвер - sqlx).
+type ServerSqlxImpl struct {
 	*v2.Postgre
 }
 
 var stmtUpsertMetric *sqlx.NamedStmt
 
-func NewSqlxImpl(pg *v2.Postgre) (*serverSqlxImpl, error) {
+// NewSqlxImpl создаёт объект ServerSqlxImpl.
+func NewSqlxImpl(pg *v2.Postgre) (*ServerSqlxImpl, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -29,10 +33,10 @@ func NewSqlxImpl(pg *v2.Postgre) (*serverSqlxImpl, error) {
 		return nil, fmt.Errorf("new db - stmt prepare: %w", err)
 	}
 
-	return &serverSqlxImpl{pg}, nil
+	return &ServerSqlxImpl{pg}, nil
 }
 
-func (repo *serverSqlxImpl) Store(metric *entity.Metric) error {
+func (repo *ServerSqlxImpl) Store(metric *entity.Metric) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -43,7 +47,7 @@ func (repo *serverSqlxImpl) Store(metric *entity.Metric) error {
 	return nil
 }
 
-func (repo *serverSqlxImpl) StoreBatch(metrics []entity.Metric) error {
+func (repo *ServerSqlxImpl) StoreBatch(metrics []entity.Metric) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -64,7 +68,7 @@ func (repo *serverSqlxImpl) StoreBatch(metrics []entity.Metric) error {
 	return tx.Commit()
 }
 
-func (repo *serverSqlxImpl) Read(ctx context.Context, metric entity.Metric) (*entity.Metric, error) {
+func (repo *ServerSqlxImpl) Read(ctx context.Context, metric entity.Metric) (*entity.Metric, error) {
 	ctxInner, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
@@ -76,7 +80,7 @@ func (repo *serverSqlxImpl) Read(ctx context.Context, metric entity.Metric) (*en
 	return &result, nil
 }
 
-func (repo *serverSqlxImpl) ReadAll(ctx context.Context) ([]entity.Metric, error) {
+func (repo *ServerSqlxImpl) ReadAll(ctx context.Context) ([]entity.Metric, error) {
 	ctxInner, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
@@ -88,7 +92,7 @@ func (repo *serverSqlxImpl) ReadAll(ctx context.Context) ([]entity.Metric, error
 	return result, nil
 }
 
-func (repo *serverSqlxImpl) CheckConnection() error {
+func (repo *ServerSqlxImpl) CheckConnection() error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 

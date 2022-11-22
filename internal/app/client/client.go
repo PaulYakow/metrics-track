@@ -1,7 +1,5 @@
 package client
 
-// Конструкторы для слоев и graceful shutdown
-
 import (
 	"context"
 	"fmt"
@@ -19,6 +17,9 @@ import (
 	"github.com/PaulYakow/metrics-track/internal/usecase/services/hasher"
 )
 
+// Run собирает клиента из слоёв (хранилище, логика, сервисы).
+// Запускает отдельными потоками "сборщика" метрик и отправку данных.
+// В конце организован graceful shutdown.
 func Run(cfg *config.ClientCfg) {
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -40,7 +41,7 @@ func Run(cfg *config.ClientCfg) {
 	go collector.Run(ctx, wg, cfg.PollInterval)
 	go sender.Run(ctx, wg, cfg.ReportInterval)
 
-	// Waiting signal
+	// Ожидание сигнала завершения
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM)
 

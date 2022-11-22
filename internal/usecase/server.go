@@ -2,16 +2,17 @@ package usecase
 
 import (
 	"context"
+
 	"github.com/PaulYakow/metrics-track/internal/entity"
 )
 
-// Реализация сервера
-
+// Server реализация контроллера сервера (IServer)
 type Server struct {
 	repo   IServerRepo
 	hasher IHasher
 }
 
+// NewServerUC создаёт объект Server
 func NewServerUC(repo IServerRepo, hasher IHasher) *Server {
 	return &Server{
 		repo:   repo,

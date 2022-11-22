@@ -12,6 +12,7 @@ import (
 	"github.com/PaulYakow/metrics-track/internal/usecase"
 )
 
+// Маршруты конечных точек и шаблон страницы с метриками
 const (
 	updateRoute      = "/update"
 	batchUpdateRoute = "/updates"
@@ -28,6 +29,7 @@ type serverRoutes struct {
 	logger logger.ILogger
 }
 
+// NewRouter формирует основной роутер для обработки запросов (на основе chi).
 func NewRouter(uc usecase.IServer, l logger.ILogger) chi.Router {
 	s := &serverRoutes{
 		uc:     uc,
@@ -40,7 +42,7 @@ func NewRouter(uc usecase.IServer, l logger.ILogger) chi.Router {
 	mux.Use(middleware.Recoverer)
 	mux.Use(compressGzip)
 
-	mux.Get("/", s.listOfMetrics) // return HTML with all metrics
+	mux.Get("/", s.listOfMetrics)
 	mux.Get(pingRoute, s.pingDB)
 	mux.Mount(updateRoute, s.createUpdateRoutes())
 	mux.Mount(batchUpdateRoute, s.createBatchUpdateRoutes())
