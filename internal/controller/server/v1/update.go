@@ -31,7 +31,7 @@ func (s *serverRoutes) createUpdateRoutes() *chi.Mux {
 }
 
 func (s *serverRoutes) updateByURL(rw http.ResponseWriter, r *http.Request) {
-	if !isContentTypeMatch(r, "text/plain") {
+	if !isContentTypeMatch(r, "text/plain") && !isContentTypeMatch(r, "") {
 		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}
