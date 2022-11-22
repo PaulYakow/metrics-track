@@ -21,7 +21,7 @@ func (s *serverRoutes) createValueRoutes() *chi.Mux {
 }
 
 func (s *serverRoutes) valueByURL(rw http.ResponseWriter, r *http.Request) {
-	if !isContentTypeMatch(r, "text/plain") {
+	if !isContentTypeMatch(r, "text/plain") && !isContentTypeMatch(r, "") {
 		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}

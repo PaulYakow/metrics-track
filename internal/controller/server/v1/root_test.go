@@ -97,6 +97,13 @@ func TestURLRoutes(t *testing.T) {
 			want:    404,
 		},
 		{
+			name:    "read unknown gauge name",
+			content: "text/plain",
+			method:  "GET",
+			path:    "/value/gauge/unknownGauge",
+			want:    404,
+		},
+		{
 			name:    "read invalid content gauge value",
 			content: "text/html",
 			method:  "GET",
@@ -150,6 +157,13 @@ func TestURLRoutes(t *testing.T) {
 			content: "text/plain",
 			method:  "GET",
 			path:    "/value/counter/",
+			want:    404,
+		},
+		{
+			name:    "read unknown counter name",
+			content: "text/plain",
+			method:  "GET",
+			path:    "/value/counter/unknownCounter",
 			want:    404,
 		},
 		{
