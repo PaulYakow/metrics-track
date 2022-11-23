@@ -7,17 +7,17 @@ import (
 	"github.com/PaulYakow/metrics-track/internal/usecase/services/gather"
 )
 
-// Client реализация контроллера клиента (IClient).
-type Client struct {
+// ClientUC реализация контроллера клиента (IClient).
+type ClientUC struct {
 	repo     IClientMemory
 	hasher   IHasher
 	gatherRT IClientGather
 	gatherPS IClientGather
 }
 
-// NewClientUC создаёт объект Client.
-func NewClientUC(ctx context.Context, r IClientMemory, h IHasher) *Client {
-	return &Client{
+// NewClientUC создаёт объект ClientUC.
+func NewClientUC(ctx context.Context, r IClientMemory, h IHasher) *ClientUC {
+	return &ClientUC{
 		repo:     r,
 		hasher:   h,
 		gatherRT: gather.NewGatherRuntime(),
@@ -25,11 +25,11 @@ func NewClientUC(ctx context.Context, r IClientMemory, h IHasher) *Client {
 	}
 }
 
-func (c *Client) Poll() {
+func (c *ClientUC) Poll() {
 	c.repo.Store(c.gatherRT.Update())
 	c.repo.Store(c.gatherPS.Update())
 }
 
-func (c *Client) GetAll() []entity.Metric {
+func (c *ClientUC) GetAll() []entity.Metric {
 	return c.hasher.ProcessBatch(c.repo.ReadAll())
 }

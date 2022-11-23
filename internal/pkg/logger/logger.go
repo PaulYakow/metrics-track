@@ -37,13 +37,9 @@ type Logger struct {
 func New() *Logger {
 	config := newEncoderConfig()
 	consoleEncoder := zapcore.NewConsoleEncoder(config)
-	//fileEncoder := zapcore.NewJSONEncoder(config)
-	//logFile, _ := os.OpenFile(defaultLogFile, defaultFileFlags, 0644)
-	//writer := zapcore.AddSync(logFile)
 
 	core := zapcore.NewTee(
 		zapcore.NewCore(consoleEncoder, zapcore.AddSync(os.Stdout), defaultLogLevel),
-		//zapcore.NewCore(fileEncoder, writer, defaultLogLevel),
 	)
 
 	logger := zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel))

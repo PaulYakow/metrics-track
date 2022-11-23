@@ -20,18 +20,15 @@ type GatherPsutil struct {
 
 // NewGatherPsutil создаёт объект GatherPsutil
 func NewGatherPsutil(ctx context.Context) *GatherPsutil {
-	gather := new(GatherPsutil)
-	gather.initMetrics()
-	go gather.getCPUInfo(ctx)
+	g := new(GatherPsutil)
+	g.metrics = make(map[string]*entity.Metric, 4)
 
-	return gather
-}
-
-func (g *GatherPsutil) initMetrics() {
-	g.metrics = make(map[string]*entity.Metric)
 	g.metrics["TotalMemory"], _ = entity.Create("gauge", "TotalMemory", "0")
 	g.metrics["FreeMemory"], _ = entity.Create("gauge", "FreeMemory", "0")
 	g.metrics["CPUutilization1"], _ = entity.Create("gauge", "CPUutilization1", "0")
+	go g.getCPUInfo(ctx)
+
+	return g
 }
 
 func (g *GatherPsutil) Update() map[string]*entity.Metric {

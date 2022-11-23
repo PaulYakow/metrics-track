@@ -7,6 +7,8 @@ import (
 	"github.com/PaulYakow/metrics-track/internal/entity"
 )
 
+//go:generate mockgen -source=interfaces.go -destination=./mocks_test.go -package=usecase_test
+
 type (
 	// IClient абстракция клиента.
 	IClient interface {

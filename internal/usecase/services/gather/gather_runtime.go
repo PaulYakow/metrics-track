@@ -16,13 +16,8 @@ type GatherRuntime struct {
 
 // NewGatherRuntime создаёт объект GatherRuntime
 func NewGatherRuntime() *GatherRuntime {
-	gather := new(GatherRuntime)
-	gather.initMetrics()
-	return gather
-}
-
-func (g *GatherRuntime) initMetrics() map[string]*entity.Metric {
-	g.metrics = make(map[string]*entity.Metric)
+	g := new(GatherRuntime)
+	g.metrics = make(map[string]*entity.Metric, 30)
 
 	g.metrics["Alloc"], _ = entity.Create("gauge", "Alloc", "0")
 	g.metrics["BuckHashSys"], _ = entity.Create("gauge", "BuckHashSys", "0")
@@ -55,7 +50,7 @@ func (g *GatherRuntime) initMetrics() map[string]*entity.Metric {
 
 	g.metrics["PollCount"], _ = entity.Create("counter", "PollCount", "0")
 
-	return g.metrics
+	return g
 }
 
 func (g *GatherRuntime) Update() map[string]*entity.Metric {
