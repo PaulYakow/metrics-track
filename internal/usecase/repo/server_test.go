@@ -31,7 +31,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestStore(t *testing.T) {
-	var value float64 = 77.7
+	var value = 77.7
 	var delta int64 = 1
 
 	mGauge := &entity.Metric{
