@@ -235,6 +235,18 @@ func TestJSONRoutes(t *testing.T) {
 			want:    200,
 		},
 		{
+			name:    "update valid batch gauge",
+			content: "application/json",
+			method:  "POST",
+			path:    "/updates",
+			body: `[
+{"id": "testGauge1","type": "gauge","value": 11},
+{"id": "testGauge2","type": "gauge","value": 12},
+{"id": "testGauge3","type": "gauge","value": 13}
+]`,
+			want: 200,
+		},
+		{
 			name:    "update invalid gauge value",
 			content: "application/json",
 			method:  "POST",
@@ -297,6 +309,18 @@ func TestJSONRoutes(t *testing.T) {
 			path:    "/update",
 			body:    `{"id": "testCounter","type": "counter","delta": 13}`,
 			want:    200,
+		},
+		{
+			name:    "update valid batch counter",
+			content: "application/json",
+			method:  "POST",
+			path:    "/updates",
+			body: `[
+{"id": "testCounter1","type": "counter","value": 1},
+{"id": "testCounter2","type": "counter","value": 2},
+{"id": "testCounter3","type": "counter","value": 3}
+]`,
+			want: 200,
 		},
 		{
 			name:    "update invalid counter value",
