@@ -2,23 +2,27 @@ package repo
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"github.com/PaulYakow/metrics-track/internal/entity"
 	"sync"
+
+	"github.com/PaulYakow/metrics-track/internal/entity"
 )
 
-type serverMemoryRepo struct {
+// ServerMemoryRepo реализация репозитория сервера (usecase.IServerRepo). Хранение в памяти.
+type ServerMemoryRepo struct {
 	sync.Mutex
 	metrics map[string]*entity.Metric
 }
 
-func NewServerMemory() *serverMemoryRepo {
-	return &serverMemoryRepo{
-		metrics: make(map[string]*entity.Metric),
+// NewServerMemory создаёт объект ServerMemoryRepo.
+func NewServerMemory() *ServerMemoryRepo {
+	return &ServerMemoryRepo{
+		metrics: make(map[string]*entity.Metric, 30),
 	}
 }
 
-func (repo *serverMemoryRepo) Store(metric *entity.Metric) error {
+func (repo *ServerMemoryRepo) Store(metric *entity.Metric) error {
 	repo.Lock()
 	defer repo.Unlock()
 
@@ -34,7 +38,7 @@ func (repo *serverMemoryRepo) Store(metric *entity.Metric) error {
 	return nil
 }
 
-func (repo *serverMemoryRepo) StoreBatch(metrics []entity.Metric) error {
+func (repo *ServerMemoryRepo) StoreBatch(metrics []entity.Metric) error {
 	for _, metric := range metrics {
 		metric := metric
 		repo.Store(&metric)
@@ -43,38 +47,42 @@ func (repo *serverMemoryRepo) StoreBatch(metrics []entity.Metric) error {
 	return nil
 }
 
-func (repo *serverMemoryRepo) Read(ctx context.Context, metric entity.Metric) (*entity.Metric, error) {
+func (repo *ServerMemoryRepo) Read(ctx context.Context, metric entity.Metric) (*entity.Metric, error) {
 	repo.Lock()
-	defer repo.Unlock()
+	local := repo.metrics
+	repo.Unlock()
 
 	select {
 	case <-ctx.Done():
 		return nil, nil
 	default:
-		if _, ok := repo.metrics[metric.ID]; !ok {
+		if _, ok := local[metric.ID]; !ok {
 			return nil, fmt.Errorf("repo - unknown metric: %q", metric.ID)
 		}
-		return repo.metrics[metric.ID], nil
+		return local[metric.ID], nil
 	}
 }
 
-func (repo *serverMemoryRepo) ReadAll(ctx context.Context) ([]entity.Metric, error) {
-	result := make([]entity.Metric, 0)
-
+func (repo *ServerMemoryRepo) ReadAll(ctx context.Context) ([]entity.Metric, error) {
 	repo.Lock()
-	defer repo.Unlock()
+	local := repo.metrics
+	repo.Unlock()
+
+	result := make([]entity.Metric, 0, len(local))
 
 	select {
 	case <-ctx.Done():
 		return nil, nil
 	default:
-		for _, metric := range repo.metrics {
+		for _, metric := range local {
 			result = append(result, *metric)
 		}
 		return result, nil
 	}
 }
 
-func (repo *serverMemoryRepo) CheckConnection() error {
-	return fmt.Errorf("not implement to file storage")
+var errNoConnection = errors.New("not implement to file storage")
+
+func (repo *ServerMemoryRepo) CheckConnection() error {
+	return errNoConnection
 }

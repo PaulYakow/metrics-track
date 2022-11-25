@@ -1,25 +1,29 @@
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/PaulYakow/metrics-track/internal/entity"
 	"github.com/PaulYakow/metrics-track/internal/pkg/httpclient"
 	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
-	"sync"
-	"time"
 )
 
-type sender struct {
+// Sender управляет периодической отправкой метрик на заданный адрес.
+type Sender struct {
 	client   *httpclient.Client
 	uc       usecase.IClient
 	endpoint string
 	logger   logger.ILogger
 }
 
-func NewSender(client *httpclient.Client, uc usecase.IClient, endpoint string, l logger.ILogger) *sender {
-	return &sender{
+// NewSender создаёт объект Sender.
+func NewSender(client *httpclient.Client, uc usecase.IClient, endpoint string, l logger.ILogger) *Sender {
+	return &Sender{
 		client:   client,
 		uc:       uc,
 		endpoint: endpoint,
@@ -27,7 +31,8 @@ func NewSender(client *httpclient.Client, uc usecase.IClient, endpoint string, l
 	}
 }
 
-func (s *sender) Run(wg *sync.WaitGroup, interval time.Duration) {
+// Run - запускает периодическую отправку.
+func (s *Sender) Run(ctx context.Context, wg *sync.WaitGroup, interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	defer wg.Done()
 
@@ -36,15 +41,16 @@ func (s *sender) Run(wg *sync.WaitGroup, interval time.Duration) {
 		select {
 		case <-ticker.C:
 			s.sendMetricsByJSONBatch(s.uc.GetAll())
-		case <-s.client.Done():
-			s.logger.Info("sender - context canceled")
+		case <-ctx.Done():
 			ticker.Stop()
+			s.logger.Info("sender - context canceled")
 			return
 		}
 	}
 }
 
-func (s *sender) sendMetricsByURL(routes []string) {
+// sendMetricsByURL - отправка метрики посредством URL.
+func (s *Sender) sendMetricsByURL(routes []string) {
 	for _, route := range routes {
 		if err := s.client.PostByURL(s.endpoint + route); err != nil {
 			s.logger.Error(fmt.Errorf("sender - post metric by URL to %q: %w", s.endpoint+route, err))
@@ -52,7 +58,8 @@ func (s *sender) sendMetricsByURL(routes []string) {
 	}
 }
 
-func (s *sender) sendMetricsByJSON(metrics []entity.Metric) {
+// sendMetricsByJSON - отправка метрики посредством JSON.
+func (s *Sender) sendMetricsByJSON(metrics []entity.Metric) {
 	for _, metric := range metrics {
 		data, err := json.Marshal(metric)
 		if err != nil {
@@ -64,7 +71,8 @@ func (s *sender) sendMetricsByJSON(metrics []entity.Metric) {
 	}
 }
 
-func (s *sender) sendMetricsByJSONBatch(metrics []entity.Metric) {
+// sendMetricsByJSONBatch - отправка метрики посредством пакета JSON.
+func (s *Sender) sendMetricsByJSONBatch(metrics []entity.Metric) {
 	data, err := json.Marshal(metrics)
 	if err != nil {
 		s.logger.Error(fmt.Errorf("sender - read metrics: %w", err))

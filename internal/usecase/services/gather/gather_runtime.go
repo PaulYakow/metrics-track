@@ -1,25 +1,23 @@
 package gather
 
 import (
-	"github.com/PaulYakow/metrics-track/internal/entity"
 	"math/rand"
 	"runtime"
+
+	"github.com/PaulYakow/metrics-track/internal/entity"
 )
 
 var stats runtime.MemStats
 
-type gatherRuntime struct {
+// GatherRuntime реализация "сборщика" метрик runtime (IClientGather).
+type GatherRuntime struct {
 	metrics map[string]*entity.Metric
 }
 
-func NewGatherRuntime() *gatherRuntime {
-	gather := new(gatherRuntime)
-	gather.initMetrics()
-	return gather
-}
-
-func (g *gatherRuntime) initMetrics() map[string]*entity.Metric {
-	g.metrics = make(map[string]*entity.Metric)
+// NewGatherRuntime создаёт объект GatherRuntime
+func NewGatherRuntime() *GatherRuntime {
+	g := new(GatherRuntime)
+	g.metrics = make(map[string]*entity.Metric, 30)
 
 	g.metrics["Alloc"], _ = entity.Create("gauge", "Alloc", "0")
 	g.metrics["BuckHashSys"], _ = entity.Create("gauge", "BuckHashSys", "0")
@@ -52,10 +50,10 @@ func (g *gatherRuntime) initMetrics() map[string]*entity.Metric {
 
 	g.metrics["PollCount"], _ = entity.Create("counter", "PollCount", "0")
 
-	return g.metrics
+	return g
 }
 
-func (g *gatherRuntime) Update() map[string]*entity.Metric {
+func (g *GatherRuntime) Update() map[string]*entity.Metric {
 	runtime.ReadMemStats(&stats)
 
 	g.metrics["Alloc"].UpdateValue(stats.Alloc)

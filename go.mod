@@ -6,6 +6,7 @@ require (
 	github.com/gin-contrib/gzip v0.0.6
 	github.com/gin-gonic/gin v1.8.1
 	github.com/go-chi/chi/v5 v5.0.7
+	github.com/golang/mock v1.6.0
 	github.com/ilyakaznacheev/cleanenv v1.3.0
 	github.com/imroc/req/v3 v3.17.6
 	github.com/jackc/pgx v3.6.2+incompatible

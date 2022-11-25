@@ -3,9 +3,10 @@ package v1
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"log"
 	"time"
+
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 const (
@@ -17,7 +18,7 @@ const (
 	defaultConnTimeout  = time.Second
 )
 
-//goland:noinspection SpellCheckingInspection
+// Postgre реализация подключения к БД Postgres (на основе pgx).
 type Postgre struct {
 	maxPollSize     int
 	maxConnIdleTime time.Duration
@@ -28,6 +29,7 @@ type Postgre struct {
 	Pool *pgxpool.Pool
 }
 
+// New создаёт объект Postgre с заданными параметрами и подключается к БД.
 func New(dsn string, opts ...Option) (*Postgre, error) {
 	pg := &Postgre{
 		maxPollSize:     defaultMaxPoolSize,
@@ -70,6 +72,7 @@ func New(dsn string, opts ...Option) (*Postgre, error) {
 	return pg, nil
 }
 
+// Close закрывает пул соединений с БД
 func (p *Postgre) Close() {
 	if p.Pool != nil {
 		p.Pool.Close()

@@ -1,9 +1,10 @@
 package config
 
 import (
+	"time"
+
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/spf13/pflag"
-	"time"
 )
 
 type ServerCfg struct {

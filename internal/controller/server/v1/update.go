@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/PaulYakow/metrics-track/internal/entity"
-	"github.com/go-chi/chi/v5"
 	"io"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
+
+	"github.com/PaulYakow/metrics-track/internal/entity"
 )
 
 func (s *serverRoutes) createUpdateRoutes() *chi.Mux {
@@ -29,6 +31,11 @@ func (s *serverRoutes) createUpdateRoutes() *chi.Mux {
 }
 
 func (s *serverRoutes) updateByURL(rw http.ResponseWriter, r *http.Request) {
+	if !isContentTypeMatch(r, "text/plain") && !isContentTypeMatch(r, "") {
+		rw.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	mType := chi.URLParam(r, "type")
 	name := chi.URLParam(r, "name")
 	rawValue := chi.URLParam(r, "value")
@@ -66,7 +73,6 @@ func (s *serverRoutes) updateByJSON(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// todo: повторяется (в /value, /updates) - вынести в отдельную функцию (реализовано в v2)
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.logger.Error(fmt.Errorf("read request body %q: %w", r.URL.Path, err))
@@ -76,8 +82,18 @@ func (s *serverRoutes) updateByJSON(rw http.ResponseWriter, r *http.Request) {
 
 	reqMetric := entity.Metric{}
 	if err = json.Unmarshal(body, &reqMetric); err != nil {
-		s.logger.Error(fmt.Errorf("router - update metric: %q", err))
-		rw.WriteHeader(http.StatusInternalServerError)
+		s.logger.Error(fmt.Errorf("router - update metric: %q (%v)", err, *r))
+		rw.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if reqMetric.ID == "" {
+		rw.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	if reqMetric.Value == nil && reqMetric.Delta == nil {
+		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}
 

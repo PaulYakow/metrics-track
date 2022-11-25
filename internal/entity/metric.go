@@ -1,3 +1,4 @@
+// Package entity содержит сущность метрики и методы взаимодействия с ней.
 package entity
 
 import (
@@ -8,6 +9,7 @@ import (
 	"strconv"
 )
 
+// Metric .
 type Metric struct {
 	ID    string     `json:"id" db:"id"`                 // имя метрики
 	MType string     `json:"type" db:"type"`             // параметр, принимающий значение gauge или counter
@@ -16,17 +18,19 @@ type Metric struct {
 	Hash  NullString `json:"hash,omitempty" db:"hash"`   // значение хеш-функции
 }
 
-func (m *Metric) GetValue() string {
+// GetValue - получение текущего значения метрики.
+func (m *Metric) GetValue() []byte {
 	switch m.MType {
 	case "gauge":
-		return strconv.FormatFloat(*m.Value, 'f', -1, 64)
+		return strconv.AppendFloat(make([]byte, 0, 24), *m.Value, 'f', -1, 64)
 	case "counter":
-		return strconv.Itoa(int(*m.Delta))
+		return strconv.AppendInt(make([]byte, 0, 24), *m.Delta, 10)
 	default:
-		return ""
+		return []byte("")
 	}
 }
 
+// Create - создание метрики по заданным параметрам.
 func Create(mType, name, value string) (*Metric, error) {
 	switch mType {
 	case "gauge":
@@ -68,6 +72,7 @@ func Create(mType, name, value string) (*Metric, error) {
 	}
 }
 
+// Update - обновление метрики на основе переданной.
 func (m *Metric) Update(metric *Metric) error {
 	switch m.MType {
 	case "gauge":
@@ -87,6 +92,7 @@ func (m *Metric) Update(metric *Metric) error {
 	return nil
 }
 
+// UpdateValue - обновление значения метрики типа gauge.
 func (m *Metric) UpdateValue(value any) {
 	switch v := value.(type) {
 	case float64:
@@ -104,6 +110,7 @@ func (m *Metric) UpdateValue(value any) {
 	}
 }
 
+// UpdateDelta - обновление значения метрики типа counter.
 func (m *Metric) UpdateDelta(value any) {
 	switch d := value.(type) {
 	case int64:
@@ -121,6 +128,7 @@ func (m *Metric) UpdateDelta(value any) {
 	}
 }
 
+// calcHash - вычисление хэша по переданному ключу.
 func (m *Metric) calcHash(key string) string {
 	var data string
 	switch m.MType {
@@ -135,14 +143,17 @@ func (m *Metric) calcHash(key string) string {
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
+// GetHash - получить значение хэша текущей метрики.
 func (m *Metric) GetHash() string {
 	return string(m.Hash)
 }
 
+// SetHash - установить хэш по переданному ключу.
 func (m *Metric) SetHash(key string) {
 	m.Hash = NullString(m.calcHash(key))
 }
 
+// CheckHash - проверить хэш текущей метрики на соответствие переданному.
 func (m *Metric) CheckHash(hash, key string) error {
 	if !bytes.Equal([]byte(hash), []byte(m.calcHash(key))) {
 		return &hashErr{

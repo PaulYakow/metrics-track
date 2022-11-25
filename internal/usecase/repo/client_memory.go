@@ -1,22 +1,25 @@
 package repo
 
 import (
-	"github.com/PaulYakow/metrics-track/internal/entity"
 	"sync"
+
+	"github.com/PaulYakow/metrics-track/internal/entity"
 )
 
-type clientMemoryRepo struct {
+// ClientMemoryRepo реализация репозитория клиента (usecase.IClientMemory). Хранение в памяти.
+type ClientMemoryRepo struct {
 	sync.Mutex
 	metrics map[string]*entity.Metric
 }
 
-func NewClientRepo() *clientMemoryRepo {
-	return &clientMemoryRepo{
-		metrics: make(map[string]*entity.Metric),
+// NewClientRepo создаёт объект ClientMemoryRepo
+func NewClientRepo() *ClientMemoryRepo {
+	return &ClientMemoryRepo{
+		metrics: make(map[string]*entity.Metric, 30),
 	}
 }
 
-func (repo *clientMemoryRepo) Store(metrics map[string]*entity.Metric) {
+func (repo *ClientMemoryRepo) Store(metrics map[string]*entity.Metric) {
 	repo.Lock()
 	defer repo.Unlock()
 
@@ -29,7 +32,7 @@ func (repo *clientMemoryRepo) Store(metrics map[string]*entity.Metric) {
 	}
 }
 
-func (repo *clientMemoryRepo) ReadAll() []entity.Metric {
+func (repo *ClientMemoryRepo) ReadAll() []entity.Metric {
 	result := make([]entity.Metric, len(repo.metrics))
 
 	repo.Lock()

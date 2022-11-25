@@ -5,6 +5,7 @@ import (
 	"fmt"
 )
 
+// Ошибки для типа Metric
 var (
 	ErrParseValue   = errors.New("parsing error")
 	ErrUnknownType  = errors.New("unknown type")

@@ -2,35 +2,36 @@ package gather
 
 import (
 	"context"
-	"github.com/PaulYakow/metrics-track/internal/entity"
-	"github.com/shirou/gopsutil/v3/cpu"
-	"github.com/shirou/gopsutil/v3/mem"
 	"log"
 	"time"
+
+	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/mem"
+
+	"github.com/PaulYakow/metrics-track/internal/entity"
 )
 
 var percent []float64
 
-type gatherPsutil struct {
+// GatherPsutil реализация "сборщика" метрик psutil (IClientGather).
+type GatherPsutil struct {
 	metrics map[string]*entity.Metric
 }
 
-func NewGatherPsutil(ctx context.Context) *gatherPsutil {
-	gather := new(gatherPsutil)
-	gather.initMetrics()
-	go gather.getCPUInfo(ctx)
+// NewGatherPsutil создаёт объект GatherPsutil
+func NewGatherPsutil(ctx context.Context) *GatherPsutil {
+	g := new(GatherPsutil)
+	g.metrics = make(map[string]*entity.Metric, 4)
 
-	return gather
-}
-
-func (g *gatherPsutil) initMetrics() {
-	g.metrics = make(map[string]*entity.Metric)
 	g.metrics["TotalMemory"], _ = entity.Create("gauge", "TotalMemory", "0")
 	g.metrics["FreeMemory"], _ = entity.Create("gauge", "FreeMemory", "0")
 	g.metrics["CPUutilization1"], _ = entity.Create("gauge", "CPUutilization1", "0")
+	go g.getCPUInfo(ctx)
+
+	return g
 }
 
-func (g *gatherPsutil) Update() map[string]*entity.Metric {
+func (g *GatherPsutil) Update() map[string]*entity.Metric {
 	memInfo, _ := mem.VirtualMemory()
 
 	g.metrics["TotalMemory"].UpdateValue(memInfo.Total)
@@ -42,7 +43,7 @@ func (g *gatherPsutil) Update() map[string]*entity.Metric {
 	return g.metrics
 }
 
-func (g *gatherPsutil) getCPUInfo(ctx context.Context) {
+func (g *GatherPsutil) getCPUInfo(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():

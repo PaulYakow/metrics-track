@@ -3,20 +3,23 @@ package repo
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/PaulYakow/metrics-track/internal/entity"
 	"github.com/PaulYakow/metrics-track/internal/pkg/postgre/v1"
-	"time"
 )
 
 const (
 	defaultEntityCap = 30
 )
 
-type serverPgxImpl struct {
+// ServerPgxImpl реализация репозитория сервера (usecase.IServerRepo). Хранение в БД Postgres (драйвер - pgx).
+type ServerPgxImpl struct {
 	*v1.Postgre
 }
 
-func NewPgxImpl(pg *v1.Postgre) (*serverPgxImpl, error) {
+// NewPgxImpl создаёт объект ServerPgxImpl.
+func NewPgxImpl(pg *v1.Postgre) (*ServerPgxImpl, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -25,10 +28,10 @@ func NewPgxImpl(pg *v1.Postgre) (*serverPgxImpl, error) {
 		return nil, fmt.Errorf("repo - NewPgxImpl - create table failed: %w", err)
 	}
 
-	return &serverPgxImpl{pg}, nil
+	return &ServerPgxImpl{pg}, nil
 }
 
-func (repo *serverPgxImpl) Store(metric *entity.Metric) error {
+func (repo *ServerPgxImpl) Store(metric *entity.Metric) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -40,7 +43,7 @@ func (repo *serverPgxImpl) Store(metric *entity.Metric) error {
 	return nil
 }
 
-func (repo *serverPgxImpl) Read(metric entity.Metric) (*entity.Metric, error) {
+func (repo *ServerPgxImpl) Read(metric entity.Metric) (*entity.Metric, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -56,7 +59,7 @@ func (repo *serverPgxImpl) Read(metric entity.Metric) (*entity.Metric, error) {
 	return m, nil
 }
 
-func (repo *serverPgxImpl) ReadAll() ([]entity.Metric, error) {
+func (repo *ServerPgxImpl) ReadAll() ([]entity.Metric, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -79,7 +82,7 @@ func (repo *serverPgxImpl) ReadAll() ([]entity.Metric, error) {
 	return metrics, nil
 }
 
-func (repo *serverPgxImpl) CheckConnection() error {
+func (repo *ServerPgxImpl) CheckConnection() error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 	if err := repo.Pool.Ping(ctx); err != nil {

@@ -2,8 +2,9 @@ package httpclient
 
 import (
 	"context"
-	"github.com/imroc/req/v3"
 	"time"
+
+	"github.com/imroc/req/v3"
 )
 
 const (
@@ -12,19 +13,19 @@ const (
 	defaultShutdownTimeout = 3 * time.Second
 )
 
+// Client клиент http для отправки запросов посредством URL и JSON.
 type Client struct {
 	client          *req.Client
-	ctx             context.Context
 	shutdownTimeout time.Duration
 }
 
-func New(ctx context.Context, opts ...Option) *Client {
+// New создаёт объект Client
+func New(opts ...Option) *Client {
 	httpclient := req.C().
 		SetTimeout(defaultTimeout)
 
 	c := &Client{
 		client:          httpclient,
-		ctx:             ctx,
 		shutdownTimeout: defaultShutdownTimeout,
 	}
 
@@ -35,12 +36,9 @@ func New(ctx context.Context, opts ...Option) *Client {
 	return c
 }
 
-func (c *Client) Done() <-chan struct{} {
-	return c.ctx.Done()
-}
-
+// PostByURL - отправка POST-запроса (Content-Type=plain/text) на заданный адрес.
 func (c *Client) PostByURL(route string) error {
-	ctx, cancel := context.WithTimeout(c.ctx, 1*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
 	_, err := c.client.R().
@@ -51,8 +49,10 @@ func (c *Client) PostByURL(route string) error {
 	return err
 }
 
+// PostByJSON - отправка POST-запроса (Content-Type=application/json) на заданный адрес.
+// data представляет собой одинарный JSON.
 func (c *Client) PostByJSON(route string, data []byte) error {
-	ctx, cancel := context.WithTimeout(c.ctx, 1*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
 	_, err := c.client.R().
@@ -64,8 +64,10 @@ func (c *Client) PostByJSON(route string, data []byte) error {
 	return err
 }
 
+// PostByJSONBatch - отправка POST-запроса (Content-Type=application/json) на заданный адрес.
+// data представляет собой пакет (массив) JSON.
 func (c *Client) PostByJSONBatch(route string, data []byte) error {
-	ctx, cancel := context.WithTimeout(c.ctx, 1*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
 	_, err := c.client.R().

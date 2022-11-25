@@ -3,20 +3,23 @@ package server
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/PaulYakow/metrics-track/config"
 	"github.com/PaulYakow/metrics-track/internal/controller/server"
-	serverCtrl "github.com/PaulYakow/metrics-track/internal/controller/server/v2"
+	serverCtrl "github.com/PaulYakow/metrics-track/internal/controller/server/v1"
 	"github.com/PaulYakow/metrics-track/internal/pkg/httpserver"
 	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
 	postgre "github.com/PaulYakow/metrics-track/internal/pkg/postgre/v2"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
 	"github.com/PaulYakow/metrics-track/internal/usecase/repo"
 	"github.com/PaulYakow/metrics-track/internal/usecase/services/hasher"
-	"os"
-	"os/signal"
-	"syscall"
 )
 
+// Run собирает сервер из слоёв (хранилище, логика, сервисы).
+// В конце организован graceful shutdown.
 func Run(cfg *config.ServerCfg) {
 	var err error
 	l := logger.New()
@@ -47,10 +50,10 @@ func Run(cfg *config.ServerCfg) {
 	}
 
 	if cfg.StoreFile != "" && !storage {
-		// Server scheduler (memory <-> repo)
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
+		// memory <-> repo
 		scheduler, err := server.NewScheduler(serverRepo, cfg.StoreFile, l)
 		if err != nil {
 			l.Error(fmt.Errorf("server - run scheduler: %w", err))

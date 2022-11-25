@@ -13,6 +13,7 @@ const (
 	defaultShutdownTimeout = 3 * time.Second
 )
 
+// Server обёртка для http.Server
 type Server struct {
 	server          *http.Server
 	notify          chan error
@@ -26,6 +27,7 @@ func (s *Server) start() {
 	}()
 }
 
+// New создаёт объект Server
 func New(handler http.Handler, opts ...Option) *Server {
 	httpServer := &http.Server{
 		Handler:      handler,
@@ -49,10 +51,12 @@ func New(handler http.Handler, opts ...Option) *Server {
 	return s
 }
 
+// Notify уведомляет о нештатном завершении работы сервера (с ошибкой)
 func (s *Server) Notify() <-chan error {
 	return s.notify
 }
 
+// Shutdown завершает работу сервера с выдержкой времени
 func (s *Server) Shutdown() error {
 	ctx, cancel := context.WithTimeout(context.Background(), s.shutdownTimeout)
 	defer cancel()

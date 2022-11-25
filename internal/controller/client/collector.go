@@ -2,25 +2,29 @@ package client
 
 import (
 	"context"
-	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
-	"github.com/PaulYakow/metrics-track/internal/usecase"
 	"sync"
 	"time"
+
+	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
+	"github.com/PaulYakow/metrics-track/internal/usecase"
 )
 
-type collector struct {
+// Collector управляет периодическим сбором метрик.
+type Collector struct {
 	uc     usecase.IClient
 	logger logger.ILogger
 }
 
-func NewCollector(uc usecase.IClient, l logger.ILogger) *collector {
-	return &collector{
+// NewCollector создаёт объект Collector.
+func NewCollector(uc usecase.IClient, l logger.ILogger) *Collector {
+	return &Collector{
 		uc:     uc,
 		logger: l,
 	}
 }
 
-func (c *collector) Run(ctx context.Context, wg *sync.WaitGroup, interval time.Duration) {
+// Run - запускает периодический сбор метрик.
+func (c *Collector) Run(ctx context.Context, wg *sync.WaitGroup, interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	defer wg.Done()
 
