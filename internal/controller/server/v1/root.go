@@ -1,3 +1,4 @@
+// Package v1 содержит маршруты конечных точек и шаблон страницы с метриками.
 package v1
 
 import (
@@ -12,7 +13,6 @@ import (
 	"github.com/PaulYakow/metrics-track/internal/usecase"
 )
 
-// Маршруты конечных точек и шаблон страницы с метриками
 const (
 	updateRoute      = "/update"
 	batchUpdateRoute = "/updates"

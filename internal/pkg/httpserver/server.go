@@ -1,3 +1,4 @@
+// Package httpserver содержит простейший http-сервер для обработки запросов.
 package httpserver
 
 import (
@@ -20,14 +21,7 @@ type Server struct {
 	shutdownTimeout time.Duration
 }
 
-func (s *Server) start() {
-	go func() {
-		s.notify <- s.server.ListenAndServe()
-		close(s.notify)
-	}()
-}
-
-// New создаёт объект Server
+// New - создаёт объект Server, применяет заданные настройки и запускает http-сервер на заданном порту.
 func New(handler http.Handler, opts ...Option) *Server {
 	httpServer := &http.Server{
 		Handler:      handler,
@@ -51,15 +45,22 @@ func New(handler http.Handler, opts ...Option) *Server {
 	return s
 }
 
-// Notify уведомляет о нештатном завершении работы сервера (с ошибкой)
+// Notify - уведомляет о нештатном завершении работы сервера (с ошибкой).
 func (s *Server) Notify() <-chan error {
 	return s.notify
 }
 
-// Shutdown завершает работу сервера с выдержкой времени
+// Shutdown - завершает работу сервера с выдержкой времени.
 func (s *Server) Shutdown() error {
 	ctx, cancel := context.WithTimeout(context.Background(), s.shutdownTimeout)
 	defer cancel()
 
 	return s.server.Shutdown(ctx)
+}
+
+func (s *Server) start() {
+	go func() {
+		s.notify <- s.server.ListenAndServe()
+		close(s.notify)
+	}()
 }

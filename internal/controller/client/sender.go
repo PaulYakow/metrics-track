@@ -17,8 +17,8 @@ import (
 type Sender struct {
 	client   *httpclient.Client
 	uc       usecase.IClient
-	endpoint string
 	logger   logger.ILogger
+	endpoint string
 }
 
 // NewSender создаёт объект Sender.

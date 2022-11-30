@@ -1,3 +1,4 @@
+// Package server точка входа сервера сбора и хранения метрик.
 package server
 
 import (
@@ -34,16 +35,16 @@ func Run(cfg *config.ServerCfg) {
 	storage := false
 
 	if cfg.Dsn != "" {
-		pg, err := postgre.New(cfg.Dsn)
-		if err != nil {
-			l.Fatal(fmt.Errorf("server - Run - postgre.New: %w", err))
+		pg, err1 := postgre.New(cfg.Dsn)
+		if err1 != nil {
+			l.Fatal(fmt.Errorf("server - Run - postgre.New: %w", err1))
 		}
 		defer pg.Close()
 		l.Info("server - Run - PSQL connection ok")
 
-		serverRepo, err = repo.NewSqlxImpl(pg)
-		if err != nil {
-			l.Fatal(fmt.Errorf("server - Run - repo.New: %w", err))
+		serverRepo, err1 = repo.NewSqlxImpl(pg)
+		if err1 != nil {
+			l.Fatal(fmt.Errorf("server - Run - repo.New: %w", err1))
 		}
 		storage = true
 		l.Info("server - Run - PSQL in use")
@@ -54,9 +55,9 @@ func Run(cfg *config.ServerCfg) {
 		defer cancel()
 
 		// memory <-> repo
-		scheduler, err := server.NewScheduler(serverRepo, cfg.StoreFile, l)
-		if err != nil {
-			l.Error(fmt.Errorf("server - run scheduler: %w", err))
+		scheduler, err2 := server.NewScheduler(serverRepo, cfg.StoreFile, l)
+		if err2 != nil {
+			l.Error(fmt.Errorf("server - run scheduler: %w", err2))
 		}
 		scheduler.Run(ctx, cfg.Restore, cfg.StoreInterval)
 		l.Info("server - Run - file storage in use")
@@ -78,7 +79,7 @@ func Run(cfg *config.ServerCfg) {
 	select {
 	case s := <-interrupt:
 		l.Info("server - Run - signal: %v", s.String())
-	case err := <-srv.Notify():
+	case err = <-srv.Notify():
 		l.Error(fmt.Errorf("server - Run - Notify: %w", err))
 	}
 

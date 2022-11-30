@@ -41,7 +41,7 @@ func ExampleNewRouter() {
 	select {
 	case s := <-interrupt:
 		l.Info("server - Run - signal: %v", s.String())
-	case err := <-srv.Notify():
+	case err = <-srv.Notify():
 		l.Error(fmt.Errorf("server - Run - Notify: %w", err))
 	}
 

@@ -1,3 +1,4 @@
+// Package repo содержит реализации репозиториев для клиента и сервера (usecase.IClientMemory и usecase.IServerRepo).
 package repo
 
 import (
@@ -8,8 +9,8 @@ import (
 
 // ClientMemoryRepo реализация репозитория клиента (usecase.IClientMemory). Хранение в памяти.
 type ClientMemoryRepo struct {
-	sync.Mutex
 	metrics map[string]*entity.Metric
+	sync.Mutex
 }
 
 // NewClientRepo создаёт объект ClientMemoryRepo

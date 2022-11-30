@@ -1,3 +1,4 @@
+// Package client точка входа клиента сбора и отправки метрик.
 package client
 
 import (

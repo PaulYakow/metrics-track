@@ -1,3 +1,4 @@
+// Package consumer сервис чтения метрик из файлов JSON.
 package consumer
 
 import (
