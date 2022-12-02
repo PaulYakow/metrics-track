@@ -1,5 +1,24 @@
 /*
-# Пакет staticlint представляет собой набор следующих статических анализаторов:
+# Для построения пакета необходимо выполнить следующую команду из корня проекта
+(для удобства можно добавить её в Makefile):
+
+	go build -o [название исполняемого файла] ./cmd/staticlint/main.go ./cmd/staticlint/exitchecker.go
+
+Файл с указанным названием появится в корневой директории проекта.
+
+# Использование (`staticlint` - название исполняемого файла для примера) из корневой директории проекта:
+
+	staticlint [package]
+
+# Например, следующая команда проверит все файлы во всех директориях проекта:
+
+	staticlint ./...
+
+# Для получения детальной информации о флагах и зарегистрированных анализаторах запустить
+
+	staticlint help
+
+# Пакет представляет собой набор следующих статических анализаторов:
   - стандартные статические анализаторы пакета golang.org/x/tools/go/analysis/passes
   - анализаторы класса SA пакета staticcheck:
     SA1* - злоупотребления стандартной библиотекой,
@@ -35,21 +54,16 @@
     обнаруживает возможность использования переменных/констант из стандартной библиотеки
   - анализатор ExitAnalyzer, который проверяет использование прямого вызова os.Exit в функции main пакета main
 
-# Использование
-
-	staticlint [package]
-
-# Пример
-
-	staticlint ./...
+При необходимости можно добавить анализаторы из пакета staticcheck - для этого нужно дописать названия необходимых
+проверок в файл `config.json` (полный список проверок можно посмотреть здесь - https://staticcheck.io/docs/checks/)
+и произвести построение пакета заново.
 */
 package main
 
 import (
+	"embed"
 	"encoding/json"
 	"log"
-	"os"
-	"path/filepath"
 
 	errname "github.com/Antonboom/errname/pkg/analyzer"
 	grouper "github.com/leonklingele/grouper/pkg/analyzer"
@@ -103,7 +117,8 @@ import (
 	"honnef.co/go/tools/stylecheck"
 )
 
-const config = "config.json"
+//go:embed config.json
+var config embed.FS
 
 // ConfigData структура с конфигурацией анализаторов пакета staticcheck
 //
@@ -113,12 +128,7 @@ type ConfigData struct {
 }
 
 func main() {
-	appfile, err := os.Executable()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	data, err := os.ReadFile(filepath.Join(filepath.Dir(appfile), config))
+	data, err := config.ReadFile("config.json")
 	if err != nil {
 		log.Fatal(err)
 	}

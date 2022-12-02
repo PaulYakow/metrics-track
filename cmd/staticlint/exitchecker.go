@@ -50,13 +50,19 @@ func (v visitor) Visit(node ast.Node) ast.Visitor {
 		return nil
 	}
 
-	if callExpr, ok := node.(*ast.CallExpr); ok {
-		if selectorExpr, ok := callExpr.Fun.(*ast.SelectorExpr); ok {
-			if selectorExpr.Sel.Name == "Exit" {
-				v.pass.Reportf(node.Pos(), "using os.Exit in main func of main package")
-				return nil
-			}
-		}
+	callExpr, ok := node.(*ast.CallExpr)
+	if !ok {
+		return v
+	}
+
+	selectorExpr, ok := callExpr.Fun.(*ast.SelectorExpr)
+	if !ok {
+		return v
+	}
+
+	if selectorExpr.Sel.Name == "Exit" {
+		v.pass.Reportf(node.Pos(), "using os.Exit in main func of main package")
+		return nil
 	}
 
 	return v

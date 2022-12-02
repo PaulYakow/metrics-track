@@ -44,12 +44,15 @@ func (bi *buildInfo) printInfo() {
 	bi.buildDate = "N/A"
 	bi.buildCommit = "N/A"
 
-	switch {
-	case buildVersion != "":
+	if buildVersion != "" {
 		bi.buildVersion = buildVersion
-	case buildDate != "":
+	}
+
+	if buildDate != "" {
 		bi.buildDate = buildDate
-	case buildCommit != "":
+	}
+
+	if buildCommit != "" {
 		bi.buildCommit = buildCommit
 	}
 
