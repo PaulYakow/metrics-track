@@ -15,9 +15,11 @@ import (
   Build commit: <buildCommit> (или "N/A" при отсутствии значения)
 */
 
-var buildVersion string
-var buildDate string
-var buildCommit string
+var (
+	buildVersion = "N/A"
+	buildDate    = "N/A"
+	buildCommit  = "N/A"
+)
 
 func main() {
 	cfg, err := config.NewClientConfig()
@@ -26,45 +28,22 @@ func main() {
 		return
 	}
 
-	bi := buildInfo{}
-	bi.printInfo()
+	printInfo()
 
 	client.Run(cfg)
 }
 
-type buildInfo struct {
-	buildVersion string
-	buildDate    string
-	buildCommit  string
-}
-
-func (bi *buildInfo) printInfo() {
+func printInfo() {
 	var sb strings.Builder
 
-	bi.buildVersion = "N/A"
-	bi.buildDate = "N/A"
-	bi.buildCommit = "N/A"
-
-	if buildVersion != "" {
-		bi.buildVersion = buildVersion
-	}
-
-	if buildDate != "" {
-		bi.buildDate = buildDate
-	}
-
-	if buildCommit != "" {
-		bi.buildCommit = buildCommit
-	}
-
 	sb.WriteString("Build version: ")
-	sb.WriteString(bi.buildVersion)
+	sb.WriteString(buildVersion)
 	sb.WriteString("\n")
 	sb.WriteString("Build date: ")
-	sb.WriteString(bi.buildDate)
+	sb.WriteString(buildDate)
 	sb.WriteString("\n")
 	sb.WriteString("Build commit: ")
-	sb.WriteString(bi.buildCommit)
+	sb.WriteString(buildCommit)
 	sb.WriteString("\n")
 	fmt.Println(sb.String())
 }
