@@ -1,3 +1,4 @@
+// Package producer сервис записи метрик в файлы JSON.
 package producer
 
 import (

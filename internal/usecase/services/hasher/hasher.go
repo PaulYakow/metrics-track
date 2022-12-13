@@ -1,10 +1,11 @@
+// Package hasher содержит функционал обработки и проверки хэша по заданному ключу.
 package hasher
 
 import (
 	"github.com/PaulYakow/metrics-track/internal/entity"
 )
 
-// HasherImpl реализация сервиса обработки хэша (IHasher).
+// HasherImpl реализация сервиса обработки хэша (usecase.IHasher).
 type HasherImpl struct {
 	key string
 }

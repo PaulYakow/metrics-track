@@ -13,44 +13,44 @@ var (
 )
 
 type (
-	valueErr struct {
+	valueError struct {
+		err   error
 		name  string
 		value string
-		err   error
 	}
 
-	typeErr struct {
+	typeError struct {
+		err   error
 		name  string
 		tName string
-		err   error
 	}
 
-	hashErr struct {
-		name string
+	hashError struct {
 		err  error
+		name string
 	}
 )
 
-func (ve valueErr) Error() string {
+func (ve valueError) Error() string {
 	return fmt.Sprintf("value %q error: %v - %v", ve.name, ve.value, ve.err)
 }
 
-func (ve valueErr) Unwrap() error {
+func (ve valueError) Unwrap() error {
 	return ve.err
 }
 
-func (te typeErr) Error() string {
+func (te typeError) Error() string {
 	return fmt.Sprintf("type %q error: %v - %v", te.name, te.tName, te.err)
 }
 
-func (te typeErr) Unwrap() error {
+func (te typeError) Unwrap() error {
 	return te.err
 }
 
-func (he hashErr) Error() string {
+func (he hashError) Error() string {
 	return fmt.Sprintf("hash %q error: %v", he.name, he.err)
 }
 
-func (he hashErr) Unwrap() error {
+func (he hashError) Unwrap() error {
 	return he.err
 }

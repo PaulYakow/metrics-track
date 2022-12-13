@@ -1,3 +1,4 @@
+// Package gather содержит реализации "сборщиков" метрик (usecase.IClientGather).
 package gather
 
 import (
@@ -13,7 +14,7 @@ import (
 
 var percent []float64
 
-// GatherPsutil реализация "сборщика" метрик psutil (IClientGather).
+// GatherPsutil реализация "сборщика" метрик psutil (usecase.IClientGather).
 type GatherPsutil struct {
 	metrics map[string]*entity.Metric
 }

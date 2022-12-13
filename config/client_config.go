@@ -1,3 +1,4 @@
+// Package config содержит структуры с конфигурациями клиента и сервера.
 package config
 
 import (
@@ -7,11 +8,12 @@ import (
 	"github.com/spf13/pflag"
 )
 
+// ClientCfg конфигурация клиента.
 type ClientCfg struct {
 	Address        string        `env:"ADDRESS" env-default:"localhost:8080"`
+	Key            string        `env:"KEY" env-default:""`
 	ReportInterval time.Duration `env:"REPORT_INTERVAL" env-default:"10s"`
 	PollInterval   time.Duration `env:"POLL_INTERVAL" env-default:"2s"`
-	Key            string        `env:"KEY" env-default:""`
 }
 
 var clientAddress = struct {
@@ -27,26 +29,26 @@ var clientAddress = struct {
 }
 
 var reportInterval = struct {
+	value        *time.Duration
 	name         string
 	shorthand    string
-	value        *time.Duration
 	defaultValue time.Duration
 }{
+	new(time.Duration),
 	"report",
 	"r",
-	new(time.Duration),
 	10 * time.Second,
 }
 
 var pollInterval = struct {
+	value        *time.Duration
 	name         string
 	shorthand    string
-	value        *time.Duration
 	defaultValue time.Duration
 }{
+	new(time.Duration),
 	"poll",
 	"p",
-	new(time.Duration),
 	2 * time.Second,
 }
 
@@ -76,6 +78,7 @@ func (cfg *ClientCfg) updateCfgFromFlags() {
 	cfg.Key = *clientKey.value
 }
 
+// NewClientConfig - создаёт объект ClientCfg.
 func NewClientConfig() (*ClientCfg, error) {
 	cfg := &ClientCfg{}
 

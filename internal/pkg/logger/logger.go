@@ -1,3 +1,4 @@
+// Package logger является обёрткой над логгером zap.
 package logger
 
 import (

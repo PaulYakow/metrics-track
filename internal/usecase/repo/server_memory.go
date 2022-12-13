@@ -11,8 +11,8 @@ import (
 
 // ServerMemoryRepo реализация репозитория сервера (usecase.IServerRepo). Хранение в памяти.
 type ServerMemoryRepo struct {
-	sync.Mutex
 	metrics map[string]*entity.Metric
+	sync.Mutex
 }
 
 // NewServerMemory создаёт объект ServerMemoryRepo.

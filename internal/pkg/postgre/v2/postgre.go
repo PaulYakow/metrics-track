@@ -1,3 +1,4 @@
+// Package v2 является обёрткой над библиотекой github.com/jmoiron/sqlx.
 package v2
 
 import (
@@ -19,15 +20,15 @@ const (
 	defaultConnTimeout  = time.Second
 )
 
-// Postgre реализация подключения к БД Postgres (на основе sqlx).
+// Postgre структура с настройками подключения к БД и доступом к текущему соединению.
 type Postgre struct {
 	*sqlx.DB
 
 	maxOpenConn     int
 	maxIdleConn     int
+	connAttempts    int
 	maxConnIdleTime time.Duration
 	maxConnLifetime time.Duration
-	connAttempts    int
 	connTimeout     time.Duration
 }
 

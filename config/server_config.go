@@ -7,13 +7,14 @@ import (
 	"github.com/spf13/pflag"
 )
 
+// ServerCfg конфигурация сервера.
 type ServerCfg struct {
 	Address       string        `env:"ADDRESS" env-default:"localhost:8080"`
-	StoreInterval time.Duration `env:"STORE_INTERVAL" env-default:"300s"`
 	StoreFile     string        `env:"STORE_FILE" env-default:"/tmp/devops-metrics-db.json"`
-	Restore       bool          `env:"RESTORE" env-default:"true"`
 	Key           string        `env:"KEY" env-default:""`
 	Dsn           string        `env:"DATABASE_DSN" env-default:""`
+	StoreInterval time.Duration `env:"STORE_INTERVAL" env-default:"300s"`
+	Restore       bool          `env:"RESTORE" env-default:"true"`
 }
 
 var serverAddress = struct {
@@ -29,14 +30,14 @@ var serverAddress = struct {
 }
 
 var storeInterval = struct {
+	value        *time.Duration
 	name         string
 	shorthand    string
-	value        *time.Duration
 	defaultValue time.Duration
 }{
+	new(time.Duration),
 	"interval",
 	"i",
-	new(time.Duration),
 	300 * time.Second,
 }
 
@@ -53,14 +54,14 @@ var storeFile = struct {
 }
 
 var restore = struct {
+	value        *bool
 	name         string
 	shorthand    string
-	value        *bool
 	defaultValue bool
 }{
+	new(bool),
 	"restore",
 	"r",
-	new(bool),
 	true,
 }
 
@@ -106,6 +107,7 @@ func (cfg *ServerCfg) updateCfgFromFlags() {
 	cfg.Dsn = *dsn.value
 }
 
+// NewServerConfig - создаёт объект ServerCfg.
 func NewServerConfig() (*ServerCfg, error) {
 	cfg := &ServerCfg{}
 

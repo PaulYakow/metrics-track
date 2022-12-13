@@ -1,3 +1,4 @@
+// Package httpclient содержит простейший http-клиент для отправки запросов посредством URL и JSON.
 package httpclient
 
 import (
@@ -13,13 +14,13 @@ const (
 	defaultShutdownTimeout = 3 * time.Second
 )
 
-// Client клиент http для отправки запросов посредством URL и JSON.
+// Client http-клиент.
 type Client struct {
 	client          *req.Client
 	shutdownTimeout time.Duration
 }
 
-// New создаёт объект Client
+// New - создаёт объект Client и применяет заданные настройки.
 func New(opts ...Option) *Client {
 	httpclient := req.C().
 		SetTimeout(defaultTimeout)

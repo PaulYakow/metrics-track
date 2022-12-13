@@ -1,3 +1,4 @@
+// Package v1 является обёрткой над библиотекой github.com/jackc/pgx
 package v1
 
 import (
@@ -18,15 +19,14 @@ const (
 	defaultConnTimeout  = time.Second
 )
 
-// Postgre реализация подключения к БД Postgres (на основе pgx).
+// Postgre структура с настройками подключения к БД и текущим пулом соединений.
 type Postgre struct {
+	Pool            *pgxpool.Pool
 	maxPollSize     int
+	connAttempts    int
 	maxConnIdleTime time.Duration
 	maxConnLifeTime time.Duration
-	connAttempts    int
 	connTimeout     time.Duration
-
-	Pool *pgxpool.Pool
 }
 
 // New создаёт объект Postgre с заданными параметрами и подключается к БД.
