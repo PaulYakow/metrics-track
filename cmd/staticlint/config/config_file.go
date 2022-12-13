@@ -1,6 +1,6 @@
 //go:build config
 
-package main
+package config
 
 import (
 	"embed"

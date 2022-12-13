@@ -1,6 +1,6 @@
 //go:build !config
 
-package main
+package config
 
 func NewCfgData() ConfigData {
 	return ConfigData{

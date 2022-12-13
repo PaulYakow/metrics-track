@@ -68,6 +68,9 @@
 package main
 
 import (
+	"go/ast"
+	"strings"
+
 	errname "github.com/Antonboom/errname/pkg/analyzer"
 	grouper "github.com/leonklingele/grouper/pkg/analyzer"
 	usestdlibvars "github.com/sashamelentyev/usestdlibvars/pkg/analyzer"
@@ -114,18 +117,14 @@ import (
 	"golang.org/x/tools/go/analysis/passes/unusedresult"
 	"golang.org/x/tools/go/analysis/passes/unusedwrite"
 	"golang.org/x/tools/go/analysis/passes/usesgenerics"
+	"golang.org/x/tools/go/ast/inspector"
 	"honnef.co/go/tools/quickfix"
 	"honnef.co/go/tools/simple"
 	"honnef.co/go/tools/staticcheck"
 	"honnef.co/go/tools/stylecheck"
-)
 
-// ConfigData структура с конфигурацией анализаторов пакета staticcheck
-//
-// SA добавлены полностью. Для добавления дополнительных прописать необходимый в файле `config.json`
-type ConfigData struct {
-	Staticcheck []string
-}
+	"github.com/PaulYakow/metrics-track/cmd/staticlint/config"
+)
 
 func main() {
 	lintchecks := []*analysis.Analyzer{
@@ -177,7 +176,7 @@ func main() {
 	}
 
 	staticchecks := make(map[string]bool)
-	cfg := NewCfgData()
+	cfg := config.NewCfgData()
 
 	for _, v := range cfg.Staticcheck {
 		staticchecks[v] = true
@@ -206,4 +205,63 @@ func main() {
 	}
 
 	multichecker.Main(lintchecks...)
+}
+
+// ExitAnalyzer анализатор, проверяющий есть ли прямой вызов os.Exit в функции main пакета main
+var ExitAnalyzer = &analysis.Analyzer{
+	Name:     "osexit",
+	Doc:      "check for direct call os.Exit in main function of package main",
+	Run:      exitAnalyze,
+	Requires: []*analysis.Analyzer{inspect.Analyzer},
+}
+
+func exitAnalyze(pass *analysis.Pass) (interface{}, error) {
+	inspector := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
+	nodeFilter := []ast.Node{
+		(*ast.FuncDecl)(nil),
+	}
+
+	inspector.Preorder(nodeFilter, func(node ast.Node) {
+		if strings.HasSuffix(pass.Pkg.Path(), "test") {
+			return
+		}
+
+		funcDecl := node.(*ast.FuncDecl)
+		if funcDecl.Name.Name != "main" {
+			return
+		}
+
+		v := visitor{pass: pass}
+		for _, stmt := range funcDecl.Body.List {
+			ast.Walk(v, stmt)
+		}
+	})
+	return nil, nil
+}
+
+type visitor struct {
+	pass *analysis.Pass
+}
+
+func (v visitor) Visit(node ast.Node) ast.Visitor {
+	if node == nil {
+		return nil
+	}
+
+	callExpr, ok := node.(*ast.CallExpr)
+	if !ok {
+		return v
+	}
+
+	selectorExpr, ok := callExpr.Fun.(*ast.SelectorExpr)
+	if !ok {
+		return v
+	}
+
+	if selectorExpr.Sel.Name == "Exit" {
+		v.pass.Reportf(node.Pos(), "using os.Exit in main func of main package")
+		return nil
+	}
+
+	return v
 }
