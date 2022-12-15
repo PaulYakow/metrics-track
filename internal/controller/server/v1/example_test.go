@@ -30,7 +30,7 @@ func ExampleNewRouter() {
 	serverUseCase := usecase.NewServerUC(someRepo, serverHasher)
 
 	// И наконец HTTP-сервер, который обрабатывает запросы
-	handler := NewRouter(serverUseCase, l)
+	handler := NewRouter(serverUseCase, l, "")
 	srv := httpserver.New(handler, httpserver.Address(":8080"))
 
 	// Waiting signal

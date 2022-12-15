@@ -203,7 +203,7 @@ func TestURLRoutes(t *testing.T) {
 		},
 	}
 
-	r := NewRouter(usecase.NewServerUC(repo.NewServerMemory(), hasher.New("")), logger.New())
+	r := NewRouter(usecase.NewServerUC(repo.NewServerMemory(), hasher.New("")), logger.New(), "")
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 
@@ -396,7 +396,7 @@ func TestJSONRoutes(t *testing.T) {
 		},
 	}
 
-	r := NewRouter(usecase.NewServerUC(repo.NewServerMemory(), hasher.New("")), logger.New())
+	r := NewRouter(usecase.NewServerUC(repo.NewServerMemory(), hasher.New("")), logger.New(), "")
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 

@@ -21,7 +21,7 @@ func init() {
 }
 
 func BenchmarkV1URLRoutes(b *testing.B) {
-	r := v1.NewRouter(usecase.NewServerUC(repo.NewServerMemory(), hasher.New("")), logger.New())
+	r := v1.NewRouter(usecase.NewServerUC(repo.NewServerMemory(), hasher.New("")), logger.New(), "")
 	w := httptest.NewRecorder()
 
 	b.ResetTimer()
@@ -104,7 +104,7 @@ func BenchmarkV1URLRoutes(b *testing.B) {
 }
 
 func BenchmarkV1JSONRoutes(b *testing.B) {
-	r := v1.NewRouter(usecase.NewServerUC(repo.NewServerMemory(), hasher.New("")), logger.New())
+	r := v1.NewRouter(usecase.NewServerUC(repo.NewServerMemory(), hasher.New("")), logger.New(), "")
 	w := httptest.NewRecorder()
 
 	b.ResetTimer()
