@@ -35,6 +35,12 @@ func (s *serverRoutes) updateByJSONBatch(rw http.ResponseWriter, r *http.Request
 		return
 	}
 
+	if s.decoder != nil {
+		if body, err = s.decoder.Decrypt(body); err != nil {
+			s.logger.Fatal(err)
+		}
+	}
+
 	reqMetrics := make([]entity.Metric, 0, defaultBatchCap)
 	if err = json.Unmarshal(body, &reqMetrics); err != nil {
 		s.logger.Error(fmt.Errorf("router - batch update unmarshal: %w", err))

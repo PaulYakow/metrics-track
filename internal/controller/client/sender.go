@@ -11,6 +11,7 @@ import (
 	"github.com/PaulYakow/metrics-track/internal/pkg/httpclient"
 	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
+	"github.com/PaulYakow/metrics-track/internal/utils/pki"
 )
 
 // Sender управляет периодической отправкой метрик на заданный адрес.
@@ -19,6 +20,7 @@ type Sender struct {
 	uc       usecase.IClient
 	logger   logger.ILogger
 	endpoint string
+	encoder  *pki.Cryptographer
 }
 
 // NewSender создаёт объект Sender.
@@ -32,9 +34,17 @@ func NewSender(client *httpclient.Client, uc usecase.IClient, endpoint string, l
 }
 
 // Run - запускает периодическую отправку.
-func (s *Sender) Run(ctx context.Context, wg *sync.WaitGroup, interval time.Duration) {
+func (s *Sender) Run(ctx context.Context, wg *sync.WaitGroup, interval time.Duration, pathToCryptoKey string) {
 	ticker := time.NewTicker(interval)
 	defer wg.Done()
+
+	if pathToCryptoKey != "" {
+		var err error
+		s.encoder, err = pki.NewCryptographer(pathToCryptoKey)
+		if err != nil {
+			s.logger.Fatal(err)
+		}
+	}
 
 	s.logger.Info("sender - run with params: a=%s | r=%v", s.endpoint, interval)
 	for {
@@ -78,7 +88,14 @@ func (s *Sender) sendMetricsByJSONBatch(metrics []entity.Metric) {
 		s.logger.Error(fmt.Errorf("sender - read metrics: %w", err))
 	}
 
+	if s.encoder != nil {
+		if data, err = s.encoder.Encrypt(data); err != nil {
+			s.logger.Fatal(err)
+		}
+	}
+
 	if err = s.client.PostByJSONBatch(s.endpoint, data); err != nil {
 		s.logger.Error(fmt.Errorf("sender - post batch of metrics by JSON to %q: %w", s.endpoint, err))
 	}
+	s.logger.Info("sender - send batch of metrics by JSON: ", string(data))
 }

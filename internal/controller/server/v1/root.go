@@ -11,6 +11,7 @@ import (
 
 	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
+	"github.com/PaulYakow/metrics-track/internal/utils/pki"
 )
 
 const (
@@ -25,15 +26,24 @@ const (
 var tmpl *template.Template
 
 type serverRoutes struct {
-	uc     usecase.IServer
-	logger logger.ILogger
+	uc      usecase.IServer
+	logger  logger.ILogger
+	decoder *pki.Decryptor
 }
 
 // NewRouter формирует основной роутер для обработки запросов (на основе chi).
-func NewRouter(uc usecase.IServer, l logger.ILogger) chi.Router {
+func NewRouter(uc usecase.IServer, l logger.ILogger, pathToCryptoKey string) chi.Router {
 	s := &serverRoutes{
 		uc:     uc,
 		logger: l,
+	}
+
+	if pathToCryptoKey != "" {
+		var err error
+		s.decoder, err = pki.NewDecryptor(pathToCryptoKey)
+		if err != nil {
+			s.logger.Fatal(err)
+		}
 	}
 
 	tmpl = template.Must(template.ParseFiles(templateName))

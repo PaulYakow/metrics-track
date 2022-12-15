@@ -10,10 +10,11 @@ import (
 
 // ClientCfg конфигурация клиента.
 type ClientCfg struct {
-	Address        string        `env:"ADDRESS" env-default:"localhost:8080"`
-	Key            string        `env:"KEY" env-default:""`
-	ReportInterval time.Duration `env:"REPORT_INTERVAL" env-default:"10s"`
-	PollInterval   time.Duration `env:"POLL_INTERVAL" env-default:"2s"`
+	Address         string        `env:"ADDRESS" env-default:"localhost:8080"`
+	Key             string        `env:"KEY" env-default:""`
+	ReportInterval  time.Duration `env:"REPORT_INTERVAL" env-default:"10s"`
+	PollInterval    time.Duration `env:"POLL_INTERVAL" env-default:"2s"`
+	PathToCryptoKey string        `env:"CRYPTO_KEY" env-default:""`
 }
 
 var clientAddress = struct {
@@ -64,11 +65,24 @@ var clientKey = struct {
 	"",
 }
 
+var pathToCryptoKey = struct {
+	name         string
+	shorthand    string
+	value        *string
+	defaultValue string
+}{
+	"crypto-key",
+	"c",
+	new(string),
+	"",
+}
+
 func (cfg *ClientCfg) updateCfgFromFlags() {
 	clientAddress.value = pflag.StringP(clientAddress.name, clientAddress.shorthand, clientAddress.defaultValue, "address of client in host:port format")
 	reportInterval.value = pflag.DurationP(reportInterval.name, reportInterval.shorthand, reportInterval.defaultValue, "report interval in seconds")
 	pollInterval.value = pflag.DurationP(pollInterval.name, pollInterval.shorthand, pollInterval.defaultValue, "poll interval in seconds")
 	clientKey.value = pflag.StringP(clientKey.name, clientKey.shorthand, clientKey.defaultValue, "hash key")
+	pathToCryptoKey.value = pflag.StringP(pathToCryptoKey.name, pathToCryptoKey.shorthand, pathToCryptoKey.defaultValue, "path to crypto key")
 
 	pflag.Parse()
 
@@ -76,6 +90,7 @@ func (cfg *ClientCfg) updateCfgFromFlags() {
 	cfg.ReportInterval = *reportInterval.value
 	cfg.PollInterval = *pollInterval.value
 	cfg.Key = *clientKey.value
+	cfg.PathToCryptoKey = *pathToCryptoKey.value
 }
 
 // NewClientConfig - создаёт объект ClientCfg.

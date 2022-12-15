@@ -9,7 +9,7 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/PaulYakow/metrics-track/config"
+	"github.com/PaulYakow/metrics-track/cmd/agent/config"
 	"github.com/PaulYakow/metrics-track/internal/controller/client"
 	"github.com/PaulYakow/metrics-track/internal/pkg/httpclient"
 	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
@@ -40,7 +40,9 @@ func Run(cfg *config.ClientCfg) {
 	wg := new(sync.WaitGroup)
 	wg.Add(2)
 	go collector.Run(ctx, wg, cfg.PollInterval)
-	go sender.Run(ctx, wg, cfg.ReportInterval)
+	go sender.Run(ctx, wg, cfg.ReportInterval, cfg.PathToCryptoKey)
+
+	l.Info("-crypto=%s", cfg.PathToCryptoKey)
 
 	// Ожидание сигнала завершения
 	interrupt := make(chan os.Signal, 1)

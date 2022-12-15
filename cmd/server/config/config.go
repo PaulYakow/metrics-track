@@ -9,12 +9,13 @@ import (
 
 // ServerCfg конфигурация сервера.
 type ServerCfg struct {
-	Address       string        `env:"ADDRESS" env-default:"localhost:8080"`
-	StoreFile     string        `env:"STORE_FILE" env-default:"/tmp/devops-metrics-db.json"`
-	Key           string        `env:"KEY" env-default:""`
-	Dsn           string        `env:"DATABASE_DSN" env-default:""`
-	StoreInterval time.Duration `env:"STORE_INTERVAL" env-default:"300s"`
-	Restore       bool          `env:"RESTORE" env-default:"true"`
+	Address         string        `env:"ADDRESS" env-default:"localhost:8080"`
+	StoreFile       string        `env:"STORE_FILE" env-default:"/tmp/devops-metrics-db.json"`
+	Key             string        `env:"KEY" env-default:""`
+	Dsn             string        `env:"DATABASE_DSN" env-default:""`
+	StoreInterval   time.Duration `env:"STORE_INTERVAL" env-default:"300s"`
+	Restore         bool          `env:"RESTORE" env-default:"true"`
+	PathToCryptoKey string        `env:"CRYPTO_KEY" env-default:""`
 }
 
 var serverAddress = struct {
@@ -89,6 +90,18 @@ var dsn = struct {
 	"",
 }
 
+var pathToCryptoKey = struct {
+	name         string
+	shorthand    string
+	value        *string
+	defaultValue string
+}{
+	"crypto-key",
+	"c",
+	new(string),
+	"",
+}
+
 func (cfg *ServerCfg) updateCfgFromFlags() {
 	serverAddress.value = pflag.StringP(serverAddress.name, serverAddress.shorthand, serverAddress.defaultValue, "address of server in host:port format")
 	storeInterval.value = pflag.DurationP(storeInterval.name, storeInterval.shorthand, storeInterval.defaultValue, "store interval in seconds")
@@ -96,6 +109,7 @@ func (cfg *ServerCfg) updateCfgFromFlags() {
 	restore.value = pflag.BoolP(restore.name, restore.shorthand, restore.defaultValue, "restore after restart")
 	serverKey.value = pflag.StringP(serverKey.name, serverKey.shorthand, serverKey.defaultValue, "hash key")
 	dsn.value = pflag.StringP(dsn.name, dsn.shorthand, dsn.defaultValue, "DSN for database connect")
+	pathToCryptoKey.value = pflag.StringP(pathToCryptoKey.name, pathToCryptoKey.shorthand, pathToCryptoKey.defaultValue, "path to crypto key")
 
 	pflag.Parse()
 
@@ -105,6 +119,7 @@ func (cfg *ServerCfg) updateCfgFromFlags() {
 	cfg.Restore = *restore.value
 	cfg.Key = *serverKey.value
 	cfg.Dsn = *dsn.value
+	cfg.PathToCryptoKey = *pathToCryptoKey.value
 }
 
 // NewServerConfig - создаёт объект ServerCfg.
