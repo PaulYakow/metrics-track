@@ -9,10 +9,12 @@ import (
 	"os"
 )
 
+// Cryptographer хранит публичный ключ для шифровки данных.
 type Cryptographer struct {
 	publicKey *rsa.PublicKey
 }
 
+// NewCryptographer - создаёт объект Cryptographer с заданным путём к публичному ключу.
 func NewCryptographer(publicKeyPath string) (*Cryptographer, error) {
 	bytes, err := os.ReadFile(publicKeyPath)
 	if err != nil {
@@ -27,6 +29,7 @@ func NewCryptographer(publicKeyPath string) (*Cryptographer, error) {
 	return &Cryptographer{publicKey: publicKey}, err
 }
 
+// Encrypt - шифрует данные на основе публичного ключа.
 func (c *Cryptographer) Encrypt(data []byte) ([]byte, error) {
 	msgLen := len(data)
 	step := c.publicKey.Size() - 2*sha512.Size - 2

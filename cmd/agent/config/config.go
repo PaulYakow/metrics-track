@@ -1,7 +1,9 @@
-// Package config содержит структуры с конфигурациями клиента и сервера.
+// Package config содержит структуры с конфигурацией клиента.
 package config
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -10,16 +12,12 @@ import (
 	"github.com/spf13/pflag"
 )
 
-type File struct {
-	Path string `env:"CONFIG"`
-}
-
-// Config конфигурация клиента.
+// Config конфигурация клиента (привязка переменных окружения).
 type Config struct {
-	Address         string        `env:"ADDRESS"`
-	Key             string        `env:"KEY"`
-	ReportInterval  time.Duration `env:"REPORT_INTERVAL"`
-	PollInterval    time.Duration `env:"POLL_INTERVAL"`
+	Address         string        `env:"ADDRESS" env-default:"localhost:8080"`
+	Key             string        `env:"KEY" env-default:""`
+	ReportInterval  time.Duration `env:"REPORT_INTERVAL" env-default:"10s"`
+	PollInterval    time.Duration `env:"POLL_INTERVAL" env-default:"2s"`
 	PathToCryptoKey string        `env:"CRYPTO_KEY"`
 }
 
@@ -157,4 +155,55 @@ func (cfg *Config) updateCfgFromJSON(path string) {
 		cfg.ReportInterval = cfgFromJSON.ReportInterval.Duration
 		cfg.PathToCryptoKey = cfgFromJSON.PathToCryptoKey
 	}
+}
+
+type Duration struct {
+	time.Duration
+}
+
+func (duration *Duration) UnmarshalJSON(b []byte) error {
+	var unmarshalled interface{}
+
+	err := json.Unmarshal(b, &unmarshalled)
+	if err != nil {
+		return err
+	}
+
+	switch value := unmarshalled.(type) {
+	case float64:
+		duration.Duration = time.Duration(value)
+	case string:
+		duration.Duration, err = time.ParseDuration(value)
+		if err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("invalid duration: %#v", unmarshalled)
+	}
+
+	return nil
+}
+
+// CfgFromJSON промежуточная конфигурация клиента (привязка значений из JSON-файла).
+type CfgFromJSON struct {
+	Address         string   `json:"address"`
+	ReportInterval  Duration `json:"report_interval"`
+	PollInterval    Duration `json:"poll_interval"`
+	PathToCryptoKey string   `json:"crypto_key"`
+}
+
+func (cfg *CfgFromJSON) loadConfigFromJSON(path string) error {
+	file, err := os.Open(path)
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			log.Printf("close config file: %v\n", err)
+		}
+	}(file)
+
+	if err != nil {
+		return err
+	}
+	err = json.NewDecoder(file).Decode(cfg)
+	return err
 }

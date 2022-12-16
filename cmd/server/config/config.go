@@ -1,6 +1,8 @@
+// Package config содержит структуры с конфигурацией сервера.
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -10,7 +12,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-// Config конфигурация сервера.
+// Config конфигурация сервера (привязка переменных окружения).
 type Config struct {
 	Address         string        `env:"ADDRESS" env-default:"localhost:8080"`
 	StoreFile       string        `env:"STORE_FILE" env-default:"/tmp/devops-metrics-db.json"`
@@ -195,4 +197,56 @@ func (cfg *Config) updateCfgFromJSON(path string) {
 	}
 
 	fmt.Println("JSON config =", cfgFromJSON)
+}
+
+type Duration struct {
+	time.Duration
+}
+
+func (duration *Duration) UnmarshalJSON(b []byte) error {
+	var unmarshalled interface{}
+
+	err := json.Unmarshal(b, &unmarshalled)
+	if err != nil {
+		return err
+	}
+
+	switch value := unmarshalled.(type) {
+	case float64:
+		duration.Duration = time.Duration(value)
+	case string:
+		duration.Duration, err = time.ParseDuration(value)
+		if err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("invalid duration: %#v", unmarshalled)
+	}
+
+	return nil
+}
+
+// CfgFromJSON промежуточная конфигурация сервера (привязка значений из JSON-файла).
+type CfgFromJSON struct {
+	Address         string   `json:"address"`
+	StoreFile       string   `json:"store_file"`
+	Dsn             string   `json:"database_dsn"`
+	PathToCryptoKey string   `json:"crypto_key"`
+	StoreInterval   Duration `json:"store_interval"`
+	Restore         bool     `json:"restore"`
+}
+
+func (cfg *CfgFromJSON) loadConfigFromJSON(path string) error {
+	file, err := os.Open(path)
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			log.Printf("close config file: %v\n", err)
+		}
+	}(file)
+	if err != nil {
+		return err
+	}
+	err = json.NewDecoder(file).Decode(cfg)
+	return err
 }

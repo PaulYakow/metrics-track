@@ -1,3 +1,4 @@
+// Package pki содержит структуры и методы для асимметричной шифровки/дешифровки данных.
 package pki
 
 import (
@@ -9,10 +10,12 @@ import (
 	"os"
 )
 
+// Decryptor хранит приватный ключ для дешифровки данных.
 type Decryptor struct {
 	privateKey *rsa.PrivateKey
 }
 
+// NewDecryptor - создаёт объект Decryptor с заданным путём к приватному ключу.
 func NewDecryptor(privateKeyPath string) (*Decryptor, error) {
 	bytes, err := os.ReadFile(privateKeyPath)
 	if err != nil {
@@ -27,6 +30,7 @@ func NewDecryptor(privateKeyPath string) (*Decryptor, error) {
 	return &Decryptor{privateKey: privateKey}, err
 }
 
+// Decrypt - дешифрует данные на основе приватного ключа.
 func (d *Decryptor) Decrypt(data []byte) ([]byte, error) {
 	msgLen := len(data)
 	step := d.privateKey.PublicKey.Size()
