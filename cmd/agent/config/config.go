@@ -2,22 +2,28 @@
 package config
 
 import (
+	"log"
+	"os"
 	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/spf13/pflag"
 )
 
-// ClientCfg конфигурация клиента.
-type ClientCfg struct {
-	Address         string        `env:"ADDRESS" env-default:"localhost:8080"`
-	Key             string        `env:"KEY" env-default:""`
-	ReportInterval  time.Duration `env:"REPORT_INTERVAL" env-default:"10s"`
-	PollInterval    time.Duration `env:"POLL_INTERVAL" env-default:"2s"`
-	PathToCryptoKey string        `env:"CRYPTO_KEY" env-default:""`
+type File struct {
+	Path string `env:"CONFIG"`
 }
 
-var clientAddress = struct {
+// Config конфигурация клиента.
+type Config struct {
+	Address         string        `env:"ADDRESS"`
+	Key             string        `env:"KEY"`
+	ReportInterval  time.Duration `env:"REPORT_INTERVAL"`
+	PollInterval    time.Duration `env:"POLL_INTERVAL"`
+	PathToCryptoKey string        `env:"CRYPTO_KEY"`
+}
+
+var address = struct {
 	name         string
 	shorthand    string
 	value        *string
@@ -53,7 +59,7 @@ var pollInterval = struct {
 	2 * time.Second,
 }
 
-var clientKey = struct {
+var hashKey = struct {
 	name         string
 	shorthand    string
 	value        *string
@@ -72,30 +78,26 @@ var pathToCryptoKey = struct {
 	defaultValue string
 }{
 	"crypto-key",
+	"x",
+	new(string),
+	"",
+}
+
+var pathToConfig = struct {
+	name         string
+	shorthand    string
+	value        *string
+	defaultValue string
+}{
+	"config",
 	"c",
 	new(string),
 	"",
 }
 
-func (cfg *ClientCfg) updateCfgFromFlags() {
-	clientAddress.value = pflag.StringP(clientAddress.name, clientAddress.shorthand, clientAddress.defaultValue, "address of client in host:port format")
-	reportInterval.value = pflag.DurationP(reportInterval.name, reportInterval.shorthand, reportInterval.defaultValue, "report interval in seconds")
-	pollInterval.value = pflag.DurationP(pollInterval.name, pollInterval.shorthand, pollInterval.defaultValue, "poll interval in seconds")
-	clientKey.value = pflag.StringP(clientKey.name, clientKey.shorthand, clientKey.defaultValue, "hash key")
-	pathToCryptoKey.value = pflag.StringP(pathToCryptoKey.name, pathToCryptoKey.shorthand, pathToCryptoKey.defaultValue, "path to crypto key")
-
-	pflag.Parse()
-
-	cfg.Address = *clientAddress.value
-	cfg.ReportInterval = *reportInterval.value
-	cfg.PollInterval = *pollInterval.value
-	cfg.Key = *clientKey.value
-	cfg.PathToCryptoKey = *pathToCryptoKey.value
-}
-
-// NewClientConfig - создаёт объект ClientCfg.
-func NewClientConfig() (*ClientCfg, error) {
-	cfg := &ClientCfg{}
+// NewClientConfig - создаёт объект Config.
+func NewClientConfig() (*Config, error) {
+	cfg := &Config{}
 
 	cfg.updateCfgFromFlags()
 
@@ -105,4 +107,54 @@ func NewClientConfig() (*ClientCfg, error) {
 	}
 
 	return cfg, nil
+}
+
+func (cfg *Config) updateCfgFromFlags() {
+	address.value = pflag.StringP(address.name, address.shorthand, address.defaultValue, "address of client in host:port format")
+	reportInterval.value = pflag.DurationP(reportInterval.name, reportInterval.shorthand, reportInterval.defaultValue, "report interval in seconds")
+	pollInterval.value = pflag.DurationP(pollInterval.name, pollInterval.shorthand, pollInterval.defaultValue, "poll interval in seconds")
+	hashKey.value = pflag.StringP(hashKey.name, hashKey.shorthand, hashKey.defaultValue, "hash key")
+	pathToCryptoKey.value = pflag.StringP(pathToCryptoKey.name, pathToCryptoKey.shorthand, pathToCryptoKey.defaultValue, "path to crypto key")
+
+	pathToConfig.value = pflag.StringP(pathToConfig.name, pathToConfig.shorthand, pathToConfig.defaultValue, "path to config file")
+
+	pflag.Parse()
+
+	cfg.updateCfgFromJSON(*pathToConfig.value)
+
+	if *address.value != address.defaultValue || cfg.Address == "" {
+		cfg.Address = *address.value
+	}
+
+	if *pollInterval.value != pollInterval.defaultValue || cfg.PollInterval == 0 {
+		cfg.PollInterval = *pollInterval.value
+	}
+
+	if *reportInterval.value != reportInterval.defaultValue || cfg.ReportInterval == 0 {
+		cfg.ReportInterval = *reportInterval.value
+	}
+
+	if *pathToCryptoKey.value != pathToCryptoKey.defaultValue || cfg.PathToCryptoKey == "" {
+		cfg.PathToCryptoKey = *pathToCryptoKey.value
+	}
+
+	cfg.Key = *hashKey.value
+}
+
+func (cfg *Config) updateCfgFromJSON(path string) {
+	cfgFromJSON := CfgFromJSON{}
+	if path == "" {
+		path, _ = os.LookupEnv("CONFIG")
+	}
+
+	if path != "" {
+		if err := cfgFromJSON.loadConfigFromJSON(path); err != nil {
+			log.Println("cannot load config file:", err)
+		}
+
+		cfg.Address = cfgFromJSON.Address
+		cfg.PollInterval = cfgFromJSON.PollInterval.Duration
+		cfg.ReportInterval = cfgFromJSON.ReportInterval.Duration
+		cfg.PathToCryptoKey = cfgFromJSON.PathToCryptoKey
+	}
 }

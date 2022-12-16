@@ -21,7 +21,7 @@ import (
 // Run собирает клиента из слоёв (хранилище, логика, сервисы).
 // Запускает отдельными потоками "сборщика" метрик и отправку данных.
 // В конце организован graceful shutdown.
-func Run(cfg *config.ClientCfg) {
+func Run(cfg *config.Config) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	l := logger.New()
@@ -46,7 +46,7 @@ func Run(cfg *config.ClientCfg) {
 
 	// Ожидание сигнала завершения
 	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
 	s := <-interrupt
 	cancel()

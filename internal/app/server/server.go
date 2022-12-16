@@ -21,7 +21,7 @@ import (
 
 // Run собирает сервер из слоёв (хранилище, логика, сервисы).
 // В конце организован graceful shutdown.
-func Run(cfg *config.ServerCfg) {
+func Run(cfg *config.Config) {
 	var err error
 	l := logger.New()
 	defer l.Exit()
@@ -74,7 +74,7 @@ func Run(cfg *config.ServerCfg) {
 
 	// Waiting signal
 	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
 	select {
 	case s := <-interrupt:
