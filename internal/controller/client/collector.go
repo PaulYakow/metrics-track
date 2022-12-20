@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/PaulYakow/metrics-track/cmd/agent/config"
 	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
 )
@@ -25,11 +26,11 @@ func NewCollector(uc usecase.IClient, l logger.ILogger) *Collector {
 }
 
 // Run - запускает периодический сбор метрик.
-func (c *Collector) Run(ctx context.Context, wg *sync.WaitGroup, interval time.Duration) {
-	ticker := time.NewTicker(interval)
+func (c *Collector) Run(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config) {
+	ticker := time.NewTicker(cfg.PollInterval)
 	defer wg.Done()
 
-	c.logger.Info("collector - run with params: p=%v", interval)
+	c.logger.Info("collector - run with params: p=%v", cfg.PollInterval)
 	for {
 		select {
 		case <-ticker.C:

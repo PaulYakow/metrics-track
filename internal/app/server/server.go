@@ -66,7 +66,7 @@ func Run(cfg *config.Config) {
 	serverUseCase := usecase.NewServerUC(serverRepo, serverHasher)
 
 	// HTTP server
-	handler := serverCtrl.NewRouter(serverUseCase, l, cfg.PathToCryptoKey)
+	handler := serverCtrl.NewRouter(serverUseCase, l, cfg)
 	srv := httpserver.New(handler, httpserver.Address(cfg.Address))
 
 	l.Info("server - run with params: a=%s | i=%v | f=%s | r=%v | k=%v | d=%s | crypto=%s",

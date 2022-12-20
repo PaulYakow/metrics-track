@@ -9,24 +9,27 @@ import (
 	"os"
 )
 
-// Cryptographer хранит публичный ключ для шифровки данных.
+// Cryptographer хранит публичный ключ для шифрования данных и функцию чтения данных (для получения ключа).
 type Cryptographer struct {
-	publicKey *rsa.PublicKey
+	publicKey  *rsa.PublicKey
+	dataReader func() ([]byte, error)
 }
 
 // NewCryptographer - создаёт объект Cryptographer с заданным путём к публичному ключу.
 func NewCryptographer(publicKeyPath string) (*Cryptographer, error) {
-	bytes, err := os.ReadFile(publicKeyPath)
+	c := &Cryptographer{dataReader: func() ([]byte, error) {
+		bytes, err := os.ReadFile(publicKeyPath)
+		return bytes, err
+	}}
+
+	keyBytes, err := c.dataReader()
+	publicKey, err := convertBytesToPublicKey(keyBytes)
 	if err != nil {
 		return nil, err
 	}
 
-	publicKey, err := convertBytesToPublicKey(bytes)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Cryptographer{publicKey: publicKey}, err
+	c.publicKey = publicKey
+	return c, nil
 }
 
 // Encrypt - шифрует данные на основе публичного ключа.

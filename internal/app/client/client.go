@@ -35,14 +35,12 @@ func Run(cfg *config.Config) {
 
 	c := httpclient.New()
 	endpoint := fmt.Sprintf("http://%s/updates/", cfg.Address)
-	sender := client.NewSender(c, agentUseCase, endpoint, l)
+	sender := client.NewSender(c, agentUseCase, endpoint, l, cfg)
 
 	wg := new(sync.WaitGroup)
 	wg.Add(2)
-	go collector.Run(ctx, wg, cfg.PollInterval)
-	go sender.Run(ctx, wg, cfg.ReportInterval, cfg.PathToCryptoKey)
-
-	l.Info("-crypto=%s", cfg.PathToCryptoKey)
+	go collector.Run(ctx, wg, cfg)
+	go sender.Run(ctx, wg, cfg)
 
 	// Ожидание сигнала завершения
 	interrupt := make(chan os.Signal, 1)

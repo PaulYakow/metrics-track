@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
+	"github.com/PaulYakow/metrics-track/cmd/server/config"
 	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
 	"github.com/PaulYakow/metrics-track/internal/utils/pki"
@@ -32,15 +33,15 @@ type serverRoutes struct {
 }
 
 // NewRouter формирует основной роутер для обработки запросов (на основе chi).
-func NewRouter(uc usecase.IServer, l logger.ILogger, pathToCryptoKey string) chi.Router {
+func NewRouter(uc usecase.IServer, l logger.ILogger, cfg *config.Config) chi.Router {
 	s := &serverRoutes{
 		uc:     uc,
 		logger: l,
 	}
 
-	if pathToCryptoKey != "" {
+	if cfg.PathToCryptoKey != "" {
 		var err error
-		s.decoder, err = pki.NewDecryptor(pathToCryptoKey)
+		s.decoder, err = pki.NewDecryptor(cfg.PathToCryptoKey)
 		if err != nil {
 			s.logger.Fatal(err)
 		}

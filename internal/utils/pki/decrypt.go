@@ -10,24 +10,27 @@ import (
 	"os"
 )
 
-// Decryptor хранит приватный ключ для дешифровки данных.
+// Decryptor хранит приватный ключ для дешифрования данных и функцию чтения данных (для получения ключа).
 type Decryptor struct {
 	privateKey *rsa.PrivateKey
+	dataReader func() ([]byte, error)
 }
 
 // NewDecryptor - создаёт объект Decryptor с заданным путём к приватному ключу.
 func NewDecryptor(privateKeyPath string) (*Decryptor, error) {
-	bytes, err := os.ReadFile(privateKeyPath)
+	d := &Decryptor{dataReader: func() ([]byte, error) {
+		bytes, err := os.ReadFile(privateKeyPath)
+		return bytes, err
+	}}
+
+	keyBytes, err := d.dataReader()
+	privateKey, err := convertBytesToPrivateKey(keyBytes)
 	if err != nil {
 		return nil, err
 	}
 
-	privateKey, err := convertBytesToPrivateKey(bytes)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Decryptor{privateKey: privateKey}, err
+	d.privateKey = privateKey
+	return d, nil
 }
 
 // Decrypt - дешифрует данные на основе приватного ключа.

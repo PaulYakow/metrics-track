@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -16,6 +15,7 @@ const defaultBatchCap = 20
 
 func (s *serverRoutes) createBatchUpdateRoutes() *chi.Mux {
 	r := chi.NewRouter()
+	r.Use(s.decryptData)
 
 	r.Post("/", s.updateByJSONBatch)
 
@@ -28,19 +28,14 @@ func (s *serverRoutes) updateByJSONBatch(rw http.ResponseWriter, r *http.Request
 		return
 	}
 
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		s.logger.Error(fmt.Errorf("router - batch update read body %q: %w", r.URL.Path, err))
-		rw.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	if s.decoder != nil {
-		if body, err = s.decoder.Decrypt(body); err != nil {
-			s.logger.Fatal(err)
-		}
-	}
-
+	body := r.Context().Value("body").([]byte)
+	//body, err := io.ReadAll(r.Body)
+	//if err != nil {
+	//	s.logger.Error(fmt.Errorf("router - batch update read body %q: %w", r.URL.Path, err))
+	//	rw.WriteHeader(http.StatusInternalServerError)
+	//	return
+	//}
+	var err error
 	reqMetrics := make([]entity.Metric, 0, defaultBatchCap)
 	if err = json.Unmarshal(body, &reqMetrics); err != nil {
 		s.logger.Error(fmt.Errorf("router - batch update unmarshal: %w", err))

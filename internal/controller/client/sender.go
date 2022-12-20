@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/PaulYakow/metrics-track/cmd/agent/config"
 	"github.com/PaulYakow/metrics-track/internal/entity"
 	"github.com/PaulYakow/metrics-track/internal/pkg/httpclient"
 	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
@@ -24,29 +25,33 @@ type Sender struct {
 }
 
 // NewSender создаёт объект Sender.
-func NewSender(client *httpclient.Client, uc usecase.IClient, endpoint string, l logger.ILogger) *Sender {
-	return &Sender{
+func NewSender(client *httpclient.Client, uc usecase.IClient, endpoint string, l logger.ILogger, cfg *config.Config) *Sender {
+	s := &Sender{
 		client:   client,
 		uc:       uc,
 		endpoint: endpoint,
 		logger:   l,
 	}
-}
 
-// Run - запускает периодическую отправку.
-func (s *Sender) Run(ctx context.Context, wg *sync.WaitGroup, interval time.Duration, pathToCryptoKey string) {
-	ticker := time.NewTicker(interval)
-	defer wg.Done()
-
-	if pathToCryptoKey != "" {
+	if cfg.PathToCryptoKey != "" {
 		var err error
-		s.encoder, err = pki.NewCryptographer(pathToCryptoKey)
+		s.encoder, err = pki.NewCryptographer(cfg.PathToCryptoKey)
 		if err != nil {
 			s.logger.Fatal(err)
 		}
 	}
 
-	s.logger.Info("sender - run with params: a=%s | r=%v", s.endpoint, interval)
+	fmt.Println(s.encoder)
+
+	return s
+}
+
+// Run - запускает периодическую отправку.
+func (s *Sender) Run(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config) {
+	ticker := time.NewTicker(cfg.ReportInterval)
+	defer wg.Done()
+
+	s.logger.Info("sender - run with params: a=%s | r=%v | crypto=%s", s.endpoint, cfg.ReportInterval, cfg.PathToCryptoKey)
 	for {
 		select {
 		case <-ticker.C:
@@ -88,7 +93,7 @@ func (s *Sender) sendMetricsByJSONBatch(metrics []entity.Metric) {
 		s.logger.Error(fmt.Errorf("sender - read metrics: %w", err))
 	}
 
-	if s.encoder != nil {
+	if s.needEncrypt() {
 		if data, err = s.encoder.Encrypt(data); err != nil {
 			s.logger.Fatal(err)
 		}
@@ -98,4 +103,8 @@ func (s *Sender) sendMetricsByJSONBatch(metrics []entity.Metric) {
 		s.logger.Error(fmt.Errorf("sender - post batch of metrics by JSON to %q: %w", s.endpoint, err))
 	}
 	s.logger.Info("sender - send batch of metrics by JSON: ", string(data))
+}
+
+func (s *Sender) needEncrypt() bool {
+	return s.encoder != nil
 }
