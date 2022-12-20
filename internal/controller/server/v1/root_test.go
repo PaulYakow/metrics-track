@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/PaulYakow/metrics-track/cmd/server/config"
 	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
 	"github.com/PaulYakow/metrics-track/internal/usecase/repo"
@@ -203,7 +204,7 @@ func TestURLRoutes(t *testing.T) {
 		},
 	}
 
-	r := NewRouter(usecase.NewServerUC(repo.NewServerMemory(), hasher.New("")), logger.New(), "")
+	r := NewRouter(usecase.NewServerUC(repo.NewServerMemory(), hasher.New("")), logger.New(), &config.Config{PathToCryptoKey: ""})
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 
@@ -396,7 +397,7 @@ func TestJSONRoutes(t *testing.T) {
 		},
 	}
 
-	r := NewRouter(usecase.NewServerUC(repo.NewServerMemory(), hasher.New("")), logger.New(), "")
+	r := NewRouter(usecase.NewServerUC(repo.NewServerMemory(), hasher.New("")), logger.New(), &config.Config{PathToCryptoKey: ""})
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 
