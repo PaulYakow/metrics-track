@@ -24,6 +24,10 @@ func NewDecryptor(privateKeyPath string) (*Decryptor, error) {
 	}}
 
 	keyBytes, err := d.dataReader()
+	if err != nil {
+		return nil, err
+	}
+
 	privateKey, err := convertBytesToPrivateKey(keyBytes)
 	if err != nil {
 		return nil, err

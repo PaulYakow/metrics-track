@@ -37,6 +37,10 @@ func compressGzip(next http.Handler) http.Handler {
 	})
 }
 
+type ctxKey string
+
+const bodyCtxKey ctxKey = "body"
+
 func (s *serverRoutes) decryptData(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		body, err := io.ReadAll(r.Body)
@@ -52,7 +56,7 @@ func (s *serverRoutes) decryptData(next http.Handler) http.Handler {
 			}
 		}
 
-		ctx := context.WithValue(r.Context(), "body", body)
+		ctx := context.WithValue(r.Context(), bodyCtxKey, body)
 		next.ServeHTTP(rw, r.WithContext(ctx))
 	})
 }

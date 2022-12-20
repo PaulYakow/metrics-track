@@ -23,6 +23,10 @@ func NewCryptographer(publicKeyPath string) (*Cryptographer, error) {
 	}}
 
 	keyBytes, err := c.dataReader()
+	if err != nil {
+		return nil, err
+	}
+
 	publicKey, err := convertBytesToPublicKey(keyBytes)
 	if err != nil {
 		return nil, err

@@ -28,7 +28,7 @@ func (s *serverRoutes) updateByJSONBatch(rw http.ResponseWriter, r *http.Request
 		return
 	}
 
-	body := r.Context().Value("body").([]byte)
+	body := r.Context().Value(bodyCtxKey).([]byte)
 	//body, err := io.ReadAll(r.Body)
 	//if err != nil {
 	//	s.logger.Error(fmt.Errorf("router - batch update read body %q: %w", r.URL.Path, err))
