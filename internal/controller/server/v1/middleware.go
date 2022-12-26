@@ -2,6 +2,8 @@ package v1
 
 import (
 	"compress/gzip"
+	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -32,5 +34,29 @@ func compressGzip(next http.Handler) http.Handler {
 
 		w.Header().Set("Content-Encoding", "gzip")
 		next.ServeHTTP(gzipWriter{ResponseWriter: w, Writer: gz}, r)
+	})
+}
+
+type ctxKey string
+
+const bodyCtxKey ctxKey = "body"
+
+func (s *serverRoutes) decryptData(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			s.logger.Error(fmt.Errorf("decrypt - read body %q: %w", r.URL.Path, err))
+			rw.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		if s.decoder != nil {
+			if body, err = s.decoder.Decrypt(body); err != nil {
+				s.logger.Fatal(err)
+			}
+		}
+
+		ctx := context.WithValue(r.Context(), bodyCtxKey, body)
+		next.ServeHTTP(rw, r.WithContext(ctx))
 	})
 }

@@ -1,0 +1,8 @@
+{
+  "address": "localhost:7000",
+  "restore": false,
+  "store_interval": "100s",
+  "store_file_tmp": "/path/to/file.db",
+  "database_dsn": "",
+  "crypto_key_tmp": "/path/to/key.pem"
+}

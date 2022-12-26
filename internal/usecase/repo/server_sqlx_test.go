@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -53,6 +54,53 @@ func TestStore(t *testing.T) {
 
 	err = testSqlx.Store(mCounter)
 	require.NoError(t, err)
+}
+
+func TestStoreBatch(t *testing.T) {
+	var value = 77.7
+	var delta int64 = 1
+
+	metrics := []entity.Metric{
+		{
+			ID:    "testGaugeBatch",
+			MType: "gauge",
+			Value: &value,
+		},
+		{
+			ID:    "testCounterBatch",
+			MType: "counter",
+			Delta: &delta,
+		},
+	}
+
+	err := testSqlx.StoreBatch(metrics)
+	require.NoError(t, err)
+}
+
+func TestRead(t *testing.T) {
+	mGauge := entity.Metric{
+		ID:    "testGauge",
+		MType: "gauge",
+	}
+
+	mCounter := entity.Metric{
+		ID:    "testCounter",
+		MType: "counter",
+	}
+
+	gauge, err := testSqlx.Read(context.Background(), mGauge)
+	require.NoError(t, err)
+	require.NotEmpty(t, gauge)
+
+	counter, err := testSqlx.Read(context.Background(), mCounter)
+	require.NoError(t, err)
+	require.NotEmpty(t, counter)
+}
+
+func TestReadAll(t *testing.T) {
+	metrics, err := testSqlx.ReadAll(context.Background())
+	require.NoError(t, err)
+	require.NotEmpty(t, metrics)
 }
 
 func TestCheckConnection(t *testing.T) {

@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/PaulYakow/metrics-track/cmd/server/config"
 	"github.com/PaulYakow/metrics-track/internal/pkg/httpserver"
 	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
@@ -30,7 +31,7 @@ func ExampleNewRouter() {
 	serverUseCase := usecase.NewServerUC(someRepo, serverHasher)
 
 	// И наконец HTTP-сервер, который обрабатывает запросы
-	handler := NewRouter(serverUseCase, l)
+	handler := NewRouter(serverUseCase, l, &config.Config{})
 	srv := httpserver.New(handler, httpserver.Address(":8080"))
 
 	// Waiting signal

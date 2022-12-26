@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/PaulYakow/metrics-track/config"
+	"github.com/PaulYakow/metrics-track/cmd/agent/config"
 	"github.com/PaulYakow/metrics-track/internal/app/client"
 )
 

@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/PaulYakow/metrics-track/cmd/server/config"
 	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
 	"github.com/PaulYakow/metrics-track/internal/usecase"
 	"github.com/PaulYakow/metrics-track/internal/usecase/repo"
@@ -203,7 +204,7 @@ func TestURLRoutes(t *testing.T) {
 		},
 	}
 
-	r := NewRouter(usecase.NewServerUC(repo.NewServerMemory(), hasher.New("")), logger.New())
+	r := NewRouter(usecase.NewServerUC(repo.NewServerMemory(), hasher.New("")), logger.New(), &config.Config{PathToCryptoKey: ""})
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 
@@ -323,6 +324,29 @@ func TestJSONRoutes(t *testing.T) {
 			want: 200,
 		},
 		{
+			name:    "update invalid content batch",
+			content: "text/html",
+			method:  "POST",
+			path:    "/updates",
+			body: `[
+{"id": "testCounter1","type": "counter","value": 1},
+{"id": "testCounter2","type": "counter","value": 2},
+{"id": "testCounter3","type": "counter","value": 3}
+]`,
+			want: 400,
+		},
+		{
+			name:    "update bad JSON batch",
+			content: "application/json",
+			method:  "POST",
+			path:    "/updates",
+			body: `[
+{"id": "testCounter1","type": "counter","value": 1},
+{"id": "testCounter2","type": "counter","value": 2},
+{"id": "testCounter3","type": "counter","value": 3}`,
+			want: 500,
+		},
+		{
 			name:    "update invalid counter value",
 			content: "application/json",
 			method:  "POST",
@@ -394,9 +418,17 @@ func TestJSONRoutes(t *testing.T) {
 			body:    `{"id": "testUnknown","type": "unknown"}`,
 			want:    404,
 		},
+		{
+			name:    "read bad JSON",
+			content: "application/json",
+			method:  "POST",
+			path:    "/value",
+			body:    `{"id": "testUnknown","type": "unknown"`,
+			want:    500,
+		},
 	}
 
-	r := NewRouter(usecase.NewServerUC(repo.NewServerMemory(), hasher.New("")), logger.New())
+	r := NewRouter(usecase.NewServerUC(repo.NewServerMemory(), hasher.New("")), logger.New(), &config.Config{PathToCryptoKey: ""})
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 

@@ -38,3 +38,6 @@ log*
 
 # docker files
 pg_data
+
+# keys
+*.key

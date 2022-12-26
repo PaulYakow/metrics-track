@@ -1,3 +1,4 @@
+// Package config конфигурация модуля staticlint
 package config
 
 // ConfigData структура с конфигурацией анализаторов пакета staticcheck

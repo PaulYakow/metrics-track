@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/PaulYakow/metrics-track/config"
+	"github.com/PaulYakow/metrics-track/cmd/server/config"
 	"github.com/PaulYakow/metrics-track/internal/controller/server"
 	serverCtrl "github.com/PaulYakow/metrics-track/internal/controller/server/v1"
 	"github.com/PaulYakow/metrics-track/internal/pkg/httpserver"
@@ -21,7 +21,7 @@ import (
 
 // Run собирает сервер из слоёв (хранилище, логика, сервисы).
 // В конце организован graceful shutdown.
-func Run(cfg *config.ServerCfg) {
+func Run(cfg *config.Config) {
 	var err error
 	l := logger.New()
 	defer l.Exit()
@@ -66,15 +66,15 @@ func Run(cfg *config.ServerCfg) {
 	serverUseCase := usecase.NewServerUC(serverRepo, serverHasher)
 
 	// HTTP server
-	handler := serverCtrl.NewRouter(serverUseCase, l)
+	handler := serverCtrl.NewRouter(serverUseCase, l, cfg)
 	srv := httpserver.New(handler, httpserver.Address(cfg.Address))
 
-	l.Info("server - run with params: a=%s | i=%v | f=%s | r=%v | k=%v | d=%s",
-		cfg.Address, cfg.StoreInterval, cfg.StoreFile, cfg.Restore, cfg.Key, cfg.Dsn)
+	l.Info("server - run with params: a=%s | i=%v | f=%s | r=%v | k=%v | d=%s | crypto=%s",
+		cfg.Address, cfg.StoreInterval, cfg.StoreFile, cfg.Restore, cfg.Key, cfg.Dsn, cfg.PathToCryptoKey)
 
 	// Waiting signal
 	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
 	select {
 	case s := <-interrupt:

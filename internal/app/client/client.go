@@ -9,7 +9,7 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/PaulYakow/metrics-track/config"
+	"github.com/PaulYakow/metrics-track/cmd/agent/config"
 	"github.com/PaulYakow/metrics-track/internal/controller/client"
 	"github.com/PaulYakow/metrics-track/internal/pkg/httpclient"
 	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
@@ -21,7 +21,7 @@ import (
 // Run собирает клиента из слоёв (хранилище, логика, сервисы).
 // Запускает отдельными потоками "сборщика" метрик и отправку данных.
 // В конце организован graceful shutdown.
-func Run(cfg *config.ClientCfg) {
+func Run(cfg *config.Config) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	l := logger.New()
@@ -35,16 +35,16 @@ func Run(cfg *config.ClientCfg) {
 
 	c := httpclient.New()
 	endpoint := fmt.Sprintf("http://%s/updates/", cfg.Address)
-	sender := client.NewSender(c, agentUseCase, endpoint, l)
+	sender := client.NewSender(c, agentUseCase, endpoint, l, cfg)
 
 	wg := new(sync.WaitGroup)
 	wg.Add(2)
-	go collector.Run(ctx, wg, cfg.PollInterval)
-	go sender.Run(ctx, wg, cfg.ReportInterval)
+	go collector.Run(ctx, wg, cfg)
+	go sender.Run(ctx, wg, cfg)
 
 	// Ожидание сигнала завершения
 	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
 	s := <-interrupt
 	cancel()
