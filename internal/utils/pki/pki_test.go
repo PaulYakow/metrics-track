@@ -24,7 +24,7 @@ Curabitur ipsum felis, bibendum non ultrices nec, pharetra quis nibh. Phasellus 
 Morbi ornare lectus eget tempor fringilla. Maecenas a aliquet nunc. Mauris varius ullamcorper libero, sit amet fermentum nisi lobortis a. Proin a dapibus nisl, vitae vestibulum est. Etiam rutrum, dui a suscipit imperdiet, dolor lacus tincidunt nibh, in ullamcorper lacus tortor in lorem. Lorem ipsum dolor sit est.
 `)
 
-	// "Читаем" публичный ключ
+	// Имитация конструктора NewCryptographer ("читаем" публичный ключ)
 	c := &Cryptographer{dataReader: func() ([]byte, error) {
 		return []byte(`-----BEGIN PUBLIC KEY-----
 MIICCgKCAgEAoGcVIhZgpX7IvB7TXdqruS7Hko7z+1V/wP1p2SrYxUDUstsHsyQ/
@@ -41,7 +41,6 @@ IP9BSxObYE7mr+WKDDNKu7bDnNnzo7tpCnhYQ6WpGBBNRoIzO+XsVYMCAwEAAQ==
 -----END PUBLIC KEY-----`), nil
 	}}
 
-	// Имитация конструктора NewCryptographer
 	publicKeyBytes, err := c.dataReader()
 	require.NoError(t, err)
 	require.NotNil(t, publicKeyBytes)
@@ -57,7 +56,7 @@ IP9BSxObYE7mr+WKDDNKu7bDnNnzo7tpCnhYQ6WpGBBNRoIzO+XsVYMCAwEAAQ==
 	require.NoError(t, err)
 	require.NotNil(t, dataEncrypted)
 
-	// Имитация конструктора NewDecryptor
+	// Имитация конструктора NewDecryptor ("читаем" приватный ключ)
 	d := &Decryptor{dataReader: func() ([]byte, error) {
 		return []byte(`-----BEGIN PRIVATE KEY-----
 MIIJJwIBAAKCAgEAoGcVIhZgpX7IvB7TXdqruS7Hko7z+1V/wP1p2SrYxUDUstsH
@@ -126,4 +125,14 @@ NcNrLRBxqJ/mbbvpJ3oFNOKcp6RxwOSu0CVtCFBQp4AH70jp7WRmLSajjQ==
 	dataDecrypted, err := d.Decrypt(dataEncrypted)
 	require.NoError(t, err)
 	require.Equal(t, data, dataDecrypted)
+
+	// Некорректный путь до файла ключа
+	c, err = NewCryptographer("/wrong/path/to/public.key")
+	require.Error(t, err)
+	require.Nil(t, c)
+
+	d, err = NewDecryptor("/wrong/path/to/private.key")
+	require.Error(t, err)
+	require.Nil(t, d)
+
 }

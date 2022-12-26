@@ -18,7 +18,7 @@ type ServerMemoryRepo struct {
 // NewServerMemory создаёт объект ServerMemoryRepo.
 func NewServerMemory() *ServerMemoryRepo {
 	return &ServerMemoryRepo{
-		metrics: make(map[string]*entity.Metric, 30),
+		metrics: make(map[string]*entity.Metric, defaultCap),
 	}
 }
 
@@ -28,10 +28,11 @@ func (repo *ServerMemoryRepo) Store(metric *entity.Metric) error {
 
 	if _, ok := repo.metrics[metric.ID]; !ok {
 		repo.metrics[metric.ID] = metric
-		return nil
+		//return nil
 	}
 
 	if err := repo.metrics[metric.ID].Update(metric); err != nil {
+		delete(repo.metrics, metric.ID)
 		return err
 	}
 

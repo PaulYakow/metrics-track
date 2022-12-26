@@ -7,6 +7,8 @@ import (
 	"github.com/PaulYakow/metrics-track/internal/entity"
 )
 
+const defaultCap = 30
+
 // ClientMemoryRepo реализация репозитория клиента (usecase.IClientMemory). Хранение в памяти.
 type ClientMemoryRepo struct {
 	metrics map[string]*entity.Metric
@@ -16,7 +18,7 @@ type ClientMemoryRepo struct {
 // NewClientRepo создаёт объект ClientMemoryRepo
 func NewClientRepo() *ClientMemoryRepo {
 	return &ClientMemoryRepo{
-		metrics: make(map[string]*entity.Metric, 30),
+		metrics: make(map[string]*entity.Metric, defaultCap),
 	}
 }
 
