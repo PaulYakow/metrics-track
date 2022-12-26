@@ -28,7 +28,7 @@ func (repo *ServerMemoryRepo) Store(metric *entity.Metric) error {
 
 	if _, ok := repo.metrics[metric.ID]; !ok {
 		repo.metrics[metric.ID] = metric
-		//return nil
+		return nil
 	}
 
 	if err := repo.metrics[metric.ID].Update(metric); err != nil {

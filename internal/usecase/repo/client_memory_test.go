@@ -19,7 +19,7 @@ func TestClientMemoryRepo(t *testing.T) {
 
 	t.Run("client repo store new", func(t *testing.T) {
 		var delta int64 = 999
-		var value float64 = 0.999
+		var value = 0.999
 		metrics = map[string]*entity.Metric{
 			"testGauge": {
 				ID:    "testGauge",
@@ -35,7 +35,7 @@ func TestClientMemoryRepo(t *testing.T) {
 	})
 
 	t.Run("client repo store update", func(t *testing.T) {
-		var value float64 = 0.666
+		var value = 0.666
 		metricsUpdate := map[string]*entity.Metric{
 			"testGauge": {
 				ID:    "testGauge",

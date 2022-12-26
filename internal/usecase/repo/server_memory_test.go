@@ -20,7 +20,7 @@ func TestServerMemoryRepo(t *testing.T) {
 	})
 
 	t.Run("server repo store new", func(t *testing.T) {
-		var value float64 = 0.999
+		var value = 0.999
 		metric = &entity.Metric{
 			ID:    "testGauge",
 			MType: "gauge",
@@ -30,17 +30,29 @@ func TestServerMemoryRepo(t *testing.T) {
 		require.Equal(t, repo.metrics["testGauge"], metric)
 	})
 
+	t.Run("server repo store update", func(t *testing.T) {
+		var value = 0.666
+		metricUpdate := &entity.Metric{
+			ID:    "testGauge",
+			MType: "gauge",
+			Value: &value}
+		err := repo.Store(metricUpdate)
+		require.NoError(t, err)
+		require.Equal(t, metricUpdate, repo.metrics[metricUpdate.ID])
+	})
+
 	t.Run("server repo store unknown type", func(t *testing.T) {
 		metricUnknown := &entity.Metric{
 			ID:    "testUnknown",
 			MType: "unknown"}
+		_ = repo.Store(metricUnknown)
 		err := repo.Store(metricUnknown)
 		require.Error(t, err)
 		require.Empty(t, repo.metrics[metricUnknown.ID])
 	})
 
 	t.Run("server repo store batch", func(t *testing.T) {
-		var value float64 = 0.999
+		var value = 0.999
 		var delta int64 = 999
 		repo = NewServerMemory()
 
