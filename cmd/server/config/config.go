@@ -19,6 +19,7 @@ type Config struct {
 	Key             string        `env:"KEY" env-default:""`
 	Dsn             string        `env:"DATABASE_DSN" env-default:""`
 	PathToCryptoKey string        `env:"CRYPTO_KEY" env-default:""`
+	TrustedSubnet   string        `env:"TRUSTED_SUBNET" env-default:""`
 	StoreInterval   time.Duration `env:"STORE_INTERVAL" env-default:"300s"`
 	Restore         bool          `env:"RESTORE" env-default:"true"`
 }
@@ -107,6 +108,18 @@ var pathToCryptoKey = struct {
 	"",
 }
 
+var trustedSubnet = struct {
+	name         string
+	shorthand    string
+	value        *string
+	defaultValue string
+}{
+	"trusted",
+	"t",
+	new(string),
+	"",
+}
+
 var pathToConfig = struct {
 	name         string
 	shorthand    string
@@ -142,6 +155,7 @@ func (cfg *Config) updateCfgFromFlags() {
 	hashKey.value = pflag.StringP(hashKey.name, hashKey.shorthand, hashKey.defaultValue, "hash key")
 	dsn.value = pflag.StringP(dsn.name, dsn.shorthand, dsn.defaultValue, "DSN for database connect")
 	pathToCryptoKey.value = pflag.StringP(pathToCryptoKey.name, pathToCryptoKey.shorthand, pathToCryptoKey.defaultValue, "path to crypto key")
+	trustedSubnet.value = pflag.StringP(trustedSubnet.name, trustedSubnet.shorthand, trustedSubnet.defaultValue, "trusted subnet (CIDR notation)")
 
 	pathToConfig.value = pflag.StringP(pathToConfig.name, pathToConfig.shorthand, pathToConfig.defaultValue, "path to config file")
 
@@ -173,8 +187,11 @@ func (cfg *Config) updateCfgFromFlags() {
 		cfg.PathToCryptoKey = *pathToCryptoKey.value
 	}
 
+	if *trustedSubnet.value != trustedSubnet.defaultValue || cfg.TrustedSubnet == "" {
+		cfg.TrustedSubnet = *trustedSubnet.value
+	}
+
 	cfg.Key = *hashKey.value
-	fmt.Println("flag config =", *cfg)
 }
 
 func (cfg *Config) updateCfgFromJSON(path string) {
@@ -194,6 +211,7 @@ func (cfg *Config) updateCfgFromJSON(path string) {
 		cfg.Restore = cfgFromJSON.Restore
 		cfg.Dsn = cfgFromJSON.Dsn
 		cfg.PathToCryptoKey = cfgFromJSON.PathToCryptoKey
+		cfg.TrustedSubnet = cfgFromJSON.TrustedSubnet
 	}
 
 	fmt.Println("JSON config =", cfgFromJSON)
@@ -232,6 +250,7 @@ type CfgFromJSON struct {
 	StoreFile       string   `json:"store_file"`
 	Dsn             string   `json:"database_dsn"`
 	PathToCryptoKey string   `json:"crypto_key"`
+	TrustedSubnet   string   `json:"trusted_subnet"`
 	StoreInterval   Duration `json:"store_interval"`
 	Restore         bool     `json:"restore"`
 }

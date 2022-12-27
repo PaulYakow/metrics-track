@@ -51,7 +51,8 @@ func (s *Sender) Run(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config
 	ticker := time.NewTicker(cfg.ReportInterval)
 	defer wg.Done()
 
-	s.logger.Info("sender - run with params: a=%s | r=%v | crypto=%s", s.endpoint, cfg.ReportInterval, cfg.PathToCryptoKey)
+	s.logger.Info("sender - run with params: a=%s | r=%v | crypto=%s | ip=%s",
+		s.endpoint, cfg.ReportInterval, cfg.PathToCryptoKey, cfg.RealIP)
 	for {
 		select {
 		case <-ticker.C:

@@ -53,6 +53,10 @@ func NewRouter(uc usecase.IServer, l logger.ILogger, cfg *config.Config) chi.Rou
 	mux.Use(middleware.Recoverer)
 	mux.Use(compressGzip)
 
+	if cfg.TrustedSubnet != "" {
+		mux.Use(s.checkRealIP(cfg.TrustedSubnet))
+	}
+
 	mux.Get("/", s.listOfMetrics)
 	mux.Get(pingRoute, s.pingDB)
 	mux.Mount(updateRoute, s.createUpdateRoutes())

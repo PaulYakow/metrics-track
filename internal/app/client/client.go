@@ -33,7 +33,7 @@ func Run(cfg *config.Config) {
 
 	collector := client.NewCollector(agentUseCase, l)
 
-	c := httpclient.New()
+	c := httpclient.New(httpclient.RealIP(cfg.RealIP))
 	endpoint := fmt.Sprintf("http://%s/updates/", cfg.Address)
 	sender := client.NewSender(c, agentUseCase, endpoint, l, cfg)
 
