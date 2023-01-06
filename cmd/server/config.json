@@ -1,5 +1,5 @@
 {
-  "address_tmp": "localhost:8080",
+  "address": "localhost:8080",
   "restore": false,
   "store_interval": "100s",
   "store_file_tmp": "/path/to/file.db",

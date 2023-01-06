@@ -14,7 +14,7 @@ import (
 
 // Config конфигурация клиента (привязка переменных окружения).
 type Config struct {
-	Address         string        `env:"ADDRESS" env-default:""`
+	Address         string        `env:"ADDRESS" env-default:"localhost:8080"`
 	GRPCTarget      string        `env:"GRPC_TARGET" env-default:""`
 	Key             string        `env:"KEY" env-default:""`
 	ReportInterval  time.Duration `env:"REPORT_INTERVAL" env-default:"10s"`
