@@ -14,7 +14,8 @@ import (
 
 // Config конфигурация клиента (привязка переменных окружения).
 type Config struct {
-	Address         string        `env:"ADDRESS" env-default:"localhost:8080"`
+	Address         string        `env:"ADDRESS" env-default:""`
+	GRPCTarget      string        `env:"GRPC_TARGET" env-default:""`
 	Key             string        `env:"KEY" env-default:""`
 	ReportInterval  time.Duration `env:"REPORT_INTERVAL" env-default:"10s"`
 	PollInterval    time.Duration `env:"POLL_INTERVAL" env-default:"2s"`
@@ -31,7 +32,19 @@ var address = struct {
 	"address",
 	"a",
 	new(string),
-	"localhost:8080",
+	"",
+}
+
+var grpcTarget = struct {
+	name         string
+	shorthand    string
+	value        *string
+	defaultValue string
+}{
+	"grpc",
+	"g",
+	new(string),
+	"",
 }
 
 var reportInterval = struct {
@@ -122,6 +135,7 @@ func NewClientConfig() (*Config, error) {
 
 func (cfg *Config) updateCfgFromFlags() {
 	address.value = pflag.StringP(address.name, address.shorthand, address.defaultValue, "address of client in host:port format")
+	grpcTarget.value = pflag.StringP(grpcTarget.name, grpcTarget.shorthand, grpcTarget.defaultValue, "grpc target in host:port format")
 	reportInterval.value = pflag.DurationP(reportInterval.name, reportInterval.shorthand, reportInterval.defaultValue, "report interval in seconds")
 	pollInterval.value = pflag.DurationP(pollInterval.name, pollInterval.shorthand, pollInterval.defaultValue, "poll interval in seconds")
 	hashKey.value = pflag.StringP(hashKey.name, hashKey.shorthand, hashKey.defaultValue, "hash key")

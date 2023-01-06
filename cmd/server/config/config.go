@@ -15,6 +15,7 @@ import (
 // Config конфигурация сервера (привязка переменных окружения).
 type Config struct {
 	Address         string        `env:"ADDRESS" env-default:"localhost:8080"`
+	GRPCAddress     string        `env:"GRPC_ADDRESS" env-default:""`
 	StoreFile       string        `env:"STORE_FILE" env-default:"/tmp/devops-metrics-db.json"`
 	Key             string        `env:"KEY" env-default:""`
 	Dsn             string        `env:"DATABASE_DSN" env-default:""`
@@ -34,6 +35,18 @@ var address = struct {
 	"a",
 	new(string),
 	"localhost:8080",
+}
+
+var grpcAddress = struct {
+	name         string
+	shorthand    string
+	value        *string
+	defaultValue string
+}{
+	"grpc",
+	"g",
+	new(string),
+	"",
 }
 
 var storeInterval = struct {
@@ -148,7 +161,8 @@ func NewServerConfig() (*Config, error) {
 }
 
 func (cfg *Config) updateCfgFromFlags() {
-	address.value = pflag.StringP(address.name, address.shorthand, address.defaultValue, "address of server in host:port format")
+	address.value = pflag.StringP(address.name, address.shorthand, address.defaultValue, "address of HTTP-server in host:port format")
+	grpcAddress.value = pflag.StringP(grpcAddress.name, grpcAddress.shorthand, grpcAddress.defaultValue, "grpc address in :port format")
 	storeInterval.value = pflag.DurationP(storeInterval.name, storeInterval.shorthand, storeInterval.defaultValue, "store interval in seconds")
 	storeFile.value = pflag.StringP(storeFile.name, storeFile.shorthand, storeFile.defaultValue, "path to file")
 	restore.value = pflag.BoolP(restore.name, restore.shorthand, restore.defaultValue, "restore after restart")

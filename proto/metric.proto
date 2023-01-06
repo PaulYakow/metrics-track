@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package metrics;
+
+option go_package = "metrics-track/proto";
+
+message Metric {
+  string id = 1; // имя метрики
+  string mType = 2; // параметр, принимающий значение gauge или counter
+  int64 delta = 3; // значение метрики в случае передачи counter
+  double value = 4; // значение метрики в случае передачи gauge
+  string hash = 5; // значение хеш-функции
+}
+
+// UpdateSingle ---------------
+message UpdateSingleRequest {
+  Metric metric = 1; // метрика для сохранения/обновления
+}
+
+message UpdateSingleResponse {
+  string error = 1; // ошибка обновления метрики
+}
+
+// UpdateBatch ---------------
+message UpdateBatchRequest {
+  repeated Metric metrics = 1; // массив метрик для сохранения/обновления
+}
+
+message UpdateBatchResponse {
+  string error = 1; // ошибка обновления массива метрик
+}
+
+// GetSingle ---------------
+message GetSingleRequest {
+  Metric metric = 1; // метрика для запроса на чтение
+}
+
+message GetSingleResponse {
+  Metric metric = 1; // значение запрошенной метрики
+  string error = 2; // ошибка чтения метрики
+}
+
+// ListMetrics ---------------
+message ListMetricsRequest {}
+
+message ListMetricsResponse {
+  repeated Metric metrics = 1; // массив считанных метрик
+  string error = 2; // ошибка чтения метрик
+}
+
+// CheckRepo ---------------
+message CheckRepoRequest {}
+
+message CheckRepoResponse {
+  string error = 1; // ошибка соединения с базой данных
+}
+
+service Metrics {
+  rpc UpdateSingle(UpdateSingleRequest) returns (UpdateSingleResponse);
+  rpc UpdateBatch(UpdateBatchRequest) returns (UpdateBatchResponse);
+  rpc GetSingle(GetSingleRequest) returns (GetSingleResponse);
+  rpc ListMetrics(ListMetricsRequest) returns (ListMetricsResponse);
+  rpc CheckRepo(CheckRepoRequest) returns (CheckRepoResponse);
+}

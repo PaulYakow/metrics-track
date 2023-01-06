@@ -33,14 +33,15 @@ func Run(cfg *config.Config) {
 
 	collector := client.NewCollector(agentUseCase, l)
 
-	c := httpclient.New(httpclient.RealIP(cfg.RealIP))
-	endpoint := fmt.Sprintf("http://%s/updates/", cfg.Address)
-	sender := client.NewSender(c, agentUseCase, endpoint, l, cfg)
-
 	wg := new(sync.WaitGroup)
 	wg.Add(2)
 	go collector.Run(ctx, wg, cfg)
-	go sender.Run(ctx, wg, cfg)
+
+	if cfg.Address != "" {
+		go runHTTPSender(ctx, wg, agentUseCase, l, cfg)
+	} else if cfg.Address == "" && cfg.GRPCTarget != "" {
+		go runGRPCSender(ctx, wg, agentUseCase, l, cfg)
+	}
 
 	// Ожидание сигнала завершения
 	interrupt := make(chan os.Signal, 1)
@@ -50,4 +51,16 @@ func Run(cfg *config.Config) {
 	cancel()
 	wg.Wait()
 	l.Info("client - Run - signal: %s", s.String())
+}
+
+func runHTTPSender(ctx context.Context, wg *sync.WaitGroup, uc usecase.IClient, l logger.ILogger, cfg *config.Config) {
+	c := httpclient.New(httpclient.RealIP(cfg.RealIP))
+	endpoint := fmt.Sprintf("http://%s/updates/", cfg.Address)
+	sender := client.NewHTTPSender(c, uc, endpoint, l, cfg)
+	sender.Run(ctx, wg, cfg)
+}
+
+func runGRPCSender(ctx context.Context, wg *sync.WaitGroup, uc usecase.IClient, l logger.ILogger, cfg *config.Config) {
+	sender := client.NewGRPCSender(uc, l)
+	sender.Run(ctx, wg, cfg)
 }

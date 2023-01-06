@@ -15,8 +15,8 @@ import (
 	"github.com/PaulYakow/metrics-track/internal/utils/pki"
 )
 
-// Sender управляет периодической отправкой метрик на заданный адрес.
-type Sender struct {
+// HTTPSender управляет периодической отправкой метрик на заданный адрес.
+type HTTPSender struct {
 	client   *httpclient.Client
 	uc       usecase.IClient
 	logger   logger.ILogger
@@ -24,9 +24,9 @@ type Sender struct {
 	encoder  *pki.Cryptographer
 }
 
-// NewSender создаёт объект Sender.
-func NewSender(client *httpclient.Client, uc usecase.IClient, endpoint string, l logger.ILogger, cfg *config.Config) *Sender {
-	s := &Sender{
+// NewHTTPSender создаёт объект HTTPSender.
+func NewHTTPSender(client *httpclient.Client, uc usecase.IClient, endpoint string, l logger.ILogger, cfg *config.Config) *HTTPSender {
+	s := &HTTPSender{
 		client:   client,
 		uc:       uc,
 		endpoint: endpoint,
@@ -41,17 +41,15 @@ func NewSender(client *httpclient.Client, uc usecase.IClient, endpoint string, l
 		}
 	}
 
-	fmt.Println(s.encoder)
-
 	return s
 }
 
 // Run - запускает периодическую отправку.
-func (s *Sender) Run(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config) {
+func (s *HTTPSender) Run(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config) {
 	ticker := time.NewTicker(cfg.ReportInterval)
 	defer wg.Done()
 
-	s.logger.Info("sender - run with params: a=%s | r=%v | crypto=%s | ip=%s",
+	s.logger.Info("HTTP sender - run with params: address=%s | report=%v | crypto=%s | ip=%s",
 		s.endpoint, cfg.ReportInterval, cfg.PathToCryptoKey, cfg.RealIP)
 	for {
 		select {
@@ -66,7 +64,7 @@ func (s *Sender) Run(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config
 }
 
 // sendMetricsByURL - отправка метрики посредством URL.
-func (s *Sender) sendMetricsByURL(routes []string) {
+func (s *HTTPSender) sendMetricsByURL(routes []string) {
 	for _, route := range routes {
 		if err := s.client.PostByURL(s.endpoint + route); err != nil {
 			s.logger.Error(fmt.Errorf("sender - post metric by URL to %q: %w", s.endpoint+route, err))
@@ -75,7 +73,7 @@ func (s *Sender) sendMetricsByURL(routes []string) {
 }
 
 // sendMetricsByJSON - отправка метрики посредством JSON.
-func (s *Sender) sendMetricsByJSON(metrics []entity.Metric) {
+func (s *HTTPSender) sendMetricsByJSON(metrics []entity.Metric) {
 	for _, metric := range metrics {
 		data, err := json.Marshal(metric)
 		if err != nil {
@@ -88,7 +86,7 @@ func (s *Sender) sendMetricsByJSON(metrics []entity.Metric) {
 }
 
 // sendMetricsByJSONBatch - отправка метрики посредством пакета JSON.
-func (s *Sender) sendMetricsByJSONBatch(metrics []entity.Metric) {
+func (s *HTTPSender) sendMetricsByJSONBatch(metrics []entity.Metric) {
 	data, err := json.Marshal(metrics)
 	if err != nil {
 		s.logger.Error(fmt.Errorf("sender - read metrics: %w", err))
@@ -106,6 +104,6 @@ func (s *Sender) sendMetricsByJSONBatch(metrics []entity.Metric) {
 	s.logger.Info("sender - send batch of metrics by JSON: ", string(data))
 }
 
-func (s *Sender) needEncrypt() bool {
+func (s *HTTPSender) needEncrypt() bool {
 	return s.encoder != nil
 }
