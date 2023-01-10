@@ -16,6 +16,10 @@ import (
 	pb "github.com/PaulYakow/metrics-track/proto"
 )
 
+const (
+	defaultCtxTimeout = 500 * time.Millisecond
+)
+
 // GRPCSender управляет периодической отправкой метрик на заданный адрес.
 type GRPCSender struct {
 	client pb.MetricsClient
@@ -86,7 +90,7 @@ func (s *GRPCSender) sendMetrics(ctx context.Context) {
 
 	request := &pb.UpdateBatchRequest{Metrics: grpcMetrics}
 
-	ctx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
+	ctx, cancel := context.WithTimeout(ctx, defaultCtxTimeout)
 	defer cancel()
 
 	response, err := s.client.UpdateBatch(ctx, request)

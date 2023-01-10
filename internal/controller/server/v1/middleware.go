@@ -62,39 +62,28 @@ func (s *serverRoutes) decryptData(next http.Handler) http.Handler {
 	})
 }
 
-type MiddlewareFunc func(http.Handler) http.Handler
+func (s *serverRoutes) checkRealIP(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		realIP := r.Header.Get("X-Real-IP")
+		if realIP == "" {
+			s.logger.Error(fmt.Errorf("header 'X-Real-IP' is empty"))
+			rw.WriteHeader(http.StatusForbidden)
+			return
+		}
 
-func (s *serverRoutes) checkRealIP(trustedSubnet string) MiddlewareFunc {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-			realIP := r.Header.Get("X-Real-IP")
-			if realIP == "" {
-				s.logger.Error(fmt.Errorf("header 'X-Real-IP' is empty"))
-				rw.WriteHeader(http.StatusForbidden)
-				return
-			}
+		ip, err := netip.ParseAddr(realIP)
+		if err != nil {
+			s.logger.Error(fmt.Errorf("check IP of agent: %w", err))
+			rw.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
-			network, err := netip.ParsePrefix(trustedSubnet)
-			if err != nil {
-				s.logger.Error(fmt.Errorf("parse trusted subnet: %w", err))
-				rw.WriteHeader(http.StatusInternalServerError)
-				return
-			}
+		if !s.trustedSubnet.Contains(ip) {
+			s.logger.Error(fmt.Errorf("no such IP in trusted: %s", ip))
+			rw.WriteHeader(http.StatusForbidden)
+			return
+		}
 
-			ip, err := netip.ParseAddr(realIP)
-			if err != nil {
-				s.logger.Error(fmt.Errorf("check IP of agent: %w", err))
-				rw.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-
-			if !network.Contains(ip) {
-				s.logger.Error(fmt.Errorf("no such IP in trusted: %s", ip))
-				rw.WriteHeader(http.StatusForbidden)
-				return
-			}
-
-			next.ServeHTTP(rw, r)
-		})
-	}
+		next.ServeHTTP(rw, r)
+	})
 }

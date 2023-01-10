@@ -3,6 +3,7 @@ package httpserver
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"time"
 )
@@ -17,7 +18,6 @@ const (
 // Server обёртка для http.Server
 type Server struct {
 	server          *http.Server
-	notify          chan error
 	shutdownTimeout time.Duration
 }
 
@@ -32,7 +32,6 @@ func New(handler http.Handler, opts ...Option) *Server {
 
 	s := &Server{
 		server:          httpServer,
-		notify:          make(chan error, 1),
 		shutdownTimeout: defaultShutdownTimeout,
 	}
 
@@ -40,14 +39,7 @@ func New(handler http.Handler, opts ...Option) *Server {
 		opt(s)
 	}
 
-	s.start()
-
 	return s
-}
-
-// Notify - уведомляет о нештатном завершении работы сервера (с ошибкой).
-func (s *Server) Notify() <-chan error {
-	return s.notify
 }
 
 // Shutdown - завершает работу сервера с выдержкой времени.
@@ -58,9 +50,11 @@ func (s *Server) Shutdown() error {
 	return s.server.Shutdown(ctx)
 }
 
-func (s *Server) start() {
+func (s *Server) Run() {
 	go func() {
-		s.notify <- s.server.ListenAndServe()
-		close(s.notify)
+
+		if err := s.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Println(err, s.Shutdown())
+		}
 	}()
 }

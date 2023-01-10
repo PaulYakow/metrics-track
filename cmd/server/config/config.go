@@ -14,17 +14,18 @@ import (
 
 // Config конфигурация сервера (привязка переменных окружения).
 type Config struct {
-	Address         string        `env:"ADDRESS" env-default:"localhost:8080"`
-	GRPCAddress     string        `env:"GRPC_ADDRESS" env-default:""`
+	Address         string        `env:"ADDRESS"`
+	GRPCAddress     string        `env:"GRPC_ADDRESS"`
 	StoreFile       string        `env:"STORE_FILE" env-default:"/tmp/devops-metrics-db.json"`
-	Key             string        `env:"KEY" env-default:""`
-	Dsn             string        `env:"DATABASE_DSN" env-default:""`
-	PathToCryptoKey string        `env:"CRYPTO_KEY" env-default:""`
-	TrustedSubnet   string        `env:"TRUSTED_SUBNET" env-default:""`
+	Key             string        `env:"KEY"`
+	Dsn             string        `env:"DATABASE_DSN"`
+	PathToCryptoKey string        `env:"CRYPTO_KEY"`
+	TrustedSubnet   string        `env:"TRUSTED_SUBNET"`
 	StoreInterval   time.Duration `env:"STORE_INTERVAL" env-default:"300s"`
 	Restore         bool          `env:"RESTORE" env-default:"true"`
 }
 
+// Структуры для обработки значений из флагов
 var address = struct {
 	name         string
 	shorthand    string

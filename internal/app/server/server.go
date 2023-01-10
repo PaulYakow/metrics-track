@@ -20,35 +20,87 @@ import (
 	"github.com/PaulYakow/metrics-track/internal/usecase/services/hasher"
 )
 
+type Server struct {
+	logger  *logger.Logger
+	repo    usecase.IServerRepo
+	hasher  usecase.IHasher
+	usecase usecase.IServer
+	httpSrv *httpserver.Server
+	grpcSrv *v2.MetricsServer
+}
+
+func New(cfg *config.Config) *Server {
+	s := &Server{
+		logger: logger.New(),
+		hasher: hasher.New(cfg.Key),
+	}
+
+	s.repo = s.createServerRepo(cfg)
+	s.usecase = usecase.NewServerUC(s.repo, s.hasher)
+
+	// HTTP server
+	if cfg.Address != "" {
+		handler := serverCtrl.NewRouter(s.usecase, s.logger, cfg)
+		s.httpSrv = httpserver.New(handler, httpserver.Address(cfg.Address))
+		s.logger.Info("server - run with params: a=%s | i=%v | f=%s | r=%v | k=%v | d=%s | crypto=%s",
+			cfg.Address, cfg.StoreInterval, cfg.StoreFile, cfg.Restore, cfg.Key, cfg.Dsn, cfg.PathToCryptoKey)
+	}
+
+	// gRPC server
+	if cfg.GRPCAddress != "" {
+		s.grpcSrv = v2.New(s.usecase, s.logger, cfg)
+	}
+
+	return s
+}
+
 // Run собирает сервер из слоёв (хранилище, логика, сервисы).
 // В конце организован graceful shutdown.
-func Run(cfg *config.Config) {
-	var err error
-	l := logger.New()
-	defer l.Exit()
+func (s *Server) Run() {
+	defer s.logger.Exit()
 
+	if s.httpSrv != nil {
+		s.httpSrv.Run()
+	}
+
+	if s.grpcSrv != nil {
+		s.grpcSrv.Run()
+	}
+
+	// Waiting signal
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+
+	sig := <-interrupt
+	s.logger.Info("server - Run - signal: %v", sig.String())
+
+	// Shutdown
+	if err := s.httpSrv.Shutdown(); err != nil {
+		s.logger.Error(fmt.Errorf("server - Run - Shutdown: %w", err))
+	}
+}
+
+func (s *Server) createServerRepo(cfg *config.Config) usecase.IServerRepo {
 	// In-memory storage
 	var serverRepo usecase.IServerRepo = repo.NewServerMemory()
-
-	serverHasher := hasher.New(cfg.Key)
 
 	// File or db storage
 	storage := false
 
 	if cfg.Dsn != "" {
-		pg, err1 := postgre.New(cfg.Dsn)
-		if err1 != nil {
-			l.Fatal(fmt.Errorf("server - Run - postgre.New: %w", err1))
+		pg, err := postgre.New(cfg.Dsn)
+		if err != nil {
+			s.logger.Fatal(fmt.Errorf("server - Run - postgre.New: %w", err))
 		}
 		defer pg.Close()
-		l.Info("server - Run - PSQL connection ok")
+		s.logger.Info("server - Run - PSQL connection ok")
 
-		serverRepo, err1 = repo.NewSqlxImpl(pg)
-		if err1 != nil {
-			l.Fatal(fmt.Errorf("server - Run - repo.New: %w", err1))
+		serverRepo, err = repo.NewSqlxImpl(pg)
+		if err != nil {
+			s.logger.Fatal(fmt.Errorf("server - Run - repo.New: %w", err))
 		}
 		storage = true
-		l.Info("server - Run - PSQL in use")
+		s.logger.Info("server - Run - PSQL in use")
 	}
 
 	if cfg.StoreFile != "" && !storage {
@@ -56,40 +108,13 @@ func Run(cfg *config.Config) {
 		defer cancel()
 
 		// memory <-> repo
-		scheduler, err2 := server.NewScheduler(serverRepo, cfg.StoreFile, l)
-		if err2 != nil {
-			l.Error(fmt.Errorf("server - run scheduler: %w", err2))
+		scheduler, err := server.NewScheduler(serverRepo, cfg.StoreFile, s.logger)
+		if err != nil {
+			s.logger.Error(fmt.Errorf("server - run scheduler: %w", err))
 		}
 		scheduler.Run(ctx, cfg.Restore, cfg.StoreInterval)
-		l.Info("server - Run - file storage in use")
+		s.logger.Info("server - Run - file storage in use")
 	}
 
-	serverUseCase := usecase.NewServerUC(serverRepo, serverHasher)
-
-	// HTTP server
-	handler := serverCtrl.NewRouter(serverUseCase, l, cfg)
-	srv := httpserver.New(handler, httpserver.Address(cfg.Address))
-
-	l.Info("server - run with params: a=%s | i=%v | f=%s | r=%v | k=%v | d=%s | crypto=%s",
-		cfg.Address, cfg.StoreInterval, cfg.StoreFile, cfg.Restore, cfg.Key, cfg.Dsn, cfg.PathToCryptoKey)
-
-	// gRPC server
-	v2.New(serverUseCase, l, cfg)
-
-	// Waiting signal
-	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
-
-	select {
-	case s := <-interrupt:
-		l.Info("server - Run - signal: %v", s.String())
-	case err = <-srv.Notify():
-		l.Error(fmt.Errorf("server - Run - Notify: %w", err))
-	}
-
-	// Shutdown
-	err = srv.Shutdown()
-	if err != nil {
-		l.Error(fmt.Errorf("server - Run - Shutdown: %w", err))
-	}
+	return serverRepo
 }

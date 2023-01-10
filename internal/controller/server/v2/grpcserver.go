@@ -18,33 +18,37 @@ import (
 // MetricsServer управляет обработкой gRPC запросов.
 type MetricsServer struct {
 	pb.UnimplementedMetricsServer
-	uc     usecase.IServer
-	logger logger.ILogger
+	address string
+	uc      usecase.IServer
+	logger  logger.ILogger
 }
 
 // New создаёт объект типа MetricsServer и запускает gRPC-сервер.
-func New(uc usecase.IServer, l logger.ILogger, cfg *config.Config) {
-	metricsSrv := &MetricsServer{
-		uc:     uc,
-		logger: l,
+func New(uc usecase.IServer, l logger.ILogger, cfg *config.Config) *MetricsServer {
+	return &MetricsServer{
+		address: cfg.GRPCAddress,
+		uc:      uc,
+		logger:  l,
 	}
+}
 
+func (s *MetricsServer) Run() {
 	go func() {
-		listen, err := net.Listen("tcp", cfg.GRPCAddress)
+		listen, err := net.Listen("tcp", s.address)
 		if err != nil {
-			l.Fatal(fmt.Errorf("gRPC - net.Listen: %w", err))
+			s.logger.Fatal(fmt.Errorf("gRPC - net.Listen: %w", err))
 		}
 
 		// создаём gRPC-сервер без зарегистрированной службы
 		grpcSrv := grpc.NewServer()
 		// регистрируем сервис
-		pb.RegisterMetricsServer(grpcSrv, metricsSrv)
+		pb.RegisterMetricsServer(grpcSrv, s)
 
-		l.Info("gRPC run: %s", cfg.GRPCAddress)
+		s.logger.Info("gRPC run: %s", s.address)
 
 		// получаем запрос gRPC
 		if err = grpcSrv.Serve(listen); err != nil {
-			l.Fatal(fmt.Errorf("gRPC - Serve: %w", err))
+			s.logger.Fatal(fmt.Errorf("gRPC - Serve: %w", err))
 		}
 	}()
 }

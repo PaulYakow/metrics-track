@@ -39,12 +39,8 @@ func ExampleNewRouter() {
 	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	// Ожидаем один из сигналов прерывания (от системы либо ошибка сервера
-	select {
-	case s := <-interrupt:
-		l.Info("server - Run - signal: %v", s.String())
-	case err = <-srv.Notify():
-		l.Error(fmt.Errorf("server - Run - Notify: %w", err))
-	}
+	s := <-interrupt
+	l.Info("server - Run - signal: %v", s.String())
 
 	// Завершение сервера
 	err = srv.Shutdown()

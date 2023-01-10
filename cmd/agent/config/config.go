@@ -15,14 +15,15 @@ import (
 // Config конфигурация клиента (привязка переменных окружения).
 type Config struct {
 	Address         string        `env:"ADDRESS" env-default:"localhost:8080"`
-	GRPCTarget      string        `env:"GRPC_TARGET" env-default:""`
-	Key             string        `env:"KEY" env-default:""`
+	GRPCTarget      string        `env:"GRPC_TARGET"`
+	Key             string        `env:"KEY"`
 	ReportInterval  time.Duration `env:"REPORT_INTERVAL" env-default:"10s"`
 	PollInterval    time.Duration `env:"POLL_INTERVAL" env-default:"2s"`
 	PathToCryptoKey string        `env:"CRYPTO_KEY"`
 	RealIP          string        `env:"REAL_IP" env-default:"127.0.0.1"`
 }
 
+// Структуры для обработки значений из флагов
 var address = struct {
 	name         string
 	shorthand    string
