@@ -52,7 +52,6 @@ func (s *Server) Shutdown() error {
 
 func (s *Server) Run() {
 	go func() {
-
 		if err := s.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Println(err, s.Shutdown())
 		}

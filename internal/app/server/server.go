@@ -21,6 +21,7 @@ import (
 )
 
 type Server struct {
+	config  *config.Config
 	logger  *logger.Logger
 	repo    usecase.IServerRepo
 	hasher  usecase.IHasher
@@ -29,13 +30,20 @@ type Server struct {
 	grpcSrv *v2.MetricsServer
 }
 
+// New собирает сервер из слоёв (хранилище, логика, сервисы).
 func New(cfg *config.Config) *Server {
 	s := &Server{
+		config: cfg,
 		logger: logger.New(),
 		hasher: hasher.New(cfg.Key),
 	}
 
-	s.repo = s.createServerRepo(cfg)
+	if cfg.Dsn != "" {
+		s.repo = s.createDBRepo()
+	} else if cfg.StoreFile != "" && s.repo == nil {
+		s.repo = s.createMemoryRepo()
+	}
+
 	s.usecase = usecase.NewServerUC(s.repo, s.hasher)
 
 	// HTTP server
@@ -54,10 +62,16 @@ func New(cfg *config.Config) *Server {
 	return s
 }
 
-// Run собирает сервер из слоёв (хранилище, логика, сервисы).
+// Run запускает сервер.
 // В конце организован graceful shutdown.
 func (s *Server) Run() {
 	defer s.logger.Exit()
+
+	if _, ok := s.repo.(*repo.ServerMemoryRepo); ok {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		s.startScheduler(ctx)
+	}
 
 	if s.httpSrv != nil {
 		s.httpSrv.Run()
@@ -75,46 +89,41 @@ func (s *Server) Run() {
 	s.logger.Info("server - Run - signal: %v", sig.String())
 
 	// Shutdown
+	if err := s.repo.CloseConnection(); err != nil {
+		s.logger.Error(fmt.Errorf("server - Run - close connection to repo: %w", err))
+	}
+
 	if err := s.httpSrv.Shutdown(); err != nil {
-		s.logger.Error(fmt.Errorf("server - Run - Shutdown: %w", err))
+		s.logger.Error(fmt.Errorf("server - Run - shutdown httpserver: %w", err))
 	}
 }
 
-func (s *Server) createServerRepo(cfg *config.Config) usecase.IServerRepo {
-	// In-memory storage
-	var serverRepo usecase.IServerRepo = repo.NewServerMemory()
+func (s *Server) createMemoryRepo() *repo.ServerMemoryRepo {
+	return repo.NewServerMemory()
+}
 
-	// File or db storage
-	storage := false
-
-	if cfg.Dsn != "" {
-		pg, err := postgre.New(cfg.Dsn)
-		if err != nil {
-			s.logger.Fatal(fmt.Errorf("server - Run - postgre.New: %w", err))
-		}
-		defer pg.Close()
-		s.logger.Info("server - Run - PSQL connection ok")
-
-		serverRepo, err = repo.NewSqlxImpl(pg)
-		if err != nil {
-			s.logger.Fatal(fmt.Errorf("server - Run - repo.New: %w", err))
-		}
-		storage = true
-		s.logger.Info("server - Run - PSQL in use")
+func (s *Server) createDBRepo() *repo.ServerSqlxImpl {
+	pg, err := postgre.New(s.config.Dsn)
+	if err != nil {
+		s.logger.Fatal(fmt.Errorf("server - Run - postgre.New: %w", err))
 	}
+	//defer pg.Close()
+	s.logger.Info("server - Run - PSQL connection ok")
 
-	if cfg.StoreFile != "" && !storage {
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
-
-		// memory <-> repo
-		scheduler, err := server.NewScheduler(serverRepo, cfg.StoreFile, s.logger)
-		if err != nil {
-			s.logger.Error(fmt.Errorf("server - run scheduler: %w", err))
-		}
-		scheduler.Run(ctx, cfg.Restore, cfg.StoreInterval)
-		s.logger.Info("server - Run - file storage in use")
+	serverRepo, err := repo.NewSqlxImpl(pg)
+	if err != nil {
+		s.logger.Fatal(fmt.Errorf("server - Run - repo.New: %w", err))
 	}
+	s.logger.Info("server - Run - PSQL in use")
 
 	return serverRepo
+}
+
+func (s *Server) startScheduler(ctx context.Context) {
+	scheduler, err := server.NewScheduler(s.repo, s.config.StoreFile, s.logger)
+	if err != nil {
+		s.logger.Error(fmt.Errorf("server - run scheduler: %w", err))
+	}
+	scheduler.Run(ctx, s.config.Restore, s.config.StoreInterval)
+	s.logger.Info("server - Run - file storage in use")
 }

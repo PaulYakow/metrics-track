@@ -60,6 +60,8 @@ type (
 		ReadAll(ctx context.Context) ([]entity.Metric, error)
 		// CheckConnection - проверка соединения.
 		CheckConnection() error
+		// CloseConnection - закрытие соединения с БД.
+		CloseConnection() error
 	}
 )
 

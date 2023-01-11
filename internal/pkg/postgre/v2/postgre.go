@@ -72,3 +72,7 @@ func New(dsn string, opts ...Option) (*Postgre, error) {
 
 	return pg, nil
 }
+
+func (pg *Postgre) Shutdown() error {
+	return pg.Close()
+}
