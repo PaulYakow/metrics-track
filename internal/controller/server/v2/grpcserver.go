@@ -5,8 +5,12 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/netip"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 
 	"github.com/PaulYakow/metrics-track/cmd/server/config"
 	"github.com/PaulYakow/metrics-track/internal/entity"
@@ -18,18 +22,29 @@ import (
 // MetricsServer управляет обработкой gRPC запросов.
 type MetricsServer struct {
 	pb.UnimplementedMetricsServer
-	address string
-	uc      usecase.IServer
-	logger  logger.ILogger
+	address       string
+	uc            usecase.IServer
+	logger        logger.ILogger
+	trustedSubnet netip.Prefix
 }
 
 // New создаёт объект типа MetricsServer и запускает gRPC-сервер.
 func New(uc usecase.IServer, l logger.ILogger, cfg *config.Config) *MetricsServer {
-	return &MetricsServer{
+	s := &MetricsServer{
 		address: cfg.GRPCAddress,
 		uc:      uc,
 		logger:  l,
 	}
+
+	if cfg.TrustedSubnet != "" {
+		var err error
+		s.trustedSubnet, err = netip.ParsePrefix(cfg.TrustedSubnet)
+		if err != nil {
+			s.logger.Fatal(err)
+		}
+	}
+
+	return s
 }
 
 func (s *MetricsServer) Run() {
@@ -40,7 +55,7 @@ func (s *MetricsServer) Run() {
 		}
 
 		// создаём gRPC-сервер без зарегистрированной службы
-		grpcSrv := grpc.NewServer()
+		grpcSrv := grpc.NewServer(grpc.UnaryInterceptor(s.checkIPInterceptor))
 		// регистрируем сервис
 		pb.RegisterMetricsServer(grpcSrv, s)
 
@@ -195,4 +210,32 @@ func (s *MetricsServer) CheckRepo(ctx context.Context, in *pb.CheckRepoRequest) 
 	}
 
 	return &response, nil
+}
+
+func (s *MetricsServer) checkIPInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	var realIP string
+	if md, ok := metadata.FromIncomingContext(ctx); ok {
+		values := md.Get("real_ip")
+		if len(values) > 0 {
+			realIP = values[0]
+		}
+	}
+
+	if realIP == "" {
+		s.logger.Error(fmt.Errorf("missing trusted subnet in metadata"))
+		return nil, status.Error(codes.FailedPrecondition, "missing trusted subnet")
+	}
+
+	ip, err := netip.ParseAddr(realIP)
+	if err != nil {
+		s.logger.Error(fmt.Errorf("check IP of agent: %w", err))
+		return nil, status.Error(codes.Internal, "check IP error")
+	}
+
+	if !s.trustedSubnet.Contains(ip) {
+		s.logger.Error(fmt.Errorf("no such IP in trusted: %s", ip))
+		return nil, status.Error(codes.PermissionDenied, "no such IP in trusted")
+	}
+
+	return handler(ctx, req)
 }

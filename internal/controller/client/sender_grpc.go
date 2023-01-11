@@ -9,6 +9,7 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 
 	"github.com/PaulYakow/metrics-track/cmd/agent/config"
 	"github.com/PaulYakow/metrics-track/internal/pkg/logger"
@@ -49,6 +50,9 @@ func (s *GRPCSender) Run(ctx context.Context, wg *sync.WaitGroup, cfg *config.Co
 	defer conn.Close()
 
 	s.client = pb.NewMetricsClient(conn)
+
+	md := metadata.New(map[string]string{"real_ip": cfg.RealIP})
+	ctx = metadata.NewOutgoingContext(ctx, md)
 
 	s.logger.Info("gRPC sender - run with params: target=%s | report=%v | crypto=%s",
 		cfg.GRPCTarget, cfg.ReportInterval, cfg.PathToCryptoKey)
