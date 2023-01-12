@@ -161,6 +161,14 @@ func NewServerConfig() (*Config, error) {
 	return cfg, nil
 }
 
+func (cfg *Config) UseHTTPServer() bool {
+	return cfg.Address != ""
+}
+
+func (cfg *Config) UseGRPCServer() bool {
+	return cfg.GRPCAddress != ""
+}
+
 func (cfg *Config) updateCfgFromFlags() {
 	address.value = pflag.StringP(address.name, address.shorthand, address.defaultValue, "address of HTTP-server in host:port format")
 	grpcAddress.value = pflag.StringP(grpcAddress.name, grpcAddress.shorthand, grpcAddress.defaultValue, "grpc address in :port format")

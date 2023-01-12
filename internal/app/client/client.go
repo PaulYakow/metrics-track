@@ -40,11 +40,11 @@ func New(cfg *config.Config) *Client {
 	c.usecase = usecase.NewClientUC(context.Background(), c.repo, c.hasher)
 	c.collector = client.NewCollector(c.usecase, c.logger)
 
-	if cfg.Address != "" && cfg.GRPCTarget == "" {
+	if cfg.UseHTTPClient() {
 		endpoint := fmt.Sprintf("http://%s/updates/", cfg.Address)
 		c.sender = client.NewHTTPSender(httpclient.New(httpclient.RealIP(cfg.RealIP)), c.usecase, endpoint, c.logger, cfg)
 
-	} else if cfg.GRPCTarget != "" {
+	} else if cfg.UseGRPCClient() {
 		c.sender = client.NewGRPCSender(c.usecase, c.logger)
 	}
 

@@ -134,6 +134,14 @@ func NewClientConfig() (*Config, error) {
 	return cfg, nil
 }
 
+func (cfg *Config) UseHTTPClient() bool {
+	return cfg.Address != "" && cfg.GRPCTarget == ""
+}
+
+func (cfg *Config) UseGRPCClient() bool {
+	return cfg.GRPCTarget != ""
+}
+
 func (cfg *Config) updateCfgFromFlags() {
 	address.value = pflag.StringP(address.name, address.shorthand, address.defaultValue, "address of client in host:port format")
 	grpcTarget.value = pflag.StringP(grpcTarget.name, grpcTarget.shorthand, grpcTarget.defaultValue, "grpc target in host:port format")

@@ -47,7 +47,7 @@ func New(cfg *config.Config) *Server {
 	s.usecase = usecase.NewServerUC(s.repo, s.hasher)
 
 	// HTTP server
-	if cfg.Address != "" {
+	if cfg.UseHTTPServer() {
 		handler := serverCtrl.NewRouter(s.usecase, s.logger, cfg)
 		s.httpSrv = httpserver.New(handler, httpserver.Address(cfg.Address))
 		s.logger.Info("server - run with params: a=%s | i=%v | f=%s | r=%v | k=%v | d=%s | crypto=%s",
@@ -55,7 +55,7 @@ func New(cfg *config.Config) *Server {
 	}
 
 	// gRPC server
-	if cfg.GRPCAddress != "" {
+	if cfg.UseGRPCServer() {
 		s.grpcSrv = v2.New(s.usecase, s.logger, cfg)
 	}
 

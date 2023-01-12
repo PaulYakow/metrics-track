@@ -7,8 +7,8 @@ option go_package = "metrics-track/proto";
 message Metric {
   string id = 1; // имя метрики
   string mType = 2; // параметр, принимающий значение gauge или counter
-  int64 delta = 3; // значение метрики в случае передачи counter
-  double value = 4; // значение метрики в случае передачи gauge
+  optional int64 delta = 3; // значение метрики в случае передачи counter
+  optional double value = 4; // значение метрики в случае передачи gauge
   string hash = 5; // значение хеш-функции
 }
 
