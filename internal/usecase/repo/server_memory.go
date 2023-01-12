@@ -87,3 +87,7 @@ var errNoConnection = errors.New("not implement to file storage")
 func (repo *ServerMemoryRepo) CheckConnection() error {
 	return errNoConnection
 }
+
+func (repo *ServerMemoryRepo) CloseConnection() error {
+	return nil
+}

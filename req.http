@@ -62,7 +62,7 @@ Content-Type: application/json
 {
   "id": "jsonCounter",
   "type": "counter",
-  "delta": 777
+  "delta": 1
 }
 
 ### read counter by JSON

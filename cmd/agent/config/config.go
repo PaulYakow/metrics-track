@@ -15,12 +15,15 @@ import (
 // Config конфигурация клиента (привязка переменных окружения).
 type Config struct {
 	Address         string        `env:"ADDRESS" env-default:"localhost:8080"`
-	Key             string        `env:"KEY" env-default:""`
+	GRPCTarget      string        `env:"GRPC_TARGET"`
+	Key             string        `env:"KEY"`
 	ReportInterval  time.Duration `env:"REPORT_INTERVAL" env-default:"10s"`
 	PollInterval    time.Duration `env:"POLL_INTERVAL" env-default:"2s"`
 	PathToCryptoKey string        `env:"CRYPTO_KEY"`
+	RealIP          string        `env:"REAL_IP" env-default:"127.0.0.1"`
 }
 
+// Структуры для обработки значений из флагов
 var address = struct {
 	name         string
 	shorthand    string
@@ -30,7 +33,19 @@ var address = struct {
 	"address",
 	"a",
 	new(string),
-	"localhost:8080",
+	"",
+}
+
+var grpcTarget = struct {
+	name         string
+	shorthand    string
+	value        *string
+	defaultValue string
+}{
+	"grpc",
+	"g",
+	new(string),
+	"",
 }
 
 var reportInterval = struct {
@@ -93,6 +108,18 @@ var pathToConfig = struct {
 	"",
 }
 
+var realIP = struct {
+	name         string
+	shorthand    string
+	value        *string
+	defaultValue string
+}{
+	"ip",
+	"i",
+	new(string),
+	"127.0.0.1",
+}
+
 // NewClientConfig - создаёт объект Config.
 func NewClientConfig() (*Config, error) {
 	cfg := &Config{}
@@ -107,12 +134,22 @@ func NewClientConfig() (*Config, error) {
 	return cfg, nil
 }
 
+func (cfg *Config) UseHTTPClient() bool {
+	return cfg.Address != "" && cfg.GRPCTarget == ""
+}
+
+func (cfg *Config) UseGRPCClient() bool {
+	return cfg.GRPCTarget != ""
+}
+
 func (cfg *Config) updateCfgFromFlags() {
 	address.value = pflag.StringP(address.name, address.shorthand, address.defaultValue, "address of client in host:port format")
+	grpcTarget.value = pflag.StringP(grpcTarget.name, grpcTarget.shorthand, grpcTarget.defaultValue, "grpc target in host:port format")
 	reportInterval.value = pflag.DurationP(reportInterval.name, reportInterval.shorthand, reportInterval.defaultValue, "report interval in seconds")
 	pollInterval.value = pflag.DurationP(pollInterval.name, pollInterval.shorthand, pollInterval.defaultValue, "poll interval in seconds")
 	hashKey.value = pflag.StringP(hashKey.name, hashKey.shorthand, hashKey.defaultValue, "hash key")
 	pathToCryptoKey.value = pflag.StringP(pathToCryptoKey.name, pathToCryptoKey.shorthand, pathToCryptoKey.defaultValue, "path to crypto key")
+	realIP.value = pflag.StringP(realIP.name, realIP.shorthand, realIP.defaultValue, "real IP for header X-Real-IP")
 
 	pathToConfig.value = pflag.StringP(pathToConfig.name, pathToConfig.shorthand, pathToConfig.defaultValue, "path to config file")
 
@@ -136,6 +173,10 @@ func (cfg *Config) updateCfgFromFlags() {
 		cfg.PathToCryptoKey = *pathToCryptoKey.value
 	}
 
+	if *realIP.value != realIP.defaultValue || cfg.RealIP == "" {
+		cfg.RealIP = *realIP.value
+	}
+
 	cfg.Key = *hashKey.value
 }
 
@@ -154,6 +195,7 @@ func (cfg *Config) updateCfgFromJSON(path string) {
 		cfg.PollInterval = cfgFromJSON.PollInterval.Duration
 		cfg.ReportInterval = cfgFromJSON.ReportInterval.Duration
 		cfg.PathToCryptoKey = cfgFromJSON.PathToCryptoKey
+		cfg.RealIP = cfgFromJSON.RealIP
 	}
 }
 
@@ -190,6 +232,7 @@ type CfgFromJSON struct {
 	ReportInterval  Duration `json:"report_interval"`
 	PollInterval    Duration `json:"poll_interval"`
 	PathToCryptoKey string   `json:"crypto_key"`
+	RealIP          string   `json:"real_ip"`
 }
 
 func (cfg *CfgFromJSON) loadConfigFromJSON(path string) error {

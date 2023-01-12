@@ -18,6 +18,7 @@ const (
 type Client struct {
 	client          *req.Client
 	shutdownTimeout time.Duration
+	realIP          string
 }
 
 // New - создаёт объект Client и применяет заданные настройки.
@@ -75,6 +76,7 @@ func (c *Client) PostByJSONBatch(route string, data []byte) error {
 		SetContext(ctx).
 		SetHeader("Accept-Encoding", "gzip, deflate, br").
 		SetHeader("Content-Type", "application/json").
+		SetHeader("X-Real-IP", c.realIP).
 		SetBody(data).
 		Post(route)
 

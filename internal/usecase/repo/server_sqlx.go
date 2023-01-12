@@ -102,3 +102,7 @@ func (repo *ServerSqlxImpl) CheckConnection() error {
 
 	return nil
 }
+
+func (repo *ServerSqlxImpl) CloseConnection() error {
+	return repo.Shutdown()
+}

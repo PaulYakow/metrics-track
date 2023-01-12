@@ -29,8 +29,8 @@ func main() {
 	}
 
 	printInfo()
-
-	client.Run(cfg)
+	c := client.New(cfg)
+	c.Run()
 }
 
 func printInfo() {

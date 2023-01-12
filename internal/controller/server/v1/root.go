@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"net/netip"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -27,9 +28,10 @@ const (
 var tmpl *template.Template
 
 type serverRoutes struct {
-	uc      usecase.IServer
-	logger  logger.ILogger
-	decoder *pki.Decryptor
+	uc            usecase.IServer
+	logger        logger.ILogger
+	decoder       *pki.Decryptor
+	trustedSubnet netip.Prefix
 }
 
 // NewRouter формирует основной роутер для обработки запросов (на основе chi).
@@ -47,11 +49,23 @@ func NewRouter(uc usecase.IServer, l logger.ILogger, cfg *config.Config) chi.Rou
 		}
 	}
 
+	if cfg.TrustedSubnet != "" {
+		var err error
+		s.trustedSubnet, err = netip.ParsePrefix(cfg.TrustedSubnet)
+		if err != nil {
+			s.logger.Fatal(err)
+		}
+	}
+
 	tmpl = template.Must(template.ParseFiles(templateName))
 
 	mux := chi.NewRouter()
 	mux.Use(middleware.Recoverer)
 	mux.Use(compressGzip)
+
+	if cfg.TrustedSubnet != "" {
+		mux.Use(s.checkRealIP)
+	}
 
 	mux.Get("/", s.listOfMetrics)
 	mux.Get(pingRoute, s.pingDB)

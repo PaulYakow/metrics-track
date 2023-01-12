@@ -29,7 +29,8 @@ func main() {
 
 	printInfo()
 
-	server.Run(cfg)
+	srv := server.New(cfg)
+	srv.Run()
 }
 
 func printInfo() {

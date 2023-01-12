@@ -12,12 +12,12 @@ services:
     ports:
       - "5432:5432"
 
-  pg-admin:
-    image: dpage/pgadmin4:6.13
-    container_name: pg-admin
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@pgadmin.org
-      - PGADMIN_DEFAULT_PASSWORD=root
-      - PGADMIN_LISTEN_PORT=5050
-    ports:
-      - "5050:5050"
+#  pg-admin:
+#    image: dpage/pgadmin4:6.13
+#    container_name: pg-admin
+#    environment:
+#      - PGADMIN_DEFAULT_EMAIL=admin@pgadmin.org
+#      - PGADMIN_DEFAULT_PASSWORD=root
+#      - PGADMIN_LISTEN_PORT=5050
+#    ports:
+#      - "5050:5050"

@@ -12,6 +12,13 @@ func Address(address string) Option {
 	}
 }
 
+// RealIP задаёт IP-адрес хоста клиента (для заголовка X-Real-IP).
+func RealIP(ip string) Option {
+	return func(c *Client) {
+		c.realIP = ip
+	}
+}
+
 // Timeout задаёт время ожидания для запросов.
 func Timeout(timeout time.Duration) Option {
 	return func(c *Client) {

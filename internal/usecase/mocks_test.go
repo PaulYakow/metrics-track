@@ -279,6 +279,20 @@ func (mr *MockIServerRepoMockRecorder) CheckConnection() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckConnection", reflect.TypeOf((*MockIServerRepo)(nil).CheckConnection))
 }
 
+// CloseConnection mocks base method.
+func (m *MockIServerRepo) CloseConnection() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CloseConnection")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CloseConnection indicates an expected call of CloseConnection.
+func (mr *MockIServerRepoMockRecorder) CloseConnection() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CloseConnection", reflect.TypeOf((*MockIServerRepo)(nil).CloseConnection))
+}
+
 // Read mocks base method.
 func (m *MockIServerRepo) Read(ctx context.Context, metric entity.Metric) (*entity.Metric, error) {
 	m.ctrl.T.Helper()
